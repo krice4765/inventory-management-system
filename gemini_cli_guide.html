@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini CLI ガイド</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #0056b3;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        code {
+            background-color: #e9e9e9;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        pre {
+            background-color: #e9e9e9;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 5px solid #ffeeba;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        ul {
+            list-style-type: disc;
+            margin-left: 20px;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gemini CLI ガイド</h1>
+
+        <p>このドキュメントは、Gemini CLI (Command Line Interface) の使い方を理解し、効果的に活用するためのガイドです。</p>
+
+        <h2>Gemini CLI とは？</h2>
+        <p>Gemini CLI は、Google の Gemini モデルを搭載した対話型コマンドラインエージェントです。ソフトウェアエンジニアリングタスクを安全かつ効率的に実行できるように設計されています。コードの読み書き、ファイルの操作、シェルコマンドの実行など、様々なタスクを自然言語で指示することで実行できます。</p>
+
+        <h2>基本的な使い方</h2>
+        <p>Gemini CLI との対話は、通常のチャットのように自然言語で行います。CLI はあなたの指示を理解し、適切なツールを呼び出してタスクを実行します。</p>
+
+        <h3>コマンドとツールの利用</h3>
+        <p>Gemini CLI は、内部的に様々なツール（関数）を使用してタスクを実行します。例えば、ファイルの読み込みには <code>read_file</code>、ディレクトリのリスト表示には <code>list_directory</code>、シェルコマンドの実行には <code>run_shell_command</code> などがあります。</p>
+        <p>あなたはこれらのツール名を直接入力する必要はありません。CLI があなたの意図を解釈し、自動的に適切なツールを選択します。</p>
+
+        <h3>重要な考慮事項</h3>
+        <ul>
+            <li><strong>絶対パスの使用:</strong> ファイルやディレクトリを指定する際は、常に絶対パスを使用してください。例えば、<code>C:\Users\YourUser\project\file.txt</code> のように指定します。</li>
+            <li><strong>コンテキストの提供:</strong> CLI は現在の作業ディレクトリやファイル構造のコンテキストを理解しています。しかし、より複雑なタスクでは、関連するファイルの内容やプロジェクトの構造について追加の情報を提供すると、より正確な結果が得られます。</li>
+            <li><strong>安全な操作:</strong> CLI は、ファイルシステムを変更する可能性のあるコマンドを実行する前に、その目的と潜在的な影響について説明します。これにより、意図しない変更を防ぎ、安全に作業を進めることができます。</li>
+            <li><strong>日本語での対話:</strong> 日本語での指示も可能です。CLI は日本語を理解し、日本語で応答します。</li>
+        </ul>
+
+        <h2>よく使う操作例</h2>
+
+        <h3>ファイルの読み込み</h3>
+        <p>特定のファイルの内容を読みたい場合。</p>
+        <pre><code>C:\Users\kuris\Documents\AIproject\gemini-cli-tutorial\src\pages\index.tsx の内容を教えてください。</code></pre>
+
+        <h3>ディレクトリの内容表示</h3>
+        <p>現在のディレクトリや特定のディレクトリ内のファイルとフォルダをリスト表示したい場合。</p>
+        <pre><code>現在のディレクトリのファイルをリストしてください。</code></pre>
+        <pre><code>C:\Users\kuris\Documents\AIproject\gemini-cli-tutorial\Excel_VBA_FileSplitter\src の内容をリストしてください。</code></pre>
+
+        <h3>ファイルの作成・編集</h3>
+        <p>新しいファイルを作成したり、既存のファイルを編集したりする場合。</p>
+        <pre><code>新しいファイル test.txt を作成し、"Hello, Gemini!" と書き込んでください。</code></pre>
+        <pre><code>C:\Users\kuris\Documents\AIproject\gemini-cli-tutorial\test.txt の "Hello, Gemini!" を "Hello, World!" に変更してください。</code></pre>
+
+        <h3>シェルコマンドの実行</h3>
+        <p>CLI から直接シェルコマンドを実行したい場合。</p>
+        <pre><code>npm install を実行してください。</code></pre>
+        <pre><code>ls -l を実行してください。</code></pre>
+        <div class="note">
+            <strong>注意:</strong> ファイルシステムを変更する可能性のあるシェルコマンドを実行する際は、CLI がそのコマンドの目的と影響を説明します。
+        </div>
+
+        <h3>コードの生成・修正</h3>
+        <p>特定の機能を持つコードを生成したり、既存のコードのバグを修正したりする場合。</p>
+        <pre><code>Pythonでフィボナッチ数列を計算する関数を書いてください。</code></pre>
+        <pre><code>src/utils.js の calculateSum 関数にバグがあるので修正してください。</code></pre>
+
+        <h3>Web検索</h3>
+        <p>インターネット上の情報を検索したい場合。</p>
+        <pre><code>最新のReactのバージョンは何ですか？</code></pre>
+
+        <h2>困ったときは</h2>
+        <ul>
+            <li><strong>エラーメッセージ:</strong> CLI からエラーメッセージが表示された場合は、その内容をよく読み、指示に従ってください。特にパスの指定ミスや権限の問題が多いです。</li>
+            <li><strong>不明な点:</strong> 何か不明な点があれば、遠慮なく質問してください。CLI はあなたの質問に答えることができます。</li>
+            <li><strong>ヘルプコマンド:</strong> <code>/help</code> と入力すると、CLI のヘルプ情報を表示できます。</li>
+        </ul>
+
+        <p>Gemini CLI を活用して、開発作業をより効率的に進めましょう！</p>
+    </div>
+</body>
+</html>
