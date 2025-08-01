@@ -1,0 +1,785 @@
+# **Excel VBA AdvancedUtils 総合ファイル管理ツール（CUI重視版）**
+
+ご依頼いただいたCUI重視・簡易GUI設計の総合ファイル管理ツール「AdvancedUtils」を作成いたします。VBAエディタのイミディエイトウィンドウをメイン画面とした簡潔な設計で、実用的なファイル管理機能を提供します。
+
+## **📁 プロジェクト構造**
+
+```
+Excel_VBA_AdvancedUtils/
+├── AdvancedUtils_Manager.xlsm     # メインExcelファイル
+├── src/                           # VBAソースファイル（参考用）
+├── output/                        # 結果出力先
+├── docs/                          # 簡易ドキュメント
+└── setup_excel_vba_advancedutils_cui.ps1  # セットアップスクリプト
+```
+
+## **🚀 セットアップスクリプト**
+
+**setup_excel_vba_advancedutils_cui.ps1**
+
+```powershell
+# AdvancedUtils CUI版 セットアップスクリプト
+param(
+    [string]$InstallPath = "$env:USERPROFILE\Documents\Excel_VBA_AdvancedUtils"
+)
+
+Write-Host "======================================" -ForegroundColor Cyan
+Write-Host "AdvancedUtils CUI版 セットアップ開始" -ForegroundColor Cyan
+Write-Host "======================================" -ForegroundColor Cyan
+
+# プロジェクト構造作成
+$folders = @("src", "output", "docs")
+foreach ($folder in $folders) {
+    $path = Join-Path $InstallPath $folder
+    if (!(Test-Path $path)) {
+        New-Item -ItemType Directory -Path $path -Force | Out-Null
+        Write-Host "フォルダ作成: $folder" -ForegroundColor Green
+    }
+}
+
+# README作成
+$readmeContent = @"
+AdvancedUtils - 総合ファイル管理ツール (CUI重視版)
+===============================================
+
+セットアップ手順:
+1. AdvancedUtils_Manager.xlsmを作成
+2. VBAエディタでモジュールを追加
+3. 提供されたコードを各モジュールに貼り付け
+4. イミディエイトウィンドウで Call ShowMenu() を実行
+
+基本コマンド:
+- Call ShowMenu()        # メニュー表示
+- Call DetectDuplicates() # 重複ファイル検出
+- Call AnalyzeDisk()     # ディスク分析
+- Call OrganizeFiles()   # ファイル整理
+- Call ShowSystemInfo()  # システム情報
+"@
+
+$readmeContent | Out-File -FilePath "$InstallPath\docs\README.txt" -Encoding UTF8
+
+Write-Host "======================================" -ForegroundColor Cyan
+Write-Host "セットアップ完了！" -ForegroundColor Green
+Write-Host "次の手順:" -ForegroundColor Yellow
+Write-Host "1. '$InstallPath' フォルダにAdvancedUtils_Manager.xlsmを作成" -ForegroundColor White
+Write-Host "2. VBAエディタを開き、提供されたコードを貼り付け" -ForegroundColor White
+Write-Host "3. イミディエイトウィンドウで Call ShowMenu() を実行" -ForegroundColor White
+Write-Host "======================================" -ForegroundColor Cyan
+```
+
+## **🔧 VBAコード実装**
+
+### **メインモジュール (Module_Main.bas)**
+
+```vba
+Option Explicit
+
+Sub ShowMenu()
+    Debug.Print "====================================="
+    Debug.Print "AdvancedUtils v2.0 - CUI版メニュー"
+    Debug.Print "====================================="
+    Debug.Print "1. 重複ファイル検出・削除 - Call DetectDuplicates()"
+    Debug.Print "2. ディスク使用量分析    - Call AnalyzeDisk()"
+    Debug.Print "3. ファイル整理・分類    - Call OrganizeFiles()"
+    Debug.Print "4. システム情報表示      - Call ShowSystemInfo()"
+    Debug.Print "5. 設定フォーム表示      - Call ShowSettingsForm()"
+    Debug.Print "====================================="
+    Debug.Print "使用方法: 上記のCall文をコピーして実行"
+    Debug.Print "出力先: " & GetOutputPath()
+    Debug.Print "====================================="
+End Sub
+
+Sub DetectDuplicates()
+    Dim targetPath As String
+    targetPath = BrowseForFolder("重複ファイル検出対象フォルダを選択")
+    
+    If targetPath = "" Then
+        Debug.Print "処理がキャンセルされました"
+        Exit Sub
+    End If
+    
+    Module_DuplicateDetector.DetectDuplicatesMain targetPath
+End Sub
+
+Sub AnalyzeDisk()
+    Dim targetPath As String
+    targetPath = BrowseForFolder("ディスク分析対象フォルダを選択")
+    
+    If targetPath = "" Then
+        Debug.Print "処理がキャンセルされました"
+        Exit Sub
+    End If
+    
+    Module_DiskAnalyzer.AnalyzeDiskMain targetPath
+End Sub
+
+Sub OrganizeFiles()
+    Dim targetPath As String
+    targetPath = BrowseForFolder("ファイル整理対象フォルダを選択")
+    
+    If targetPath = "" Then
+        Debug.Print "処理がキャンセルされました"
+        Exit Sub
+    End If
+    
+    Module_FileOrganizer.OrganizeFilesMain targetPath
+End Sub
+
+Sub ShowSystemInfo()
+    Module_SystemInfo.ShowSystemInfoMain
+End Sub
+
+Sub ShowSettingsForm()
+    UserForm_Simple.Show
+End Sub
+
+Sub Menu()
+    ShowMenu
+End Sub
+
+Sub Help()
+    Debug.Print "====================================="
+    Debug.Print "AdvancedUtils ヘルプ"
+    Debug.Print "====================================="
+    Debug.Print "基本コマンド:"
+    Debug.Print "  ShowMenu()        - メニュー表示"
+    Debug.Print "  DetectDuplicates() - 重複ファイル検出"
+    Debug.Print "  AnalyzeDisk()     - ディスク分析"
+    Debug.Print "  OrganizeFiles()   - ファイル整理"
+    Debug.Print "  ShowSystemInfo()  - システム情報"
+    Debug.Print ""
+    Debug.Print "出力先: " & GetOutputPath()
+    Debug.Print "====================================="
+End Sub
+```
+
+### **ユーティリティモジュール (Module_Utility.bas)**
+
+```vba
+Option Explicit
+
+Function BrowseForFolder(Optional ByVal title As String = "フォルダを選択") As String
+    Dim shell As Object
+    Set shell = CreateObject("Shell.Application")
+    
+    Dim folder As Object
+    Set folder = shell.BrowseForFolder(0, title, 0)
+    
+    If Not folder Is Nothing Then
+        BrowseForFolder = folder.Self.Path
+    Else
+        BrowseForFolder = ""
+    End If
+End Function
+
+Function GetOutputPath() As String
+    Dim fso As Object
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    
+    Dim outputPath As String
+    outputPath = ThisWorkbook.Path & "\output"
+    
+    If Not fso.FolderExists(outputPath) Then
+        fso.CreateFolder outputPath
+    End If
+    
+    GetOutputPath = outputPath
+End Function
+
+Function FormatBytes(bytes As Double) As String
+    If bytes >= 1073741824 Then
+        FormatBytes = Format(bytes / 1073741824, "0.00") & " GB"
+    ElseIf bytes >= 1048576 Then
+        FormatBytes = Format(bytes / 1048576, "0.00") & " MB"
+    ElseIf bytes >= 1024 Then
+        FormatBytes = Format(bytes / 1024, "0.00") & " KB"
+    Else
+        FormatBytes = bytes & " bytes"
+    End If
+End Function
+
+Sub WriteTextToFile(filePath As String, content As String)
+    Dim fileNum As Integer
+    fileNum = FreeFile
+    
+    On Error GoTo ErrorHandler
+    Open filePath For Output As #fileNum
+    Print #fileNum, content
+    Close #fileNum
+    Exit Sub
+    
+ErrorHandler:
+    Debug.Print "ファイル書き込みエラー: " & Err.Description
+    If fileNum <> 0 Then Close #fileNum
+End Sub
+
+Function GetSimpleFileHash(filePath As String) As String
+    Dim fso As Object
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    
+    On Error GoTo ErrorHandler
+    If fso.FileExists(filePath) Then
+        Dim file As Object
+        Set file = fso.GetFile(filePath)
+        GetSimpleFileHash = CStr(file.Size) & "_" & CStr(file.DateLastModified)
+    Else
+        GetSimpleFileHash = ""
+    End If
+    Exit Function
+    
+ErrorHandler:
+    Debug.Print "ハッシュ計算エラー: " & Err.Description
+    GetSimpleFileHash = ""
+End Function
+
+Function CreateDictionary() As Object
+    Set CreateDictionary = CreateObject("Scripting.Dictionary")
+End Function
+```
+
+### **重複ファイル検出モジュール (Module_DuplicateDetector.bas)**
+
+```vba
+Option Explicit
+
+Sub DetectDuplicatesMain(targetFolder As String)
+    Debug.Print "====================================="
+    Debug.Print "重複ファイル検出開始"
+    Debug.Print "対象フォルダ: " & targetFolder
+    Debug.Print "====================================="
+    
+    Dim fileDict As Object
+    Set fileDict = CreateDictionary()
+    
+    Dim duplicates As Object
+    Set duplicates = CreateDictionary()
+    
+    ScanForDuplicates targetFolder, fileDict, duplicates
+    
+    Dim reportContent As String
+    reportContent = "重複ファイル検出レポート (" & Now & ")" & vbCrLf
+    reportContent = reportContent & String(50, "=") & vbCrLf
+    reportContent = reportContent & "対象フォルダ: " & targetFolder & vbCrLf & vbCrLf
+    
+    If duplicates.Count = 0 Then
+        Debug.Print "重複ファイルは見つかりませんでした。"
+        reportContent = reportContent & "重複ファイルは見つかりませんでした。"
+    Else
+        Debug.Print "重複ファイルが見つかりました (" & duplicates.Count & "グループ):"
+        reportContent = reportContent & "重複ファイルが見つかりました (" & duplicates.Count & "グループ):" & vbCrLf
+        
+        Dim key As Variant
+        For Each key In duplicates.Keys
+            Debug.Print vbCrLf & "グループ " & key & ":"
+            reportContent = reportContent & vbCrLf & "グループ " & key & ":" & vbCrLf
+            
+            Dim fileList As Variant
+            fileList = Split(duplicates(key), "|")
+            
+            Dim i As Integer
+            For i = 0 To UBound(fileList)
+                Debug.Print "  - " & fileList(i)
+                reportContent = reportContent & "  - " & fileList(i) & vbCrLf
+            Next i
+        Next key
+        
+        Dim confirmDelete As VbMsgBoxResult
+        confirmDelete = MsgBox("重複ファイルを削除しますか？（最初の1つを残して削除）", vbYesNo + vbQuestion, "削除確認")
+        
+        If confirmDelete = vbYes Then
+            DeleteDuplicateFiles duplicates, reportContent
+        End If
+    End If
+    
+    Dim outputFile As String
+    outputFile = GetOutputPath() & "\duplicate_files_report.txt"
+    WriteTextToFile outputFile, reportContent
+    
+    Debug.Print "レポート保存完了: " & outputFile
+    Debug.Print "====================================="
+End Sub
+
+Private Sub ScanForDuplicates(folderPath As String, fileDict As Object, duplicates As Object)
+    Dim fso As Object
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    
+    Dim folder As Object
+    Set folder = fso.GetFolder(folderPath)
+    
+    Dim file As Object
+    For Each file In folder.Files
+        Dim fileHash As String
+        fileHash = GetSimpleFileHash(file.Path)
+        
+        If fileHash <> "" Then
+            If fileDict.Exists(fileHash) Then
+                If duplicates.Exists(fileHash) Then
+                    duplicates(fileHash) = duplicates(fileHash) & "|" & file.Path
+                Else
+                    duplicates.Add fileHash, fileDict(fileHash) & "|" & file.Path
+                End If
+                Debug.Print "重複発見: " & file.Name
+            Else
+                fileDict.Add fileHash, file.Path
+            End If
+        End If
+    Next file
+    
+    Dim subFolder As Object
+    For Each subFolder In folder.SubFolders
+        ScanForDuplicates subFolder.Path, fileDict, duplicates
+    Next subFolder
+End Sub
+
+Private Sub DeleteDuplicateFiles(duplicates As Object, ByRef reportContent As String)
+    Dim fso As Object
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    
+    Debug.Print vbCrLf & "重複ファイル削除開始..."
+    reportContent = reportContent & vbCrLf & "重複ファイル削除開始..." & vbCrLf
+    
+    Dim key As Variant
+    For Each key In duplicates.Keys
+        Dim fileList As Variant
+        fileList = Split(duplicates(key), "|")
+        
+        Dim i As Integer
+        For i = 1 To UBound(fileList)
+            On Error Resume Next
+            fso.DeleteFile fileList(i), True
+            If Err.Number = 0 Then
+                Debug.Print "削除完了: " & fileList(i)
+                reportContent = reportContent & "削除完了: " & fileList(i) & vbCrLf
+            Else
+                Debug.Print "削除失敗: " & fileList(i) & " (" & Err.Description & ")"
+                reportContent = reportContent & "削除失敗: " & fileList(i) & " (" & Err.Description & ")" & vbCrLf
+            End If
+            On Error GoTo 0
+        Next i
+    Next key
+    
+    Debug.Print "重複ファイル削除完了"
+    reportContent = reportContent & "重複ファイル削除完了" & vbCrLf
+End Sub
+```
+
+### **ディスク分析モジュール (Module_DiskAnalyzer.bas)**
+
+```vba
+Option Explicit
+
+Sub AnalyzeDiskMain(targetFolder As String)
+    Debug.Print "====================================="
+    Debug.Print "ディスク使用量分析開始"
+    Debug.Print "対象フォルダ: " & targetFolder
+    Debug.Print "====================================="
+    
+    Dim csvContent As String
+    csvContent = "フォルダパス,サイズ(バイト),サイズ(表示用)" & vbCrLf
+    
+    Debug.Print "フォルダ名                           サイズ"
+    Debug.Print "------------------------------------------------"
+    
+    AnalyzeFolderRecursive targetFolder, csvContent, 0
+    
+    Dim outputFile As String
+    outputFile = GetOutputPath() & "\disk_usage_report.csv"
+    WriteTextToFile outputFile, csvContent
+    
+    Debug.Print "================================================"
+    Debug.Print "分析完了 - CSVレポート: " & outputFile
+    Debug.Print "====================================="
+End Sub
+
+Private Sub AnalyzeFolderRecursive(folderPath As String, ByRef csvContent As String, level As Integer)
+    Dim fso As Object
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    
+    On Error GoTo ErrorHandler
+    
+    Dim folder As Object
+    Set folder = fso.GetFolder(folderPath)
+    
+    Dim folderSize As Double
+    folderSize = GetFolderSize(folder)
+    
+    Dim indent As String
+    indent = String(level * 2, " ")
+    
+    Debug.Print indent & folder.Name & " (" & FormatBytes(folderSize) & ")"
+    csvContent = csvContent & """" & folder.Path & """," & folderSize & ",""" & FormatBytes(folderSize) & """" & vbCrLf
+    
+    If level < 2 Then
+        Dim subFolder As Object
+        For Each subFolder In folder.SubFolders
+            AnalyzeFolderRecursive subFolder.Path, csvContent, level + 1
+        Next subFolder
+    End If
+    
+    Exit Sub
+    
+ErrorHandler:
+    Debug.Print "分析エラー: " & folderPath & " (" & Err.Description & ")"
+End Sub
+
+Private Function GetFolderSize(folder As Object) As Double
+    Dim totalSize As Double
+    totalSize = 0
+    
+    On Error Resume Next
+    
+    Dim file As Object
+    For Each file In folder.Files
+        totalSize = totalSize + file.Size
+    Next file
+    
+    Dim subFolder As Object
+    For Each subFolder In folder.SubFolders
+        totalSize = totalSize + GetFolderSize(subFolder)
+    Next subFolder
+    
+    On Error GoTo 0
+    GetFolderSize = totalSize
+End Function
+```
+
+### **ファイル整理モジュール (Module_FileOrganizer.bas)**
+
+```vba
+Option Explicit
+
+Sub OrganizeFilesMain(targetFolder As String)
+    Debug.Print "====================================="
+    Debug.Print "ファイル整理・分類開始"
+    Debug.Print "対象フォルダ: " & targetFolder
+    Debug.Print "====================================="
+    
+    Dim logContent As String
+    logContent = "ファイル整理ログ (" & Now & ")" & vbCrLf
+    logContent = logContent & String(50, "=") & vbCrLf
+    logContent = logContent & "対象フォルダ: " & targetFolder & vbCrLf & vbCrLf
+    
+    logContent = logContent & "【処理前状況】" & vbCrLf
+    logContent = logContent & GetFileSummary(targetFolder) & vbCrLf
+    
+    OrganizeByExtension targetFolder, logContent
+    
+    logContent = logContent & vbCrLf & "【処理後状況】" & vbCrLf
+    logContent = logContent & GetFileSummary(targetFolder) & vbCrLf
+    
+    Dim outputFile As String
+    outputFile = GetOutputPath() & "\file_organization_log.txt"
+    WriteTextToFile outputFile, logContent
+    
+    Debug.Print "整理完了 - ログ: " & outputFile
+    Debug.Print "====================================="
+End Sub
+
+Private Sub OrganizeByExtension(folderPath As String, ByRef logContent As String)
+    Dim fso As Object
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    
+    Dim folder As Object
+    Set folder = fso.GetFolder(folderPath)
+    
+    Dim file As Object
+    For Each file In folder.Files
+        Dim fileExt As String
+        fileExt = LCase(fso.GetExtensionName(file.Name))
+        
+        Dim categoryFolder As String
+        categoryFolder = GetFileCategory(fileExt)
+        
+        If categoryFolder <> "" Then
+            Dim destFolder As String
+            destFolder = folderPath & "\" & categoryFolder
+            
+            If Not fso.FolderExists(destFolder) Then
+                fso.CreateFolder destFolder
+                Debug.Print "フォルダ作成: " & categoryFolder
+                logContent = logContent & "フォルダ作成: " & categoryFolder & vbCrLf
+            End If
+            
+            Dim newPath As String
+            newPath = destFolder & "\" & file.Name
+            
+            On Error Resume Next
+            file.Move newPath
+            If Err.Number = 0 Then
+                Debug.Print "移動: " & file.Name & " -> " & categoryFolder
+                logContent = logContent & "移動: " & file.Name & " -> " & categoryFolder & vbCrLf
+            Else
+                Debug.Print "移動失敗: " & file.Name & " (" & Err.Description & ")"
+                logContent = logContent & "移動失敗: " & file.Name & " (" & Err.Description & ")" & vbCrLf
+            End If
+            On Error GoTo 0
+        End If
+    Next file
+End Sub
+
+Private Function GetFileCategory(extension As String) As String
+    Select Case extension
+        Case "jpg", "jpeg", "png", "gif", "bmp", "tiff", "webp"
+            GetFileCategory = "Images"
+        Case "mp4", "avi", "mov", "wmv", "flv", "mkv", "webm"
+            GetFileCategory = "Videos"
+        Case "mp3", "wav", "flac", "aac", "ogg", "m4a"
+            GetFileCategory = "Audio"
+        Case "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "rtf"
+            GetFileCategory = "Documents"
+        Case "zip", "rar", "7z", "tar", "gz", "bz2"
+            GetFileCategory = "Archives"
+        Case "exe", "msi", "dmg", "pkg", "deb", "rpm"
+            GetFileCategory = "Programs"
+        Case Else
+            GetFileCategory = "Others"
+    End Select
+End Function
+
+Private Function GetFileSummary(folderPath As String) As String
+    Dim fso As Object
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    
+    On Error GoTo ErrorHandler
+    
+    Dim folder As Object
+    Set folder = fso.GetFolder(folderPath)
+    
+    Dim fileCount As Long
+    fileCount = folder.Files.Count
+    
+    Dim totalSize As Double
+    totalSize = 0
+    
+    Dim file As Object
+    For Each file In folder.Files
+        totalSize = totalSize + file.Size
+    Next file
+    
+    GetFileSummary = "  ファイル数: " & fileCount & " 個" & vbCrLf & _
+                    "  総サイズ: " & FormatBytes(totalSize) & vbCrLf
+    Exit Function
+    
+ErrorHandler:
+    GetFileSummary = "  エラー: ファイル情報を取得できませんでした" & vbCrLf
+End Function
+```
+
+### **システム情報モジュール (Module_SystemInfo.bas)**
+
+```vba
+Option Explicit
+
+Sub ShowSystemInfoMain()
+    Debug.Print "====================================="
+    Debug.Print "システム情報表示"
+    Debug.Print "====================================="
+    
+    Dim infoContent As String
+    infoContent = "システム情報レポート (" & Now & ")" & vbCrLf
+    infoContent = infoContent & String(50, "=") & vbCrLf
+    
+    DisplayDriveInfo infoContent
+    DisplaySystemSpecs infoContent
+    DisplayExcelInfo infoContent
+    
+    Dim outputFile As String
+    outputFile = GetOutputPath() & "\system_info.txt"
+    WriteTextToFile outputFile, infoContent
+    
+    Debug.Print "システム情報保存: " & outputFile
+    Debug.Print "====================================="
+End Sub
+
+Private Sub DisplayDriveInfo(ByRef infoContent As String)
+    Debug.Print vbCrLf & "** ドライブ情報 **"
+    infoContent = infoContent & vbCrLf & "** ドライブ情報 **" & vbCrLf
+    
+    Dim fso As Object
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    
+    Dim drive As Object
+    For Each drive In fso.Drives
+        If drive.IsReady Then
+            Dim driveInfo As String
+            driveInfo = drive.DriveLetter & ": " & _
+                       FormatBytes(drive.FreeSpace) & " / " & _
+                       FormatBytes(drive.TotalSize) & " (" & _
+                       Format((drive.TotalSize - drive.FreeSpace) / drive.TotalSize, "0.0%") & " 使用中)"
+            
+            Debug.Print driveInfo
+            infoContent = infoContent & driveInfo & vbCrLf
+        End If
+    Next drive
+End Sub
+
+Private Sub DisplaySystemSpecs(ByRef infoContent As String)
+    Debug.Print vbCrLf & "** システム仕様 **"
+    infoContent = infoContent & vbCrLf & "** システム仕様 **" & vbCrLf
+    
+    On Error Resume Next
+    
+    Dim wmi As Object
+    Set wmi = GetObject("winmgmts:")
+    
+    Dim computer As Object
+    Set computer = wmi.ExecQuery("SELECT * FROM Win32_ComputerSystem").ItemIndex(0)
+    
+    If Not computer Is Nothing Then
+        Debug.Print "コンピュータ名: " & computer.Name
+        Debug.Print "総メモリ: " & FormatBytes(computer.TotalPhysicalMemory)
+        infoContent = infoContent & "コンピュータ名: " & computer.Name & vbCrLf
+        infoContent = infoContent & "総メモリ: " & FormatBytes(computer.TotalPhysicalMemory) & vbCrLf
+    End If
+    
+    Dim os As Object
+    Set os = wmi.ExecQuery("SELECT * FROM Win32_OperatingSystem").ItemIndex(0)
+    
+    If Not os Is Nothing Then
+        Debug.Print "OS: " & os.Caption
+        Debug.Print "バージョン: " & os.Version
+        infoContent = infoContent & "OS: " & os.Caption & vbCrLf
+        infoContent = infoContent & "バージョン: " & os.Version & vbCrLf
+    End If
+    
+    On Error GoTo 0
+End Sub
+
+Private Sub DisplayExcelInfo(ByRef infoContent As String)
+    Debug.Print vbCrLf & "** Excel情報 **"
+    infoContent = infoContent & vbCrLf & "** Excel情報 **" & vbCrLf
+    
+    Debug.Print "バージョン: " & Application.Version
+    Debug.Print "現在のブック: " & ActiveWorkbook.Name
+    infoContent = infoContent & "バージョン: " & Application.Version & vbCrLf
+    infoContent = infoContent & "現在のブック: " & ActiveWorkbook.Name & vbCrLf
+End Sub
+```
+
+### **簡易GUIフォーム (UserForm_Simple)**
+
+**フォームデザイン:**
+- TextBox: `txtFolderPath` (フォルダパス入力)
+- CommandButton: `btnBrowse` (参照ボタン)
+- OptionButton: `optDuplicate`, `optDisk`, `optOrganize` (機能選択)
+- CommandButton: `btnExecute`, `btnCancel` (実行・キャンセル)
+
+**フォームコード:**
+
+```vba
+Option Explicit
+
+Private Sub UserForm_Initialize()
+    Me.Caption = "AdvancedUtils 簡易設定"
+    
+    optDuplicate.Caption = "重複ファイル検出"
+    optDisk.Caption = "ディスク使用量分析"
+    optOrganize.Caption = "ファイル整理・分類"
+    
+    optDuplicate.Value = True
+    
+    btnExecute.Caption = "実行"
+    btnCancel.Caption = "キャンセル"
+    
+    txtFolderPath.Text = CreateObject("WScript.Shell").SpecialFolders("Desktop")
+End Sub
+
+Private Sub btnBrowse_Click()
+    Dim folderPath As String
+    folderPath = BrowseForFolder("処理対象フォルダを選択")
+    If folderPath <> "" Then
+        txtFolderPath.Text = folderPath
+    End If
+End Sub
+
+Private Sub btnExecute_Click()
+    Dim selectedPath As String
+    selectedPath = txtFolderPath.Text
+    
+    If selectedPath = "" Then
+        MsgBox "フォルダを選択してください", vbExclamation
+        Exit Sub
+    End If
+    
+    Me.Hide
+    
+    If optDuplicate.Value Then
+        Module_DuplicateDetector.DetectDuplicatesMain selectedPath
+    ElseIf optDisk.Value Then
+        Module_DiskAnalyzer.AnalyzeDiskMain selectedPath
+    ElseIf optOrganize.Value Then
+        Module_FileOrganizer.OrganizeFilesMain selectedPath
+    End If
+    
+    Unload Me
+End Sub
+
+Private Sub btnCancel_Click()
+    Unload Me
+End Sub
+```
+
+## **📖 使用方法**
+
+### **セットアップ手順**
+
+1. **PowerShellスクリプト実行**
+   ```powershell
+   .\setup_excel_vba_advancedutils_cui.ps1
+   ```
+
+2. **Excelファイル作成**
+   - `Excel_VBA_AdvancedUtils` フォルダに `AdvancedUtils_Manager.xlsm` を作成
+   - マクロを有効にして保存
+
+3. **VBAコード追加**
+   - Alt+F11でVBAエディタを開く
+   - 各モジュールを作成し、上記コードを貼り付け
+   - UserFormを作成し、コントロールを配置してコードを追加
+
+### **基本操作**
+
+**CUI操作（メイン）:**
+```vba
+Call ShowMenu()          ' メニュー表示
+Call DetectDuplicates()  ' 重複ファイル検出
+Call AnalyzeDisk()       ' ディスク分析
+Call OrganizeFiles()     ' ファイル整理
+Call ShowSystemInfo()    ' システム情報
+```
+
+**簡易GUI操作:**
+```vba
+Call ShowSettingsForm()  ' 設定フォーム表示
+```
+
+### **出力ファイル**
+
+- `output/duplicate_files_report.txt` - 重複ファイル検出結果
+- `output/disk_usage_report.csv` - ディスク使用量分析結果
+- `output/file_organization_log.txt` - ファイル整理ログ
+- `output/system_info.txt` - システム情報
+
+## **🎯 主な特徴**
+
+**CUI重視設計:**
+- VBAエディタのイミディエイトウィンドウがメイン画面
+- Debug.Printによる詳細な処理状況表示
+- 直接的なSubプロシージャ実行方式
+
+**最小限GUI:**
+- フォルダ選択と機能選択のみの簡素なフォーム
+- 複雑なナビゲーションを排除
+
+**実用的機能:**
+- 重複ファイルの検出と削除
+- 階層的ディスク使用量分析
+- 拡張子別ファイル自動整理
+- システム情報の詳細表示
+
+**安全性:**
+- 削除処理前の確認ダイアログ
+- 基本的なエラーハンドリング
+- 処理ログの自動保存
+
+このツールにより、VBAエディタ環境で効率的なファイル管理作業が可能になります。CUI重視の設計により、処理状況を詳細に把握しながら作業を進めることができます。
