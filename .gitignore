@@ -16,27 +16,46 @@
 /build
 
 # misc
-.DS_Store
 *.pem
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .env*.local
 .vercel
-.idea
-.vscode
 *.tgz
-*.log
 
-# Mac
+# Project organization
+archive/
+separate_projects/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+env/
+
+# Build artifacts  
+*.egg-info/
+
+# Logs and temporary files
+logs/
+*.tmp
+*.temp
+
+# Test artifacts
+e2e_test_report_*.txt
+debug_*.txt
+validation.py
+out.json
+
+# IDE/Editor
+.vscode/
+.idea/
+*.code-workspace
+
+# OS generated
 .DS_Store
-
-# Windows
 Thumbs.db
 ehthumbs.db
 Desktop.ini
-
-# Visual Studio Code
-.vscode/
-
-
