@@ -1,10 +1,11 @@
 import logging
 import os
+import sys
 
-def setup_logging(log_file="app.log", level=logging.INFO):
+def setup_logging(level=logging.DEBUG):
     """
     ロギングを設定します。
-    コンソールとファイルにログを出力します。
+    コンソール（stderr）にログを出力します。
     """
     # ルートロガーを取得
     logger = logging.getLogger()
@@ -15,22 +16,15 @@ def setup_logging(log_file="app.log", level=logging.INFO):
         for handler in logger.handlers:
             logger.removeHandler(handler)
 
-    # コンソールハンドラ
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-    logger.addHandler(console_handler)
+    # stderrにのみ出力するハンドラを設定
+    handler = logging.StreamHandler(stream=sys.stderr)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(levelname)s - %(message)s'
+    )
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
-    # ファイルハンドラ
-    # ログファイルのディレクトリが存在しない場合は作成
-    log_dir = os.path.dirname(log_file)
-    if log_dir and not os.path.exists(log_dir):
-        os.makedirs(log_dir)
-
-    file_handler = logging.FileHandler(log_file, encoding='utf-8')
-    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-    logger.addHandler(file_handler)
-
-    logging.info(f"Logging setup complete. Log file: {os.path.abspath(log_file)}")
+    logging.info(f"Logging setup complete. Logs directed to stderr.")
 
 if __name__ == "__main__":
     # テスト用

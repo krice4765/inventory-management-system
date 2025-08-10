@@ -115,6 +115,8 @@ def test_duplicate_move_basic(temp_test_dir):
     ], cwd=temp_test_dir)
 
     assert returncode == 0, f"移動コマンドが失敗: {stderr}"
+    print(f"STDOUT: {stdout}")
+    print(f"STDERR: {stderr}")
     assert not (source_dir / "file_a.txt").exists()
     assert (dest_dir / "file_a.txt").exists()
     assert "ファイル移動完了" in stdout or "moved" in stdout.lower()
