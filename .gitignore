@@ -77,3 +77,4 @@ logs/
 *.tmp 
 out.json 
 logs.txt 
+.quarantine/

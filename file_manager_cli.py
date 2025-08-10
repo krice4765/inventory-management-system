@@ -6,9 +6,9 @@ import shlex
 from pathlib import Path
 import signal
 
-from file_management_tool.config import Config, MoveConflictBehavior
+from file_management_tool.config import Config, default_config, normalize_conflict_behavior
 from file_management_tool.logger import setup_logging
-from file_management_tool.utils import format_output, restore_file
+from file_management_tool.utils import format_output, restore_file, MoveConflictBehavior, safe_move_file
 from file_management_tool.disk_analyzer import analyze_disk_usage
 
 # Set up logging for the CLI application
@@ -129,8 +129,8 @@ def create_parser(config):
     move_parser.add_argument("destination_path", help="移動先ファイルのパス")
     move_parser.add_argument("--target-dir", required=True, help="移動先ディレクトリ")
     move_parser.add_argument("--on-conflict", 
-                             choices=["skip", "overwrite", "rename", "confirm"],
-                             default="confirm",
+                             choices=["ask", "skip", "overwrite", "rename", "backup", "quit", "all-skip", "all-overwrite"],
+                             default="ask",
                              help="ファイル競合時の動作")
     move_parser.add_argument("--backup", action="store_true", help="バックアップを作成")
     move_parser.add_argument("--dry-run", action="store_true", help="実行せずに表示のみ")
@@ -172,7 +172,11 @@ def process_command(args, common_args, config_instance):
         elif args.command == "duplicate":
             # DuplicateDetectorインスタンスの作成（config_instanceを使用）
             from file_management_tool.duplicate_detector import DuplicateDetector
-            detector = DuplicateDetector(config_instance)
+            detector = DuplicateDetector(
+                config=config_instance,
+                algorithm=config_instance.get('duplicate_hash_algorithm', 'md5'),
+                min_size=config_instance.get('duplicate_min_size', 1)
+            )
 
             if args.duplicate_action == "list":
                 # 重複ファイル検出と表示
@@ -226,9 +230,17 @@ def process_command(args, common_args, config_instance):
                         logger.info(f"バックアップファイルを一時ファイルとして登録: {backup_file_path}")
 
                 # 競合動作の設定
-                conflict_behavior = MoveConflictBehavior(config_instance.get('move_conflict_behavior'))
+                # CLI引数で指定された場合はそれを優先し、正規化
                 if getattr(args, 'on_conflict', None):
-                    conflict_behavior = MoveConflictBehavior(args.on_conflict)
+                    normalized_cli_behavior = normalize_conflict_behavior(args.on_conflict)
+                    try:
+                        conflict_behavior = MoveConflictBehavior(normalized_cli_behavior)
+                    except ValueError as e:
+                        logger.warning(f"CLI引数 --on-conflict に無効な値が指定されました: {args.on_conflict}. デフォルト設定を使用します。エラー: {e}")
+                        conflict_behavior = config_instance.move_conflict_behavior
+                else:
+                    # CLI引数がない場合は設定ファイルの値を使用
+                    conflict_behavior = config_instance.move_conflict_behavior
 
                 # all_skip_activeフラグの初期化
                 all_skip_active = False
@@ -245,10 +257,18 @@ def process_command(args, common_args, config_instance):
                         all_skip_active
                     )
 
-                    if moved:
-                        format_output({ "status": "success", "message": f"ファイル移動完了: {source_path} -> {destination_path}"}, args.output_format, args.output_file)
-                    else:
-                        format_output({ "status": "skipped", "message": f"ファイル移動をスキップしました: {source_path}"}, args.output_format, args.output_file)
+                    output_data = { "status": "success", "message": f"ファイル移動完了: {source_path} -> {destination_path}"} if moved else { "status": "skipped", "message": f"ファイル移動をスキップしました: {source_path}"}
+                    rendered = format_output(
+                        output_data,
+                        format_type=args.output_format,
+                        output_file=args.output_file,
+                        command=args.command
+                    )
+                    if rendered is not None:
+                        if not rendered.endswith("\n"):
+                            rendered = rendered + "\n"
+                        sys.stdout.write(rendered)
+                        sys.stdout.flush()
 
                 except InterruptedByUserError:
                     logger.info("ユーザーの選択によりアプリケーションを終了します。")
@@ -257,8 +277,39 @@ def process_command(args, common_args, config_instance):
 
         elif args.command == "disk_usage":
             paths = args.path if isinstance(args.path, (list, tuple)) else [args.path]
-            usage_results = analyze_disk_usage(paths, getattr(args, 'exclude', None))
-            format_output(usage_results, args.output_format, args.output_file, command="disk_usage")
+            usage_results_raw = analyze_disk_usage(paths, getattr(args, 'exclude', None))
+            
+            # ★★★ 新しい変換処理 ★★★
+            # タプルのリストを辞書のリストに変換
+            result = usage_results_raw # 初期化
+            try:
+                if isinstance(usage_results_raw, list) and usage_results_raw:
+                    # 最初の要素がタプルかどうかチェック
+                    if isinstance(usage_results_raw[0], tuple) and len(usage_results_raw[0]) >= 2:
+                        result = [{"path": item[0], "size": item[1]} for item in usage_results_raw]
+                    # 既に辞書形式の場合はそのまま使用
+                    elif isinstance(usage_results_raw[0], dict):
+                        pass  # 既に正しい形式
+                    else:
+                        logger.warning(f"予期しないdisk_usage結果形式: {type(usage_results_raw[0])}")
+            except (IndexError, TypeError, AttributeError) as e:
+                logger.warning(f"disk_usage結果の変換中にエラーが発生しました: {e}")
+                # エラーの場合は元の結果をそのまま使用
+            
+            # 既存のformat_output処理
+            rendered = format_output(
+                result, # 変換後の結果を渡す
+                format_type=args.output_format,
+                output_file=args.output_file,
+                command=args.command
+            )
+            
+            # 既存の出力処理
+            if rendered is not None:
+                if not rendered.endswith("\n"):
+                    rendered = rendered + "\n"
+                sys.stdout.write(rendered)
+                sys.stdout.flush()
 
         elif args.command == "restore":
             restore_file(args.backup_path, args.original_filepath)
