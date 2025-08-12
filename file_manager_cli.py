@@ -11,9 +11,40 @@ from file_management_tool.logger import setup_logging
 from file_management_tool.utils import format_output, restore_file, MoveConflictBehavior, safe_move_file
 from file_management_tool.disk_analyzer import analyze_disk_usage
 
+import json
+import hashlib
+
+import csv
+import io
+
 # Set up logging for the CLI application
 setup_logging()
 logger = logging.getLogger(__name__)
+
+def ensure_parent_dir(path: str):
+    """親ディレクトリが存在しない場合は作成"""
+    p = Path(path)
+    if p.parent and not p.parent.exists():
+        p.parent.mkdir(parents=True, exist_ok=True)
+
+def write_output(content: str, output_file: str = None, encoding: str = 'utf-8'):
+    """統一された出力処理関数 - UTF-8保証"""
+    if output_file:
+        try:
+            ensure_parent_dir(output_file)
+            with open(output_file, "w", encoding=encoding, newline="") as f:
+                f.write(content)
+            logger.info(f"結果を '{output_file}' にUTF-8で出力しました")
+        except IOError as e:
+            logger.error(f"ファイル '{output_file}' への書き込みエラー: {e}")
+            raise
+    else:
+        # stdoutに純粋な結果のみ出力
+        sys.stdout.write(content)
+        if not content.endswith("\n"):
+            sys.stdout.write("\n")
+        sys.stdout.flush()
+
 
 # Global variables for Ctrl+C handling
 cleanup_in_progress = False
@@ -179,38 +210,155 @@ def process_command(args, common_args, config_instance):
             )
 
             if args.duplicate_action == "list":
-                # 重複ファイル検出と表示
-                duplicates = detector.find_duplicates(args.path)
-                if not duplicates:
-                    logger.info("重複ファイルは見つかりませんでした。")
-                    return
+                """重複ファイル検出 - 全出力形式対応"""
+                logging.info(f"重複ファイル検出を開始: {args.path}")
+                
+                paths = args.path if isinstance(args.path, list) else [args.path]
+                
+                # ファイルのハッシュを計算してグルーピング
+                hash_groups = {}
+                for path_str in paths:
+                    path = Path(path_str)
+                    if not path.exists():
+                        logging.error(f"パス '{path_str}' が存在しません")
+                        continue
 
-                format_output(
-                    duplicates,
-                    args.output_format,
-                    args.output_file,
-                    command="duplicate",
-                    columns=getattr(args, 'columns', None),
-                    sort_by=getattr(args, 'sort_by', None),
-                    filter_by=getattr(args, 'filter', None)
-                )
+                    for file_path in path.rglob('*'):
+                        if file_path.is_file():
+                            try:
+                                # チャンク読み込みによる効率的なハッシュ計算
+                                file_hash = hashlib.md5()
+                                with open(file_path, 'rb') as f:
+                                    while chunk := f.read(8192):
+                                        file_hash.update(chunk)
+                                
+                                hash_value = file_hash.hexdigest()
+                                if hash_value not in hash_groups:
+                                    hash_groups[hash_value] = []
+                                # 重要: 文字列として格納してJSON serialization問題を回避
+                                hash_groups[hash_value].append(str(file_path))
+                                
+                            except (OSError, PermissionError) as e:
+                                logging.warning(f"ファイル読み取りエラー: {file_path} - {e}")
+                
+                # 重複ファイルのみ抽出
+                duplicate_groups = {k: v for k, v in hash_groups.items() if len(v) > 1}
+                logging.info(f"重複グループ数: {len(duplicate_groups)}")
+                
+                # 出力形式別の処理
+                if args.output_format == 'json':
+                    # v0.3.0対応のJSON形式
+                    json_data = []
+                    for hash_val, files in duplicate_groups.items():
+                        json_data.append({
+                            "hash": hash_val,
+                            "files": files  # 既に文字列化済み
+                        })
+                    output = json.dumps(json_data, ensure_ascii=False, indent=2)
+                    
+                elif args.output_format == 'csv':
+                    buf = io.StringIO()
+                    writer = csv.writer(buf)
+                    writer.writerow(['group_id', 'hash', 'file_path'])
+                    for group_id, (hash_val, files) in enumerate(duplicate_groups.items(), 1):
+                        for file_path in files:
+                            writer.writerow([group_id, hash_val, file_path])
+                    output = buf.getvalue().rstrip('\n')
+                    
+                else:  # log format
+                    if duplicate_groups:
+                        output_lines = ["重複ファイルが検出されました:"]
+                        for i, (hash_val, files) in enumerate(duplicate_groups.items(), 1):
+                            output_lines.append(f"\nグループ {i} (ハッシュ: {hash_val[:8]}...):")
+                            for file_path in files:
+                                output_lines.append(f"  - {file_path}")
+                        output = "\n".join(output_lines)
+                    else:
+                        output = "重複ファイルは見つかりませんでした。"
+                
+                # 統一された出力処理
+                try:
+                    write_output(output, args.output_file)
+                except IOError:
+                    pass
 
             elif args.duplicate_action == "remove":
-                # 重複ファイル検出と削除
-                duplicates = detector.find_duplicates(args.path)
-                if not duplicates:
-                    logger.info("重複ファイルは見つかりませんでした。")
-                    return
-
-                detector.manage_duplicates(
-                    duplicates,
-                    action="削除",
-                    interactive=getattr(args, 'interactive', False),
-                    keep_newest=getattr(args, 'keep_newest', False),
-                    dry_run=getattr(args, 'dry_run', False),
-                    enable_backup=getattr(args, 'backup', False),
-                    backup_dir=config_instance.get("backup_dir")
-                )
+                """重複ファイル削除（ドライラン対応） - 統一出力対応"""
+                if args.dry_run:
+                    logging.info("ドライランモードで重複ファイル削除をシミュレーション")
+                else:
+                    logging.info("重複ファイル削除を実行")
+                
+                paths = args.path if isinstance(args.path, list) else [args.path]
+                hash_groups = {}
+                for path_str in paths:
+                    path = Path(path_str)
+                    if not path.exists():
+                        logging.error(f"パス '{path_str}' が存在しません")
+                        continue
+                
+                    # 重複検出（duplicate_list_commandと同じロジック）
+                    for file_path in path.rglob('*'):
+                        if file_path.is_file():
+                            try:
+                                file_hash = hashlib.md5()
+                                with open(file_path, 'rb') as f:
+                                    while chunk := f.read(8192):
+                                        file_hash.update(chunk)
+                                
+                                hash_value = file_hash.hexdigest()
+                                if hash_value not in hash_groups:
+                                    hash_groups[hash_value] = []
+                                hash_groups[hash_value].append(file_path)  # Pathオブジェクトのまま保持（削除用）
+                                
+                            except (OSError, PermissionError) as e:
+                                logging.warning(f"ファイル読み取りエラー: {file_path} - {e}")
+                
+                # 重複ファイルのみ抽出
+                duplicate_groups = {k: v for k, v in hash_groups.items() if len(v) > 1}
+                
+                # 削除処理と結果記録
+                output_lines = []
+                if args.dry_run:
+                    output_lines.append("ドライランモード: 実際にはファイルを削除しません")
+                
+                removed_count = 0
+                if duplicate_groups:
+                    for i, (hash_val, files) in enumerate(duplicate_groups.items(), 1):
+                        output_lines.append(f"\nグループ {i} (ハッシュ: {hash_val[:8]}...):")
+                        output_lines.append(f"  残すファイル: {files[0]}")
+                        
+                        # 最初のファイルを残し、残りを削除対象
+                        for file_path in files[1:]:
+                            if args.dry_run:
+                                output_lines.append(f"  [DRY RUN] 削除対象: {file_path}")
+                            else:
+                                try:
+                                    file_path.unlink()
+                                    output_lines.append(f"  削除しました: {file_path}")
+                                    logging.info(f"ファイルを削除: {file_path}")
+                                except (OSError, PermissionError) as e:
+                                    output_lines.append(f"  削除エラー: {file_path} - {e}")
+                                    logging.error(f"削除エラー: {file_path} - {e}")
+                            removed_count += 1
+                else:
+                    output_lines.append("重複ファイルは見つかりませんでした。")
+                
+                # 結果サマリー
+                if args.dry_run:
+                    output_lines.append(f"\n[DRY RUN] {removed_count}個のファイルが削除対象です")
+                else:
+                    if removed_count > 0:
+                        output_lines.append(f"\n{removed_count}個のファイルを削除しました")
+                
+                output = "\n".join(output_lines)
+                
+                # 統一された出力処理
+                try:
+                    write_output(output, args.output_file)
+                    logging.info("重複ファイルの管理が完了しました。")
+                except IOError:
+                    pass
 
             elif args.duplicate_action == "move":
                 # 重複検出をスキップして直接safe_move_fileを呼び出す修正（致命的バグテスト用）
@@ -276,40 +424,51 @@ def process_command(args, common_args, config_instance):
                     logger.error(f"ファイル移動処理中に予期せぬエラーが発生しました: {e}")
 
         elif args.command == "disk_usage":
-            paths = args.path if isinstance(args.path, (list, tuple)) else [args.path]
-            usage_results_raw = analyze_disk_usage(paths, getattr(args, 'exclude', None))
+            "ディスク使用量分析 - v0.3.0新形式対応"
+            logging.info(f"ディスク使用量分析を開始: {args.path}")
             
-            # ★★★ 新しい変換処理 ★★★
-            # タプルのリストを辞書のリストに変換
-            result = usage_results_raw # 初期化
+            # パス存在チェック
+            paths = args.path if isinstance(args.path, list) else [args.path]
+            
+            files_info = []
+            for path_str in paths:
+                path = Path(path_str)
+                if not path.exists():
+                    logging.warning(f"パスが見つかりません: {path_str}")
+                    continue
+                    
+                # ファイルサイズ情報を収集
+                for file_path in path.rglob('*'):
+                    if file_path.is_file():
+                        try:
+                            size = file_path.stat().st_size
+                            # v0.3.0の新形式: 辞書配列（文字列化保証）
+                            files_info.append({"path": str(file_path), "size": size})
+                        except (OSError, PermissionError) as e:
+                            logging.warning(f"ファイルアクセスエラー: {file_path} - {e}")
+            
+            # サイズ順でソート
+            files_info.sort(key=lambda x: x['size'], reverse=True)
+            logging.info(f"分析完了: {len(files_info)}個のファイルを検出")
+            
+            # 出力形式の処理
+            if args.output_format == 'json':
+                output = json.dumps(files_info, ensure_ascii=False, indent=2)
+            elif args.output_format == 'csv':
+                buf = io.StringIO()
+                writer = csv.writer(buf)
+                writer.writerow(['path', 'size'])
+                for item in files_info:
+                    writer.writerow([item['path'], item['size']])
+                output = buf.getvalue().rstrip('\n')
+            else:  # log format
+                output = "\n".join(f"{item['path']}: {item['size']} bytes" for item in files_info)
+            
+            # 統一された出力処理
             try:
-                if isinstance(usage_results_raw, list) and usage_results_raw:
-                    # 最初の要素がタプルかどうかチェック
-                    if isinstance(usage_results_raw[0], tuple) and len(usage_results_raw[0]) >= 2:
-                        result = [{"path": item[0], "size": item[1]} for item in usage_results_raw]
-                    # 既に辞書形式の場合はそのまま使用
-                    elif isinstance(usage_results_raw[0], dict):
-                        pass  # 既に正しい形式
-                    else:
-                        logger.warning(f"予期しないdisk_usage結果形式: {type(usage_results_raw[0])}")
-            except (IndexError, TypeError, AttributeError) as e:
-                logger.warning(f"disk_usage結果の変換中にエラーが発生しました: {e}")
-                # エラーの場合は元の結果をそのまま使用
-            
-            # 既存のformat_output処理
-            rendered = format_output(
-                result, # 変換後の結果を渡す
-                format_type=args.output_format,
-                output_file=args.output_file,
-                command=args.command
-            )
-            
-            # 既存の出力処理
-            if rendered is not None:
-                if not rendered.endswith("\n"):
-                    rendered = rendered + "\n"
-                sys.stdout.write(rendered)
-                sys.stdout.flush()
+                write_output(output, args.output_file)
+            except IOError:
+                pass
 
         elif args.command == "restore":
             restore_file(args.backup_path, args.original_filepath)
