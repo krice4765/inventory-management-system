@@ -1,0 +1,597 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在庫管理システム改善プロジェクト - ユーザー向け説明書</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-shadow { box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .timeline-item::before { content: ''; position: absolute; left: 20px; top: 30px; width: 2px; height: calc(100% - 30px); background: #e5e7eb; }
+        .timeline-dot { position: absolute; left: 14px; top: 24px; width: 14px; height: 14px; border-radius: 50%; background: #3b82f6; border: 3px solid white; box-shadow: 0 0 0 3px #3b82f6; }
+         { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <div class="gradient-bg text-white py-16">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center">
+                <i class="fas fa-warehouse text-5xl mb-6"></i>
+                <h1 class="text-4xl font-bold mb-4">在庫管理システム改善プロジェクト</h1>
+                <p class="text-xl opacity-90">Microsoft Access システムの Web アプリケーション化</p>
+                <div class="mt-8 bg-white bg-opacity-20 rounded-lg p-6 inline-block">
+                    <p class="text-lg font-semibold">「いつでも・どこでも・誰でも使える」次世代在庫管理システムへ</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-6 py-12">
+        <!-- プロジェクト概要 -->
+        <section class="mb-16">
+            <div class="flex items-center mb-8">
+                <i class="fas fa-bullseye text-3xl text-blue-600 mr-4"></i>
+                <h2 class="text-3xl font-bold text-gray-800">プロジェクトの目的</h2>
+            </div>
+            <div class="bg-white card-shadow rounded-xl p-8">
+                <div class="text-center mb-8">
+                    <div class="bg-blue-100 rounded-full p-4 inline-block mb-4">
+                        <i class="fas fa-rocket text-blue-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">システム進化の目標</h3>
+                    <p class="text-lg text-gray-600 leading-relaxed">
+                        現在お使いの<strong>Microsoft Access在庫管理システム（資材7.accdb）</strong>を、<br>
+                        <strong class="text-blue-600">最新のWebアプリケーション</strong>に生まれ変わらせるプロジェクトです。
+                    </p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-red-50 rounded-lg p-6 border-l-4 border-red-400">
+                        <h4 class="text-lg font-bold text-red-700 mb-3">
+                            <i class="fas fa-desktop mr-2"></i>現在のシステム
+                        </h4>
+                        <p class="text-gray-700">特定のパソコンでしか使えない<br>従来型の在庫管理システム</p>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-6 border-l-4 border-green-400">
+                        <h4 class="text-lg font-bold text-green-700 mb-3">
+                            <i class="fas fa-globe mr-2"></i>新しいシステム
+                        </h4>
+                        <p class="text-gray-700">いつでも・どこでも・誰でも使える<br>オンライン在庫管理システム</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 現在の課題と改善効果 -->
+        <section class="mb-16">
+            <div class="flex items-center mb-8">
+                <i class="fas fa-chart-line text-3xl text-green-600 mr-4"></i>
+                <h2 class="text-3xl font-bold text-gray-800">なぜ改善が必要なの？</h2>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white card-shadow rounded-xl p-8">
+                    <h3 class="text-xl font-bold text-red-600 mb-6 flex items-center">
+                        <i class="fas fa-exclamation-triangle mr-3"></i>現在の課題
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <i class="fas fa-desktop text-red-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700">特定のパソコンでしか使えない</span>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-users text-red-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700">複数人での同時利用が困難</span>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-mobile-alt text-red-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700">スマートフォンで使えない</span>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-home text-red-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700">在宅勤務や外出先から利用不可</span>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-save text-red-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700">データバックアップの手間</span>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-exclamation-circle text-red-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700">システム障害時のリスク</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white card-shadow rounded-xl p-8">
+                    <h3 class="text-xl font-bold text-green-600 mb-6 flex items-center">
+                        <i class="fas fa-check-circle mr-3"></i>改善後の効果
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <i class="fas fa-globe text-green-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700">インターネットがあればどこからでも利用可能</span>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-users text-green-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700">複数のスタッフが同時に作業可能</span>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-mobile-alt text-green-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700">スマートフォン・タブレット完全対応</span>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-briefcase text-green-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700">テレワーク・出張先からの業務対応</span>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-cloud text-green-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700">自動バックアップで安心</span>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-tachometer-alt text-green-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700">処理速度の大幅向上</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 現在のシステム構成 -->
+        <section class="mb-16">
+            <div class="flex items-center mb-8">
+                <i class="fas fa-database text-3xl text-purple-600 mr-4"></i>
+                <h2 class="text-3xl font-bold text-gray-800">現在のシステム構成</h2>
+            </div>
+            
+            <div class="bg-white card-shadow rounded-xl p-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-6 text-center">管理している主要データ</h3>
+                
+                <div class="grid md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-blue-50 rounded-lg p-6 text-center">
+                        <i class="fas fa-building text-blue-600 text-2xl mb-3"></i>
+                        <h4 class="font-bold text-blue-800 mb-2">仕入先管理</h4>
+                        <p class="text-sm text-gray-600">取引先企業の情報</p>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-6 text-center">
+                        <i class="fas fa-box text-green-600 text-2xl mb-3"></i>
+                        <h4 class="font-bold text-green-800 mb-2">商品管理</h4>
+                        <p class="text-sm text-gray-600">商品マスターとバーコード情報</p>
+                    </div>
+                    <div class="bg-orange-50 rounded-lg p-6 text-center">
+                        <i class="fas fa-clipboard-list text-orange-600 text-2xl mb-3"></i>
+                        <h4 class="font-bold text-orange-800 mb-2">受注管理</h4>
+                        <p class="text-sm text-gray-600">お客様からの注文と納期</p>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-6 text-center">
+                        <i class="fas fa-arrow-down text-purple-600 text-2xl mb-3"></i>
+                        <h4 class="font-bold text-purple-800 mb-2">入庫管理</h4>
+                        <p class="text-sm text-gray-600">商品が入荷した記録</p>
+                    </div>
+                    <div class="bg-red-50 rounded-lg p-6 text-center">
+                        <i class="fas fa-arrow-up text-red-600 text-2xl mb-3"></i>
+                        <h4 class="font-bold text-red-800 mb-2">出庫管理</h4>
+                        <p class="text-sm text-gray-600">商品を出荷した記録</p>
+                    </div>
+                    <div class="bg-indigo-50 rounded-lg p-6 text-center">
+                        <i class="fas fa-chart-bar text-indigo-600 text-2xl mb-3"></i>
+                        <h4 class="font-bold text-indigo-800 mb-2">分析・レポート</h4>
+                        <p class="text-sm text-gray-600">売上・在庫状況の分析</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h4 class="text-lg font-bold text-gray-800 mb-4 text-center">現在の業務フロー</h4>
+                    <div class="flex flex-wrap justify-center items-center space-x-2 text-sm">
+                        <div class="bg-blue-100 rounded-full px-4 py-2 m-1">📋 受注登録</div>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <div class="bg-green-100 rounded-full px-4 py-2 m-1">🏢 仕入先選定</div>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <div class="bg-orange-100 rounded-full px-4 py-2 m-1">📦 入庫処理</div>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <div class="bg-purple-100 rounded-full px-4 py-2 m-1">📊 在庫管理</div>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <div class="bg-red-100 rounded-full px-4 py-2 m-1">🚚 出庫処理</div>
+                        <i class="fas fa-arrow-right text-gray-400"></i>
+                        <div class="bg-indigo-100 rounded-full px-4 py-2 m-1">⏰ 納期管理</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 実装方針 -->
+        <section class="mb-16">
+            <div class="flex items-center mb-8">
+                <i class="fas fa-shield-alt text-3xl text-blue-600 mr-4"></i>
+                <h2 class="text-3xl font-bold text-gray-800">実装方針（安心・安全第一）</h2>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-white card-shadow rounded-xl p-6">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-lock text-blue-600 text-3xl mb-3"></i>
+                        <h3 class="text-lg font-bold text-blue-800">既存システム保護</h3>
+                    </div>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li>• 現在のAccessシステムはそのまま継続使用</li>
+                        <li>• 新システム完成まで業務に支障なし</li>
+                        <li>• データの完全移行を保証</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white card-shadow rounded-xl p-6">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-steps text-green-600 text-3xl mb-3"></i>
+                        <h3 class="text-lg font-bold text-green-800">段階的な改善</h3>
+                    </div>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li>• Phase 1: システムの基盤構築</li>
+                        <li>• Phase 2: 基本機能のWeb化</li>
+                        <li>• Phase 3: 高度機能の追加</li>
+                        <li>• Phase 4: 最適化と本格運用</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white card-shadow rounded-xl p-6">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-handshake text-purple-600 text-3xl mb-3"></i>
+                        <h3 class="text-lg font-bold text-purple-800">並行運用期間</h3>
+                    </div>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li>• 新旧システムを同時に動かして安全性確認</li>
+                        <li>• スタッフの操作研修を十分に実施</li>
+                        <li>• 段階的な移行でリスクを最小化</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 技術仕様 -->
+        <section class="mb-16">
+            <div class="flex items-center mb-8">
+                <i class="fas fa-cogs text-3xl text-indigo-600 mr-4"></i>
+                <h2 class="text-3xl font-bold text-gray-800">新システムの技術仕様</h2>
+            </div>
+            
+            <div class="bg-white card-shadow rounded-xl p-8">
+                <div class="text-center mb-8">
+                    <div class="bg-indigo-100 rounded-full p-4 inline-block mb-4">
+                        <i class="fas fa-star text-indigo-600 text-2xl"></i>
+                    </div>
+                    <p class="text-lg text-gray-600 font-semibold">選択した技術はすべて<span class="text-green-600 font-bold">無料</span>のため、ライセンス費用はゼロです！</p>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-sm font-bold text-gray-600">技術要素</th>
+                                <th class="px-6 py-3 text-left text-sm font-bold text-gray-600">分かりやすい説明</th>
+                                <th class="px-6 py-3 text-left text-sm font-bold text-gray-600">選択理由</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-6 py-4 font-semibold text-blue-600">Django</td>
+                                <td class="px-6 py-4 text-gray-700">Webサイト作成の道具</td>
+                                <td class="px-6 py-4 text-gray-600">世界中で使用される安全性の高い技術</td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-6 py-4 font-semibold text-green-600">PostgreSQL</td>
+                                <td class="px-6 py-4 text-gray-700">データ保管庫</td>
+                                <td class="px-6 py-4 text-gray-600">大量データも高速処理、無料で信頼性抜群</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 font-semibold text-purple-600">React</td>
+                                <td class="px-6 py-4 text-gray-700">画面デザイン技術</td>
+                                <td class="px-6 py-4 text-gray-600">スマホ対応、操作しやすい画面を実現</td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="px-6 py-4 font-semibold text-orange-600">API</td>
+                                <td class="px-6 py-4 text-gray-700">システム間の通訳</td>
+                                <td class="px-6 py-4 text-gray-600">他システムとの連携が簡単</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- スケジュール -->
+        <section class="mb-16">
+            <div class="flex items-center mb-8">
+                <i class="fas fa-calendar-alt text-3xl text-orange-600 mr-4"></i>
+                <h2 class="text-3xl font-bold text-gray-800">プロジェクトスケジュール</h2>
+            </div>
+            
+            <div class="bg-white card-shadow rounded-xl p-8">
+                <div class="relative pl-12">
+                    <div class="timeline-item relative mb-8">
+                        <div class="timeline-dot bg-blue-500"></div>
+                        <div class="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-400">
+                            <div class="flex items-center mb-2">
+                                <span class="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-bold mr-3">Phase 1</span>
+                                <h3 class="text-lg font-bold text-blue-800">基盤構築（1ヶ月目）</h3>
+                            </div>
+                            <p class="text-gray-700">システム基盤構築・データ設計・セキュリティ設定</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item relative mb-8">
+                        <div class="timeline-dot bg-green-500"></div>
+                        <div class="bg-green-50 rounded-lg p-6 border-l-4 border-green-400">
+                            <div class="flex items-center mb-2">
+                                <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold mr-3">Phase 2</span>
+                                <h3 class="text-lg font-bold text-green-800">基本機能実装（2-3ヶ月目）</h3>
+                            </div>
+                            <p class="text-gray-700">基本機能実装・Web画面作成・スマートフォン対応</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item relative mb-8">
+                        <div class="timeline-dot bg-purple-500"></div>
+                        <div class="bg-purple-50 rounded-lg p-6 border-l-4 border-purple-400">
+                            <div class="flex items-center mb-2">
+                                <span class="bg-purple-500 text-white px-3 py-1 rounded-full text-sm font-bold mr-3">Phase 3</span>
+                                <h3 class="text-lg font-bold text-purple-800">高度機能追加（4-5ヶ月目）</h3>
+                            </div>
+                            <p class="text-gray-700">バーコード機能・分析ダッシュボード・外部連携</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item relative">
+                        <div class="timeline-dot bg-red-500"></div>
+                        <div class="bg-red-50 rounded-lg p-6 border-l-4 border-red-400">
+                            <div class="flex items-center mb-2">
+                                <span class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold mr-3">Phase 4</span>
+                                <h3 class="text-lg font-bold text-red-800">本格運用開始（6ヶ月目）</h3>
+                            </div>
+                            <p class="text-gray-700">最終調整・スタッフ研修・本格運用開始</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <p class="text-yellow-800 font-semibold flex items-center">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        各フェーズ完了時に動作確認を行い、ご要望に応じた調整を実施します。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 完成イメージ -->
+        <section class="mb-16">
+            <div class="flex items-center mb-8">
+                <i class="fas fa-magic text-3xl text-pink-600 mr-4"></i>
+                <h2 class="text-3xl font-bold text-gray-800">6ヶ月後の完成イメージ</h2>
+            </div>
+            
+            <div class="bg-white card-shadow rounded-xl p-8">
+                <h3 class="text-2xl font-bold text-center text-gray-800 mb-8">新システムで実現すること</h3>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="space-y-6">
+                        <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-6">
+                            <h4 class="text-lg font-bold text-blue-800 mb-3 flex items-center">
+                                <i class="fas fa-mobile-alt mr-3"></i>どこでも利用可能
+                            </h4>
+                            <ul class="text-sm text-gray-700 space-y-1">
+                                <li>• スマートフォン・タブレット完全対応</li>
+                                <li>• 自宅・出張先・取引先からアクセス</li>
+                                <li>• インターネット環境があれば場所を選ばない</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-6">
+                            <h4 class="text-lg font-bold text-green-800 mb-3 flex items-center">
+                                <i class="fas fa-bolt mr-3"></i>業務効率の向上
+                            </h4>
+                            <ul class="text-sm text-gray-700 space-y-1">
+                                <li>• 処理速度が現在の3-5倍に向上</li>
+                                <li>• 複数人での同時作業が可能</li>
+                                <li>• 自動計算・集計機能で手作業削減</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-6">
+                            <h4 class="text-lg font-bold text-purple-800 mb-3 flex items-center">
+                                <i class="fas fa-plus-circle mr-3"></i>新機能の追加
+                            </h4>
+                            <ul class="text-sm text-gray-700 space-y-1">
+                                <li>• バーコードスキャン：スマホカメラで簡単入力</li>
+                                <li>• リアルタイム分析：売上・在庫状況を自動グラフ化</li>
+                                <li>• アラート機能：在庫不足を自動通知</li>
+                                <li>• レポート自動生成：月次・年次レポートを自動作成</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-gradient-to-r from-red-50 to-red-100 rounded-lg p-6">
+                            <h4 class="text-lg font-bold text-red-800 mb-3 flex items-center">
+                                <i class="fas fa-shield-alt mr-3"></i>セキュリティ強化
+                            </h4>
+                            <ul class="text-sm text-gray-700 space-y-1">
+                                <li>• ユーザー権限管理：スタッフごとに操作権限を設定</li>
+                                <li>• ログイン認証：不正アクセスを防止</li>
+                                <li>• データ暗号化：情報漏洩対策を万全に</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 費用 -->
+        <section class="mb-16">
+            <div class="flex items-center mb-8">
+                <i class="fas fa-yen-sign text-3xl text-green-600 mr-4"></i>
+                <h2 class="text-3xl font-bold text-gray-800">プロジェクト費用</h2>
+            </div>
+            
+            <div class="bg-white card-shadow rounded-xl p-8">
+                <div class="text-center mb-8">
+                    <div class="bg-green-100 rounded-full p-4 inline-block mb-4">
+                        <i class="fas fa-piggy-bank text-green-600 text-3xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-green-800 mb-2">開発費用：ほぼゼロ</h3>
+                    <p class="text-gray-600">使用技術がすべて無料・追加ソフトウェア購入不要</p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-blue-50 rounded-lg p-6">
+                        <h4 class="text-lg font-bold text-blue-800 mb-4">開発・テスト期間</h4>
+                        <div class="text-3xl font-bold text-blue-600 mb-2">0円〜1,500円</div>
+                        <p class="text-sm text-gray-600">月額運用費用</p>
+                    </div>
+                    
+                    <div class="bg-green-50 rounded-lg p-6">
+                        <h4 class="text-lg font-bold text-green-800 mb-4">本格運用開始後</h4>
+                        <div class="text-3xl font-bold text-green-600 mb-2">3,000円〜8,000円</div>
+                        <p class="text-sm text-gray-600">月額運用費用</p>
+                    </div>
+                </div>
+                
+                <div class="mt-8 p-4 bg-yellow-50 rounded-lg border border-yellow-200 text-center">
+                    <p class="text-yellow-800 font-semibold">
+                        既存システムの保守費用と比較して<span class="text-2xl">大幅削減</span>が期待できます！
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 成功指標 -->
+        <section class="mb-16">
+            <div class="flex items-center mb-8">
+                <i class="fas fa-trophy text-3xl text-yellow-600 mr-4"></i>
+                <h2 class="text-3xl font-bold text-gray-800">成功の指標</h2>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white card-shadow rounded-xl p-8">
+                    <h3 class="text-xl font-bold text-blue-800 mb-6 flex items-center">
+                        <i class="fas fa-cog mr-3"></i>技術的な目標
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center p-3 bg-blue-50 rounded">
+                            <span class="text-gray-700">既存機能の再現</span>
+                            <span class="font-bold text-blue-600">100%</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-green-50 rounded">
+                            <span class="text-gray-700">画面表示速度</span>
+                            <span class="font-bold text-green-600">2秒以内</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-purple-50 rounded">
+                            <span class="text-gray-700">同時利用者数</span>
+                            <span class="font-bold text-purple-600">20人対応</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-orange-50 rounded">
+                            <span class="text-gray-700">モバイル対応</span>
+                            <span class="font-bold text-orange-600">完全対応</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white card-shadow rounded-xl p-8">
+                    <h3 class="text-xl font-bold text-green-800 mb-6 flex items-center">
+                        <i class="fas fa-chart-bar mr-3"></i>業務改善の目標
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center p-3 bg-blue-50 rounded">
+                            <span class="text-gray-700">在庫確認時間短縮</span>
+                            <span class="font-bold text-blue-600">50%削減</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-green-50 rounded">
+                            <span class="text-gray-700">データ入力ミス削減</span>
+                            <span class="font-bold text-green-600">80%削減</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-purple-50 rounded">
+                            <span class="text-gray-700">月次集計作業自動化</span>
+                            <span class="font-bold text-purple-600">90%自動化</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-red-50 rounded">
+                            <span class="text-gray-700">システム停止時間</span>
+                            <span class="font-bold text-red-600">ゼロ</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- プロジェクト開始準備 -->
+        <section class="mb-16">
+            <div class="flex items-center mb-8">
+                <i class="fas fa-play-circle text-3xl text-red-600 mr-4"></i>
+                <h2 class="text-3xl font-bold text-gray-800">プロジェクト開始の準備</h2>
+            </div>
+            
+            <div class="bg-white card-shadow rounded-xl p-8">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-checklist mr-3 text-blue-600"></i>必要な準備
+                        </h3>
+                        <ol class="space-y-3 text-gray-700">
+                            <li class="flex items-start">
+                                <span class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
+                                現在のAccessファイルのバックアップ
+                            </li>
+                            <li class="flex items-start">
+                                <span class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
+                                要望・改善点のヒアリング
+                            </li>
+                            <li class="flex items-start">
+                                <span class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</span>
+                                開発環境の準備
+                            </li>
+                        </ol>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-shield-alt mr-3 text-green-600"></i>リスクゼロでスタート
+                        </h3>
+                        <ul class="space-y-3 text-gray-700">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mr-3 mt-1"></i>
+                                既存システムに一切影響なし
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-undo text-green-500 mr-3 mt-1"></i>
+                                いつでも元に戻せる安全設計
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-step-forward text-green-500 mr-3 mt-1"></i>
+                                段階的な確認で進行
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="gradient-bg text-white py-12">
+        <div class="max-w-6xl mx-auto px-6 text-center">
+            <div class="mb-6">
+                <i class="fas fa-rocket text-4xl mb-4"></i>
+                <h3 class="text-2xl font-bold mb-2">在庫管理業務の革命的な改善を実現</h3>
+                <p class="text-lg opacity-90">将来的な事業拡大にも柔軟に対応できるシステムが完成します</p>
+            </div>
+            
+            <div class="border-t border-white border-opacity-20 pt-6">
+                <p class="text-sm opacity-75">
+                    <i class="fas fa-phone mr-2"></i>
+                    ご質問やご不明な点がございましたら、いつでもお気軽にお聞かせください
+                </p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
