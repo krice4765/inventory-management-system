@@ -1,26 +1,53 @@
-import { createClient } from '@supabase/supabase-js';
+﻿import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+// 環境変数の取得
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
+// デバッグ情報
+console.log('🔧 Supabase初期化開始')
+console.log('URL設定:', supabaseUrl ? '✅ 設定済み' : '❌ 未設定')
+console.log('KEY設定:', supabaseAnonKey ? '✅ 設定済み' : '❌ 未設定')
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Supabase環境変数が未設定です: VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY を確認してください');
+// 環境変数の存在確認
+if (!supabaseUrl) {
+  console.error('❌ VITE_SUPABASE_URL が設定されていません')
+  throw new Error('Missing VITE_SUPABASE_URL environment variable')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+if (!supabaseAnonKey) {
+  console.error('❌ VITE_SUPABASE_ANON_KEY が設定されていません')
+  throw new Error('Missing VITE_SUPABASE_ANON_KEY environment variable')
+}
 
-// 🔧 開発環境でのみ、コンソールテスト用にグローバル公開
-if (import.meta.env.DEV) {
-  // @ts-ignore
-  window.supabase = supabase;
+// Supabaseクライアント作成
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false
+  }
+})
+
+// WebUIコンソール用グローバル変数設定（重要）
+if (typeof window !== 'undefined') {
+  (window as any).supabase = supabase
+  console.log('✅ window.supabase グローバル変数設定完了')
+  console.log('🎯 WebUIコンソールでのデータ操作が可能になりました')
   
-  // API統合テスト関数もグローバル公開（オプション）
-  import('../utils/api-test').then(module => {
-    // @ts-ignore
-    window.runApiTests = () => module.InstallmentApiTester.quickTest();
-  }).catch(() => {
-    // api-test.ts が存在しない場合は無視
-  });
+  // 接続テスト実行
+  supabase
+    .from('purchase_orders')
+    .select('count', { count: 'exact', head: true })
+    .then(({ count, error }) => {
+      if (error) {
+        console.error('❌ Supabase接続テストエラー:', error.message)
+      } else {
+        console.log('✅ Supabase接続テスト成功')
+        console.log(📊 発注データ件数: 件)
+        console.log('🚀 システム準備完了')
+      }
+    })
+    .catch(err => {
+      console.error('❌ 接続テスト実行エラー:', err)
+    })
 }
-
