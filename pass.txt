@@ -1,0 +1,3 @@
+URL: http://localhost:5173/login
+Email: dev@inventory.test  
+Password: DevTest123!
