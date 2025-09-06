@@ -43,7 +43,7 @@ if (typeof window !== 'undefined') {
         console.error('❌ Supabase接続テストエラー:', error.message)
       } else {
         console.log('✅ Supabase接続テスト成功')
-        console.log(📊 発注データ件数: 件)
+        console.log('📊 発注データ件数: 0件')
         console.log('🚀 システム準備完了')
       }
     })
