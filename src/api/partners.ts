@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { executeSafeQuery } from '../utils/queryHelpers';
 
 export type PartnerType = 'supplier' | 'customer' | 'both';
 
@@ -30,9 +31,8 @@ export async function getPartners(type?: PartnerType): Promise<Partner[]> {
     query = query.or(`partner_type.eq.${type},partner_type.eq.both`);
   }
 
-  const { data, error } = await query;
-  if (error) throw error;
-  return data as Partner[];
+  const result = await executeSafeQuery(query, []);
+  return result as Partner[];
 }
 
 export async function getSuppliers(): Promise<Partner[]> {

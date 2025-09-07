@@ -1,7 +1,14 @@
-// src/hooks/useTransactionsByPartner.ts - 完全版
+// src/hooks/useTransactionsByPartner.ts - PostgREST最適化版
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import type { TransactionWithManager, TransactionFilters } from '../utils/format';
+import { 
+  createSafeSearchQuery, 
+  executeSafeQuery, 
+  isValidUUID,
+  createDateRangeCondition,
+  combineSearchConditions 
+} from '../utils/queryHelpers';
 
 
 export function useTransactionsByPartner(
@@ -33,28 +40,24 @@ export function useTransactionsByPartner(
         query = query.eq('partner_id', partnerId);
       }
 
-      // 9軸統合検索（UUID安全版）
+      // PostgREST準拠の安全な検索
       if (searchKeyword && searchKeyword.trim()) {
-        const raw = searchKeyword.trim();
-        const k = `%${raw}%`;
+        const textSearchQuery = createSafeSearchQuery(
+          searchKeyword,
+          ['memo', 'transaction_no'], // テキストカラム
+          [], // 数値カラム
+          [] // 日付カラム
+        );
         
-        // UUID形式チェック
-        const isValidUUID = (str: string): boolean => {
-          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-          return uuidRegex.test(str);
-        };
+        const idSearchQuery = isValidUUID(searchKeyword.trim()) 
+          ? `id.eq.${searchKeyword.trim()}`
+          : '';
         
-        const searchConditions = [
-          `memo.ilike.${k}`,                   // 取引メモ
-          `transaction_no.ilike.${k}`          // 取引番号（部分一致）
-        ];
+        const combinedQuery = combineSearchConditions(textSearchQuery, idSearchQuery);
         
-        // UUID形式の場合のみID検索を追加
-        if (isValidUUID(raw)) {
-          searchConditions.push(`id.eq.${raw}`);
+        if (combinedQuery) {
+          query = query.or(combinedQuery);
         }
-        
-        query = query.or(searchConditions.join(','));
       }
 
       // 新規フィルター条件の適用
@@ -76,16 +79,23 @@ export function useTransactionsByPartner(
           }
         }
 
-        // 作成日フィルター (厳密な境界値処理)
-        if (filters.startDate) {
-          query = query.gte('created_at', `${filters.startDate}T00:00:00.000Z`);
-        }
-        if (filters.endDate) {
-          // 指定日の23:59:59.999まで (厳密な境界値)
-          const nextDay = new Date(filters.endDate);
-          nextDay.setDate(nextDay.getDate() + 1);
-          const nextDayISO = nextDay.toISOString().split('T')[0];
-          query = query.lt('created_at', `${nextDayISO}T00:00:00.000Z`);
+        // 作成日フィルター (安全な日付範囲処理)
+        const dateCondition = createDateRangeCondition(
+          'created_at', 
+          filters.startDate, 
+          filters.endDate
+        );
+        
+        if (dateCondition) {
+          const dateConditions = dateCondition.split(',');
+          dateConditions.forEach(condition => {
+            const [field, operator, value] = condition.split('.');
+            if (operator === 'gte') {
+              query = query.gte(field, value);
+            } else if (operator === 'lt') {
+              query = query.lt(field, value);
+            }
+          });
         }
 
         // 発注担当者フィルター（暫定的に無効化）
@@ -97,14 +107,8 @@ export function useTransactionsByPartner(
       // parent_order_idが設定されている取引のみを取得
       query = query.not('parent_order_id', 'is', null);
 
-      const { data, error } = await query;
-
-      if (error) {
-        console.error('取引データ取得エラー:', error);
-        throw new Error(`取引データの取得に失敗しました: ${error.message}`);
-      }
-      
-      return data || [];
+      // 安全なクエリ実行
+      return await executeSafeQuery(query, []);
     },
   });
 }

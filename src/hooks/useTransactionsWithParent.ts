@@ -1,6 +1,7 @@
-// src/hooks/useTransactionsWithParent.ts
+// src/hooks/useTransactionsWithParent.ts - PostgREST最適化版
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import { createSafeSearchQuery, executeSafeQuery } from '../utils/queryHelpers';
 
 interface Transaction {
   id: string;
@@ -52,22 +53,23 @@ export function useTransactionsWithParent(
           .order('created_at', { ascending: false })
           .limit(100);
 
-        // 検索キーワードが存在する場合のフィルタリング
+        // PostgREST準拠の安全な検索
         const keyword = searchKeyword?.trim();
         if (keyword) {
-          query = query.or(
-            `product_name.ilike.%${keyword}%,memo.ilike.%${keyword}%`
+          const searchQuery = createSafeSearchQuery(
+            keyword,
+            ['product_name', 'memo'], // テキストカラム
+            [], // 数値カラム
+            [] // 日付カラム
           );
+          
+          if (searchQuery) {
+            query = query.or(searchQuery);
+          }
         }
 
-        const { data, error } = await query;
-        
-        if (error) {
-          console.error('Supabase query error:', error);
-          throw new Error(`データベースエラー: ${error.message}`);
-        }
-
-        return data || [];
+        // 安全なクエリ実行
+        return await executeSafeQuery(query, []);
       } catch (error) {
         console.error('Transaction fetch error:', error);
         throw error;

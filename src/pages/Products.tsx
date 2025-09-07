@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { Plus, Edit, Trash2, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { UniversalFilters } from '../components/shared/UniversalFilters';
+import { safeYenFormat } from '../utils/safeFormatters';
 
 interface Product {
   id: string;
@@ -356,8 +357,8 @@ export default function Products() {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">仕入: ¥{product.purchase_price?.toLocaleString() || '0'}</div>
-                  <div className="text-sm text-gray-500">販売: ¥{product.selling_price?.toLocaleString() || '0'}</div>
+                  <div className="text-sm text-gray-900">仕入: {safeYenFormat(product.purchase_price)}</div>
+                  <div className="text-sm text-gray-500">販売: {safeYenFormat(product.selling_price)}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">現在: {product.current_stock}</div>
