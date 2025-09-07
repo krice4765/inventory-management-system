@@ -18,17 +18,13 @@ export function useTransactionsByPartner(
     retry: 1,
     queryFn: async () => {
       let query = supabase
-        .from('v_purchase_transactions') // 🎯 明細集約ビューに変更
+        .from('transactions') // 基本のtransactionsテーブルを使用
         .select(`
-          transaction_id, transaction_no, transaction_type,
-          partner_id, partner_name, transaction_date, due_date,
+          id as transaction_id, transaction_no, transaction_type,
+          partner_id, transaction_date, due_date,
           status, total_amount, parent_order_id,
-          order_no, order_memo, order_manager_name,
-          created_at,
-          display_name, product_name,
-          item_count, first_product_name,
-          document_no, item_summary,
-          installment_no
+          order_memo,
+          created_at
         `)
         .order('created_at', { ascending: false });
 
@@ -49,17 +45,13 @@ export function useTransactionsByPartner(
         };
         
         const searchConditions = [
-          `product_name.ilike.${k}`,           // 1軸: 商品名
-          `partner_name.ilike.${k}`,           // 2軸: 会社名
           `order_memo.ilike.${k}`,             // 3軸: 取引メモ
-          `order_manager_name.ilike.${k}`,     // 4軸: 担当者名
-          `transaction_no.ilike.${k}`,         // 取引番号（部分一致）
-          `order_no.ilike.${k}`                // 発注番号（追加検索）
+          `transaction_no.ilike.${k}`          // 取引番号（部分一致）
         ];
         
         // UUID形式の場合のみID検索を追加
         if (isValidUUID(raw)) {
-          searchConditions.push(`transaction_id.eq.${raw}`);
+          searchConditions.push(`id.eq.${raw}`);
         }
         
         query = query.or(searchConditions.join(','));
@@ -96,19 +88,10 @@ export function useTransactionsByPartner(
           query = query.lt('created_at', `${nextDayISO}T00:00:00.000Z`);
         }
 
-        // 9軸: 発注担当者フィルター (order_manager_name経由)
-        if (filters.orderManagerId) {
-          // order_manager_idではなくorder_manager_nameで検索
-          const { data: managerData } = await supabase
-            .from('order_managers')
-            .select('name')
-            .eq('id', filters.orderManagerId)
-            .single();
-          
-          if (managerData?.name) {
-            query = query.eq('order_manager_name', managerData.name);
-          }
-        }
+        // 発注担当者フィルター（暫定的に無効化）
+        // if (filters.orderManagerId) {
+        //   // 担当者フィルタリング機能は後で実装
+        // }
       }
 
       // parent_order_idが設定されている取引のみを取得

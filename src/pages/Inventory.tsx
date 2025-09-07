@@ -67,12 +67,12 @@ export default function Inventory() {
   const fetchData = async () => {
     try {
       const [productsResult, movementsResult] = await Promise.all([
-        supabase.from('products').select('id, name, product_code, current_stock').order('name'),
+        supabase.from('products').select('id, product_name as name, product_code, current_stock').order('product_name'),
         supabase
           .from('inventory_movements')
           .select(`
             *,
-            products (id, name, product_code, current_stock)
+            products (id, product_name as name, product_code, current_stock)
           `)
           .order('created_at', { ascending: false })
           .limit(50)
