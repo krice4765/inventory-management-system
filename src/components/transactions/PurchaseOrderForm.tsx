@@ -20,8 +20,8 @@ interface Supplier {
 
 interface Product {
   id: string;
-  name: string;
-  purchase_price: number;
+  product_name: string;
+  standard_price: number;
 }
 
 interface OrderItem {
@@ -91,7 +91,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
         // 商品データ取得
         const { data: productsData, error: productsError } = await supabase
           .from('products')
-          .select('id, product_name, purchase_price')
+          .select('id, product_name, standard_price')
           .order('product_name', { ascending: true });
 
         if (productsError) {
@@ -123,7 +123,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
         // 商品選択時に単価を自動設定
         const selectedProduct = products.find(p => p.id === value);
         updatedItem.product_id = value;
-        updatedItem.unit_price = selectedProduct ? selectedProduct.purchase_price : 0;
+        updatedItem.unit_price = selectedProduct ? selectedProduct.standard_price : 0;
       } else {
         updatedItem[field] = value;
       }

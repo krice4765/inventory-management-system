@@ -22,7 +22,7 @@ export type RecentUpdate = {
 export async function fetchDashboardStats(): Promise<DashboardStats> {
   const { data, error } = await supabase
     .from('products')
-    .select('stock_quantity, safety_stock_quantity, purchase_price, sell_price');
+    .select('stock_quantity, safety_stock_quantity, standard_price, sell_price');
 
   if (error) {
     throw new Error(`Dashboard統計の取得に失敗: ${error.message}`);
@@ -37,7 +37,7 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
   for (const product of products) {
     const qty = product.stock_quantity ?? 0;
     const safety = product.safety_stock_quantity ?? 0;
-    const purchase = Number(product.purchase_price ?? 0);
+    const purchase = Number(product.standard_price ?? 0);
     const sell = Number(product.sell_price ?? 0);
 
     if (qty <= safety) {
@@ -61,7 +61,7 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
 export async function fetchRecentUpdates(limit = 10): Promise<RecentUpdate[]> {
   const { data, error } = await supabase
     .from('products')
-    .select('id, name, product_code, updated_at, stock_quantity, safety_stock_quantity')
+    .select('id, product_name, product_code, updated_at, stock_quantity, safety_stock_quantity')
     .order('updated_at', { ascending: false })
     .limit(limit);
 
