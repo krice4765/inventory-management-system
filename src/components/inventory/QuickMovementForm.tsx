@@ -85,7 +85,7 @@ export const QuickMovementForm: React.FC<Props> = ({ mode, onSuccess }) => {
           <option value={0}>商品を選択してください</option>
           {products.map(product => (
             <option key={product.id} value={product.id}>
-              {product.product_name} ({product.product_code}) - 在庫: {product.current_stock}
+              {product.product_name} ({product.product_code}) - 在庫: {product.stock_quantity}
             </option>
           ))}
         </select>
