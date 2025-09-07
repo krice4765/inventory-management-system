@@ -63,7 +63,7 @@ export default function OrderNew() {
         supabase
           .from('products')
           .select('*')
-          .order('name')
+          .order('product_name')
       ]);
 
       if (partnersResult.error) throw partnersResult.error;

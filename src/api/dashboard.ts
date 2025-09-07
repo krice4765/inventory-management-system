@@ -61,7 +61,7 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
 export async function fetchRecentUpdates(limit = 10): Promise<RecentUpdate[]> {
   const { data, error } = await supabase
     .from('products')
-    .select('id, product_name, product_code, updated_at, stock_quantity, safety_stock_quantity')
+    .select('id, product_name, product_code, updated_at, current_stock, min_stock_level')
     .order('updated_at', { ascending: false })
     .limit(limit);
 

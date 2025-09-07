@@ -21,7 +21,7 @@ export class SupabaseHelper {
       const result = await supabase
         .from('products')
         .select('*')
-        .order('name');
+        .order('product_name'); 
       return this.handleResult(result);
     },
 
