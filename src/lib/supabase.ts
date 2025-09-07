@@ -184,7 +184,7 @@ export class SupabaseHelper {
         .from('purchase_orders') // ⚠️ 正しいテーブル名
         .select(`
           *,
-          partners:partner_id (
+          partners!partner_id (
             id,
             name,
             quality_grade,
@@ -200,7 +200,7 @@ export class SupabaseHelper {
         .from('purchase_orders')
         .select(`
           *,
-          partners:partner_id (
+          partners!partner_id (
             id,
             name,
             quality_grade,
