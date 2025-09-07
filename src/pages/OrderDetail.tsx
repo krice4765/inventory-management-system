@@ -79,7 +79,7 @@ export default function OrderDetail() {
       
       // 明細データを整形
       const formattedItems = itemsData.map(item => ({
-        product_name: item.products?.name || 'N/A',
+        product_name: item.products?.product_name || 'N/A',
         product_code: item.products?.product_code || 'N/A',
         quantity: item.quantity,
         unit_price: item.unit_price,

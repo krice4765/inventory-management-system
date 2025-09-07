@@ -91,8 +91,8 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
         // 商品データ取得
         const { data: productsData, error: productsError } = await supabase
           .from('products')
-          .select('id, name, purchase_price')
-          .order('name', { ascending: true });
+          .select('id, product_name, purchase_price')
+          .order('product_name', { ascending: true });
 
         if (productsError) {
           console.warn('Products fetch error:', productsError);
@@ -416,7 +416,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
                   <option value="">商品を選択</option>
                   {products.map(product => (
                     <option key={product.id} value={product.id}>
-                      {product.name}
+                      {product.product_name}
                     </option>
                   ))}
                 </select>

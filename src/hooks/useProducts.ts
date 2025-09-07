@@ -48,7 +48,7 @@ export const useCreateProduct = () => {
         const tempProduct: ProductWithSupplier = {
           id: `temp-${Date.now()}` as unknown as number, // 一時的なID
           product_code: newProduct.product_code,
-          name: newProduct.name,
+          product_name: newProduct.product_name,
           description: newProduct.description,
           purchase_price: newProduct.purchase_price,
           sell_price: newProduct.sell_price,

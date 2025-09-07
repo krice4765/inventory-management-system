@@ -32,13 +32,13 @@ export const ProductTable: React.FC<Props> = ({ products, onEdit, onDelete }) =>
                   {product.image_url && (
                     <img 
                       src={product.image_url} 
-                      alt={product.name}
+                      alt={product.product_name}
                       className="h-10 w-10 rounded-full mr-3 object-cover"
                       onError={(e) => { e.currentTarget.style.display = 'none'; }}
                     />
                   )}
                   <div>
-                    <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                    <div className="text-sm font-medium text-gray-900">{product.product_name}</div>
                     <div className="text-sm text-gray-500">{product.product_code}</div>
                     {product.description && (
                       <div className="text-xs text-gray-400 truncate max-w-xs mt-1">{product.description}</div>

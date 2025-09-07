@@ -7,7 +7,7 @@ import { safeYenFormat } from '../utils/safeFormatters';
 
 interface Product {
   id: string;
-  name: string;
+  product_name: string;
   product_code: string;
   category: string;
   purchase_price: number;
@@ -30,7 +30,7 @@ export default function Products() {
   });
 
   const [formData, setFormData] = useState({
-    name: '',
+    product_name: '',
     product_code: '',
     category: '',
     purchase_price: '',
@@ -62,7 +62,7 @@ export default function Products() {
       if (filters.searchKeyword) {
         const keyword = filters.searchKeyword.toLowerCase();
         const searchFields = [
-          product.name,
+          product.product_name,
           product.product_code,
           product.category
         ].join(' ').toLowerCase();
@@ -158,7 +158,7 @@ export default function Products() {
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
     setFormData({
-      name: product.name,
+      product_name: product.product_name,
       product_code: product.product_code,
       category: product.category,
       purchase_price: product.purchase_price.toString(),
@@ -189,7 +189,7 @@ export default function Products() {
 
   const resetForm = () => {
     setFormData({
-      name: '',
+      product_name: '',
       product_code: '',
       category: '',
       purchase_price: '',
@@ -242,8 +242,8 @@ export default function Products() {
                 type="text"
                 required
                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={formData.product_name}
+                onChange={(e) => setFormData({ ...formData, product_name: e.target.value })}
               />
             </div>
             <div>
@@ -350,7 +350,7 @@ export default function Products() {
                   <div className="flex items-center">
                     <Package className="h-8 w-8 text-gray-400" />
                     <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                      <div className="text-sm font-medium text-gray-900">{product.product_name}</div>
                       <div className="text-sm text-gray-500">{product.product_code}</div>
                       <div className="text-sm text-gray-500">{product.category}</div>
                     </div>
