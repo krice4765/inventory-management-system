@@ -433,8 +433,8 @@ const { data: partners, isLoading: partnersLoading, error: partnersError } = use
           <button 
             onClick={() => handleEditClick(transaction)}
             className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium disabled:text-gray-400 disabled:cursor-not-allowed transition-colors text-xs"
-            disabled={!transaction.parent_order_id}
-            title={!transaction.parent_order_id ? '親発注がありません' : '編集・確定'}
+            disabled={false}
+            title="編集・確定"
           >
             編集・確定
           </button>
@@ -466,9 +466,15 @@ const { data: partners, isLoading: partnersLoading, error: partnersError } = use
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
             <PurchaseTransactionForm
-              parentOrderId={selectedTransaction.parent_order_id}
-              transactionId={selectedTransaction.transaction_id}
-              initialData={selectedTransaction}
+              parentOrderId={String(selectedTransaction.parent_order_id)}
+              transactionId={String(selectedTransaction.transaction_id)}
+              initialData={{
+                total_amount: Number(selectedTransaction.total_amount) || 0,
+                memo: String(selectedTransaction.memo || selectedTransaction.order_memo || ''),
+                transaction_date: String(selectedTransaction.transaction_date || '').split('T')[0],
+                status: String(selectedTransaction.status || 'draft'),
+                order_no: String(selectedTransaction.transaction_no || '')
+              }}
               onSuccess={handleFormSuccess}
               onCancel={() => setIsModalOpen(false)}
             />

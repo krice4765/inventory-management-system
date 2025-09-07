@@ -3,186 +3,401 @@
 <html lang="ja" data-theme="light" style=""><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>富士精工様向け在庫管理システム 開発プラン提案書</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&amp;display=swap" rel="stylesheet">
+    <title>富士精工様向け在庫管理システム開発プラン提案書</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-      body {
-        max-width: 920px;
-        margin: 0 auto;
-        padding: 40px 60px;
-        position: relative;
-        box-sizing: border-box;
-        font-family: 'Noto Sans JP', 'Yu Gothic', 'Hiragino Sans', Arial, sans-serif;
-        line-height: 1.8;
-        color: #222;
-        font-size: 16px;
+      :root {
+        --primary-color: #2563eb;
+        --primary-dark: #1d4ed8;
+        --secondary-color: #64748b;
+        --accent-color: #0ea5e9;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --error-color: #ef4444;
+        --bg-color: #f8fafc;
+        --card-bg: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --border-color: #e2e8f0;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
       }
-      .header-info {
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.7;
+        color: var(--text-primary);
+        background-color: var(--bg-color);
+        padding: 0;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background-color: var(--card-bg);
+        box-shadow: var(--shadow-lg);
+        border-radius: 16px;
+        overflow: hidden;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        text-align: center;
+        padding: 3rem 2rem;
+        position: relative;
+      }
+
+      .header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+      }
+
+      .header-meta {
         text-align: right;
-        margin-bottom: 40px;
-        font-size: 16px;
-        color: #555;
+        margin-bottom: 2rem;
+        font-size: 0.9rem;
+        opacity: 0.9;
+        position: relative;
+        z-index: 1;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      .header .subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        font-weight: 300;
+        position: relative;
+        z-index: 1;
+      }
+
+      .content {
+        padding: 3rem;
+      }
+
+      .highlight {
+        background: linear-gradient(135deg, #e0f2fe 0%, #b3e5fc 100%);
+        border-left: 4px solid var(--accent-color);
+        padding: 1.5rem;
+        margin: 2rem 0;
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        position: relative;
+      }
+
+      .highlight::before {
+        content: '\f0eb';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        color: var(--accent-color);
+        font-size: 1.2rem;
+      }
+
+      .warning {
+        background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+        border-left: 4px solid var(--warning-color);
+        padding: 1.5rem;
+        margin: 2rem 0;
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        position: relative;
+      }
+
+      .warning::before {
+        content: '\f071';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        color: var(--warning-color);
+        font-size: 1.2rem;
+      }
+
+      .cost-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 2rem 0;
+        background: var(--card-bg);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+
+      .cost-table th,
+      .cost-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .cost-table th {
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .cost-table tr:hover {
+        background-color: #f8fafc;
+      }
+
+      .cost-table .total-row {
+        background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+        font-weight: 600;
+      }
+
+      .cost-table .total-row:hover {
+        background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+      }
+
+      .subsection {
+        margin-left: 2rem;
+        margin-bottom: 2rem;
+        padding-left: 1rem;
+        border-left: 3px solid var(--border-color);
+      }
+
+      .architecture-box {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        color: #e2e8f0;
+        padding: 2rem;
+        border-radius: 12px;
+        margin: 2rem 0;
+        font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+        font-size: 0.85rem;
+        line-height: 1.6;
+        white-space: pre-line;
+        box-shadow: var(--shadow-lg);
+        overflow-x: auto;
+      }
+
+      .summary-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin: 3rem 0;
+      }
+
+      .stat-card {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+        border-radius: 12px;
+        box-shadow: var(--shadow-lg);
+        transition: transform 0.2s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-2px);
+      }
+
+      .stat-card .number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-card .label {
+        font-size: 0.9rem;
+        opacity: 0.9;
         font-weight: 500;
       }
-      .title-section {
-        text-align: center;
-        margin-bottom: 40px;
-        border-bottom: 2px solid #333;
-        padding-bottom: 20px;
-      }
-      h1 {
-        font-size: 28px;
-        font-weight: 700;
-        margin-bottom: 15px;
-        color: #1a1a1a;
-      }
+
       h2 {
-        font-size: 22px;
+        color: var(--text-primary);
+        font-size: 2rem;
         font-weight: 600;
-        margin-top: 40px;
-        margin-bottom: 20px;
-        border-left: 5px solid #2563eb;
-        padding-left: 15px;
-        background-color: #f1f5f9;
-        padding: 15px 15px 15px 20px;
-        color: #1e293b;
-        border-radius: 4px;
+        margin: 3rem 0 2rem 0;
+        padding-bottom: 1rem;
+        border-bottom: 3px solid var(--primary-color);
+        position: relative;
       }
+
+      h2::before {
+        content: '';
+        position: absolute;
+        bottom: -3px;
+        left: 0;
+        width: 60px;
+        height: 3px;
+        background: var(--accent-color);
+      }
+
       h3 {
-        font-size: 20px;
+        color: var(--text-primary);
+        font-size: 1.4rem;
         font-weight: 600;
-        margin-top: 30px;
-        margin-bottom: 15px;
-        color: #1e40af;
+        margin: 2rem 0 1rem 0;
+        display: flex;
+        align-items: center;
       }
-      .summary-box {
-        background-color: #eff6ff;
-        border: 2px solid #3b82f6;
-        padding: 25px;
-        margin: 25px 0;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+      h3::before {
+        content: '\f0da';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        margin-right: 0.5rem;
+        color: var(--primary-color);
+        font-size: 0.8rem;
       }
-      .approach-comparison {
-        margin: 20px 0;
-      }
-      .approach-item {
-        border: 2px solid #e2e8f0;
-        margin: 20px 0;
-        padding: 20px;
-        background-color: #f8fafc;
-        border-radius: 6px;
-      }
-      .recommended {
-        background-color: #f0fdf4;
-        border-color: #16a34a;
-        border-width: 3px;
-        box-shadow: 0 2px 8px rgba(34, 197, 94, 0.15);
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 20px 0;
-        font-size: 16px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        border-radius: 6px;
-        overflow: hidden;
-      }
-      th,
-      td {
-        border: 1px solid #cbd5e1;
-        padding: 12px 16px;
-        text-align: left;
-        line-height: 1.6;
-      }
-      th {
-        background-color: #1e40af;
+
+      h4 {
+        color: var(--text-primary);
+        font-size: 1.1rem;
         font-weight: 600;
-        color: white;
-        font-size: 16px;
+        margin: 1.5rem 0 1rem 0;
+        padding-left: 1rem;
+        border-left: 3px solid var(--accent-color);
       }
-      .cost-table td:nth-child(2),
-      .cost-table td:nth-child(3) {
-        text-align: right;
+
+      p {
+        margin-bottom: 1rem;
+        color: var(--text-secondary);
       }
-      ul {
-        margin: 15px 0;
-        padding-left: 25px;
+
+      ul, ol {
+        margin-bottom: 1.5rem;
+        padding-left: 2rem;
       }
+
       li {
-        margin: 8px 0;
-        line-height: 1.7;
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
       }
-      .tech-term {
+
+      li strong {
+        color: var(--text-primary);
+      }
+
+      .card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 2rem;
+        margin: 2rem 0;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin: 2rem 0;
+      }
+
+      .badge {
+        display: inline-block;
+        background: var(--primary-color);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
         font-weight: 600;
-        color: #1d4ed8;
-        background-color: #dbeafe;
-        padding: 2px 6px;
-        border-radius: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
       }
-      .phase-box {
-        border-left: 5px solid #f59e0b;
-        padding-left: 20px;
-        margin: 20px 0;
-        background-color: #fffbeb;
-        padding: 20px;
-        border-radius: 6px;
-        box-shadow: 0 1px 4px rgba(245, 158, 11, 0.1);
+
+      .badge.warning {
+        background: var(--warning-color);
       }
-      .risk-level-high {
-        color: #dc2626;
-        font-weight: 700;
-        background-color: #fef2f2;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 16px;
+
+      .badge.success {
+        background: var(--success-color);
       }
-      .risk-level-medium {
-        color: #ea580c;
-        font-weight: 700;
-        background-color: #fff7ed;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 16px;
+
+      @media (max-width: 768px) {
+        .container {
+          margin: 1rem;
+          border-radius: 8px;
+        }
+        
+        .content {
+          padding: 2rem 1.5rem;
+        }
+        
+        .header {
+          padding: 2rem 1.5rem;
+        }
+        
+        .header h1 {
+          font-size: 2rem;
+        }
+        
+        .cost-table {
+          font-size: 0.9rem;
+        }
+        
+        .cost-table th,
+        .cost-table td {
+          padding: 0.75rem 0.5rem;
+        }
+        
+        .summary-stats {
+          grid-template-columns: 1fr;
+        }
       }
-      .risk-level-low {
-        color: #16a34a;
-        font-weight: 700;
-        background-color: #f0fdf4;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 16px;
+
+      .footer {
+        text-align: center;
+        margin-top: 4rem;
+        padding: 2rem;
+        border-top: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 0 0 16px 16px;
       }
     </style>
   </head>
-  <body style="">
-    <div class="header-info">
-      提案日：2024年12月<br>
-      株式会社システム開発コンサルティング
-    </div>
-
-    <div class="title-section">
-      <h1>富士精工様向け在庫管理システム<br>開発プラン提案書</h1>
-      <p style="font-size: 18px; margin-top: 15px; color: #475569; font-weight: 500;">PDF図面管理・Access連携機能拡張計画</p>
-    </div>
+  <body style="color: rgb(0, 0, 0);" autocomplete="off">
+    <div class="container">
+      <div class="header">
+        <div class="header-meta">
+          <p><i class="fas fa-calendar-alt"></i> 提案日：2025年9月7日</p>
+        </div>
+        <h1><i class="fas fa-cogs"></i>&nbsp;在庫管理システム<span style="font-size: 2.5rem; background-color: rgba(0, 0, 0, 0);">開発プラン提案書</span></h1>
+        <div class="subtitle"><i class="fas fa-file-pdf"></i> PDF図面管理・Access連携機能拡張計画</div>
+      </div>
+      
+      <div class="content">
 
     <h2>1. エグゼクティブサマリー</h2>
 
-    <div class="summary-box">
-      <h3>現在のシステム完成度と稼働状況</h3>
-      <ul>
-        <li><strong>システム完成度：100%</strong> - 【フェーズ1】が完全完成し、本番稼働準備が完了しております</li>
-        <li>
-          <strong>稼働状況：</strong>インターネット上で24時間365日利用可能（https://inventory-management-system-c49.pages.dev/）
-        </li>
-        <li><strong>エラー状況：</strong>システムエラー0件、安定稼働中</li>
-        <li><strong>利用可能機能：</strong>商品管理、仕入先管理、発注管理、在庫管理、統計ダッシュボード</li>
-      </ul>
-    </div>
+    <h3>1.1 現在のシステム完成度と稼働状況</h3><ul>
+      <li><strong>稼働状況：</strong>インターネット上で24時間365日利用可能（https://inventory-management-system-c49.pages.dev/）</li>
+      <li><strong>利用可能機能：</strong>商品管理、仕入先管理、発注管理、在庫管理、統計ダッシュボード</li>
+    </ul>
 
-    <h3>富士精工様要望の要点整理</h3>
-    <table>
+    <h3>1.2 要望の要点整理</h3>
+    <table class="cost-table">
       <thead>
         <tr>
           <th>要望項目</th>
@@ -198,7 +413,7 @@
         </tr>
         <tr>
           <td>Access連携</td>
-          <td>Accessをフロントエンド、Webシステムをバックエンドとするハイブリッド運用</td>
+          <td>Accessをフロントエンドとするハイブリッド運用</td>
           <td>高</td>
         </tr>
         <tr>
@@ -214,20 +429,23 @@
       </tbody>
     </table>
 
-    <h3>推奨開発アプローチの概要</h3>
+    <h3>1.3 推奨開発アプローチの概要</h3>
+    <div class="highlight">
+      <strong>セキュア・ハイブリッド型アプローチを推奨</strong><br>
+      ODBC直接接続を完全廃止し、REST
+      API中継方式による安全なAccess連携を実現。Supabaseのセキュアなパブリックエンドポイントを活用した多層防御により、企業レベルのセキュリティ要件を満たします。
+    </div>
+
+    <h2>2. 現在のシステム概要</h2>
+
+    <h3>2.1 システムの仕組み</h3>
     <p>
-      <strong>ハイブリッド型アプローチ</strong>を推奨いたします。現在のWebシステムとAccessの両方を活用し、段階的に機能を拡張することで、リスクを最小限に抑えながら貴社のご要望を実現できます。
+      現在のシステムは、クラウド上のデータベース（PostgreSQL）に商品情報や在庫情報を保存し、Webブラウザで操作する仕組みとなっております。Cloudflare
+      Pagesによる高可用性とセキュリティを確保した構成です。
     </p>
 
-    <h2>2. 現在のシステム概要（非技術者向け説明）</h2>
-
-    <h3>システムの仕組み</h3>
-    <p>
-      現在のシステムは、<span class="tech-term">クラウド上のデータベース</span>（インターネット上にあるデータ保管庫）に商品情報や在庫情報を保存し、<span class="tech-term">Webブラウザ</span>（Internet ExplorerやChromeなど）で操作する仕組みとなっております。
-    </p>
-
-    <h3>現在利用可能な機能一覧</h3>
-    <table>
+    <h3>2.2 現在利用可能な機能一覧</h3>
+    <table class="cost-table">
       <thead>
         <tr>
           <th>機能分類</th>
@@ -280,52 +498,47 @@
       </tbody>
     </table>
 
-    <h3>技術的基盤の安定性・拡張性</h3>
+    <h3>2.3 技術的基盤の安定性・拡張性</h3>
     <ul>
-      <li>
-        <strong>安定性：</strong><span class="tech-term">Cloudflare</span>（世界的なクラウドサービス）により高い可用性を実現
-      </li>
-      <li>
-        <strong>拡張性：</strong><span class="tech-term">PostgreSQL</span>（企業向けデータベース）により大容量データにも対応可能
-      </li>
+      <li><strong>安定性：</strong>Cloudflare（世界的なクラウドサービス）により高い可用性を実現</li>
+      <li><strong>拡張性：</strong>PostgreSQL（企業向けデータベース）により大容量データにも対応可能</li>
       <li><strong>セキュリティ：</strong>認証システムによりアクセス制御が実装済み</li>
       <li><strong>バックアップ：</strong>データベースの自動バックアップが定期実行</li>
     </ul>
 
-    <h3>アクセス方法と利用環境</h3>
+    <h3>2.4 アクセス方法と利用環境</h3>
     <ul>
       <li><strong>アクセス方法：</strong>Webブラウザで専用URLにアクセス</li>
-      <li><strong>対応ブラウザ：</strong>Chrome、Edge、Firefox、Safari</li>
+      <li><strong>対応ブラウザ：</strong>Chrome、Edge、Firefox、Safari（最新2バージョン）</li>
       <li><strong>対応デバイス：</strong>Windows PC、Mac、タブレット、スマートフォン</li>
       <li><strong>インターネット環境：</strong>常時接続が必要</li>
     </ul>
 
-    <h2>3. 富士精工様要望の整理と課題分析</h2>
+    <h2>3. 要望の整理と課題分析</h2>
 
-    <h3>図面管理・PDF貼付の業務フロー要件</h3>
-    <div class="approach-item">
-      <h4>現在の業務フロー（想定）</h4>
-      <ol>
-        <li>発注が必要な商品を特定</li>
-        <li>該当商品の図面番号を確認</li>
-        <li>図面PDFファイルを手動で検索・取得</li>
-        <li>発注書を作成</li>
-        <li>発注書と図面PDFを手動で結合または別添付</li>
-        <li>仕入先へ送付</li>
-      </ol>
+    <h3>3.1 図面管理・PDF貼付の業務フロー要件</h3>
 
-      <h4>理想の業務フロー（要望）</h4>
-      <ol>
-        <li>発注が必要な商品を特定</li>
-        <li>システムで図面番号を入力</li>
-        <li><strong>システムが自動で図面PDFを検索・取得</strong></li>
-        <li><strong>システムが発注書PDFに図面PDFを自動貼付</strong></li>
-        <li>完成した発注書PDFをダウンロードして仕入先へ送付</li>
-      </ol>
-    </div>
+    <h4>現在の業務フロー（想定）</h4>
+    <ol>
+      <li>発注が必要な商品を特定</li>
+      <li>該当商品の図面番号を確認</li>
+      <li>図面PDFファイルを手動で検索・取得</li>
+      <li>発注書を作成</li>
+      <li>発注書と図面PDFを手動で結合または別添付</li>
+      <li>仕入先へ送付</li>
+    </ol>
 
-    <h3>Access活用の意図と現状の課題</h3>
-    <table>
+    <h4>理想の業務フロー（要望）</h4>
+    <ol>
+      <li>発注が必要な商品を特定</li>
+      <li>システムで図面番号を入力</li>
+      <li>システムが自動で図面PDFを検索・取得</li>
+      <li>システムが発注書PDFに図面PDFを自動貼付</li>
+      <li>完成した発注書PDFをダウンロードして仕入先へ送付</li>
+    </ol>
+
+    <h3>3.2 Access活用の意図と現状の課題</h3>
+    <table class="cost-table">
       <thead>
         <tr>
           <th>項目</th>
@@ -357,241 +570,337 @@
       </tbody>
     </table>
 
-    <h3>データ統合の必要性と期待効果</h3>
-    <ul>
-      <li><strong>データの一元化：</strong>AccessとWebシステムの重複データを統合し、単一の正確なデータソースを実現</li>
-      <li><strong>リアルタイム同期：</strong>在庫数量や発注情報の即座な反映</li>
-      <li><strong>業務効率化：</strong>データ入力作業の重複を排除</li>
-      <li><strong>データ精度向上：</strong>手動転記によるミスを防止</li>
-    </ul>
+    <h2>4. セキュリティ設計詳細</h2>
 
-    <h3>他社展開時の考慮事項</h3>
-    <ul>
-      <li><strong>スケーラビリティ：</strong>複数拠点・多数ユーザーでの同時利用対応</li>
-      <li><strong>標準化：</strong>各社固有の業務フローに依存しない汎用性</li>
-      <li><strong>保守性：</strong>システム管理・アップデートの一元化</li>
-      <li><strong>セキュリティ：</strong>企業間でのデータ分離とアクセス制御</li>
-    </ul>
-
-    <h2>4. 開発アプローチの比較検討</h2>
-
-    <div class="approach-comparison">
-      <div class="approach-item">
-        <h3>アプローチA: Web統合型</h3>
-        <h4>概要</h4>
-        <p>現在のWebシステムにPDF管理機能を統合し、すべての操作をWebブラウザで完結させるアプローチです。</p>
-
-        <h4>メリット・デメリット</h4>
-        <table>
-          <thead>
-            <tr>
-              <th>メリット</th>
-              <th>デメリット</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                • システムの一元化<br>
-                • 他社展開に最適<br>
-                • 保守が容易<br>
-                • セキュリティが統一
-              </td>
-              <td>
-                • 既存Access資産の活用不可<br>
-                • ユーザーの学習コストが高<br>
-                • 短期的な導入効果が限定的
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <h4>開発期間・費用概算</h4>
-        <ul>
-          <li><strong>開発期間：</strong>8-12週間</li>
-          <li><strong>費用概算：</strong>280-350万円</li>
-        </ul>
-
-        <h4>適用場面</h4>
-        <p>完全に新しいシステムへの移行を前提とし、既存のAccess資産を放棄できる場合。</p>
-      </div>
-
-      <div class="approach-item">
-        <h3>アプローチB: Access連携型</h3>
-        <h4>概要</h4>
-        <p>
-          AccessをメインのフロントエンドとしてWebシステムのデータベースに直接接続し、PDF生成もAccess側で行うアプローチです。
-        </p>
-
-        <h4>メリット・デメリット</h4>
-        <table>
-          <thead>
-            <tr>
-              <th>メリット</th>
-              <th>デメリット</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                • 既存Access資産の最大活用<br>
-                • ユーザーの学習コスト最小<br>
-                • 柔軟なPDF生成が可能<br>
-                • 短期導入可能
-              </td>
-              <td>
-                • 技術的複雑性が高<br>
-                • 他社展開時の制約<br>
-                • 接続安定性に課題<br>
-                • 保守が複雑
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <h4>技術的課題（ODBC接続等）</h4>
-        <ul>
-          <li><strong>ODBC接続：</strong>AccessからPostgreSQLへの接続設定とドライバー管理</li>
-          <li><strong>認証管理：</strong>Webシステムの認証システムとの連携</li>
-          <li><strong>データ同期：</strong>リアルタイム性の確保</li>
-          <li><strong>エラーハンドリング：</strong>接続断などの障害対応</li>
-        </ul>
-
-        <h4>開発期間・費用概算</h4>
-        <ul>
-          <li><strong>開発期間：</strong>6-10週間</li>
-          <li><strong>費用概算：</strong>180-250万円</li>
-        </ul>
-      </div>
-
-      <div class="approach-item recommended">
-        <h3>アプローチC: ハイブリッド型（推奨）</h3>
-        <h4>概要</h4>
-        <p>
-          WebシステムとAccessの両方を活用し、段階的に機能を統合していくアプローチです。PDF管理はWeb側で行い、Accessからは必要に応じてアクセスできる柔軟な構成です。
-        </p>
-
-        <h4>段階的導入のメリット</h4>
-        <ul>
-          <li><strong>リスク分散：</strong>段階的導入によりリスクを最小化</li>
-          <li><strong>継続性：</strong>既存業務を停止せずに新機能を追加</li>
-          <li><strong>学習効率：</strong>ユーザーが段階的にシステムに慣れることが可能</li>
-          <li><strong>投資効率：</strong>効果を確認しながら段階的に投資</li>
-        </ul>
-
-        <h4>長期的な発展性</h4>
-        <ul>
-          <li><strong>拡張性：</strong>将来的にWeb完全統合への移行が容易</li>
-          <li><strong>柔軟性：</strong>他社展開時にAccess部分の調整が可能</li>
-          <li><strong>互換性：</strong>既存システムとの共存が可能</li>
-        </ul>
-
-        <h4>推奨理由</h4>
-        <ol>
-          <li><strong>現実的：</strong>既存資産を活用しながら新機能を実現</li>
-          <li><strong>段階的：</strong>リスクを管理しながら確実に効果を実現</li>
-          <li><strong>将来性：</strong>他社展開を見据えた設計が可能</li>
-          <li><strong>費用対効果：</strong>最も効率的な投資配分が可能</li>
-        </ol>
-      </div>
+    <div class="warning">
+      <strong>重要：</strong>従来提案のODBC直接接続は、セキュリティリスクが極めて高いため完全廃止いたします。企業システムとして適切なセキュリティレベルを確保するため、以下の設計に全面変更いたします。
     </div>
 
-    <h2>5. 推奨開発プラン</h2>
+    <h3>4.1 セキュリティアーキテクチャ</h3>
 
-    <h3>推奨アプローチとその理由</h3>
-    <p>
-      <strong>ハイブリッド型アプローチ</strong>を強く推奨いたします。以下の理由により、貴社にとって最適な選択と考えております：
-    </p>
+    <h4>基本設計方針</h4>
+    <ul>
+      <li><strong>ゼロトラスト原則：</strong>すべての通信を暗号化し、認証・認可を必須とする</li>
+      <li><strong>API中継方式：</strong>直接DB接続を禁止し、REST API経由でのみデータアクセス</li>
+      <li><strong>最小権限原則：</strong>ユーザー・システムに必要最小限の権限のみ付与</li>
+      <li><strong>監査可能性：</strong>すべての操作を記録し、改ざん耐性を確保</li>
+    </ul>
 
-    <div class="summary-box">
-      <h4>推奨理由の詳細</h4>
+    <h4>新セキュリティアーキテクチャ図</h4>
+    <div class="architecture-box">
+<span style="color: #60a5fa; font-weight: bold;">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+<span style="color: #34d399; font-weight: bold;">                        セキュアシステム構成図</span>
+<span style="color: #60a5fa; font-weight: bold;">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+
+<span style="color: #fbbf24; font-weight: bold;">【クライアント層】</span>        <span style="color: #fb7185; font-weight: bold;">VPN/ゼロトラスト網</span>        <span style="color: #fbbf24; font-weight: bold;">【API層】</span>
+┏━━━━━━━━━━━━━━━━━┓                              ┏━━━━━━━━━━━━━━━━━┓
+┃   <span style="color: #60a5fa; font-weight: bold;">Access Client</span>   ┃◄──<span style="color: #34d399;">TLS 1.3暗号化</span>──►┃   <span style="color: #60a5fa; font-weight: bold;">API Gateway</span>     ┃
+┃                   ┃                              ┃                   ┃
+┃ 🔹VBA + WinHTTP    ┃                              ┃ 🔹JWT認証          ┃
+┃ 🔹短命トークン管理  ┃                              ┃ 🔹レート制限       ┃
+┃ 🔹自動認証更新    ┃                              ┃ 🔹アクセス制御     ┃
+┗━━━━━━━━━━━━━━━━━┛                              ┗━━━━━━━━┳━━━━━━━━┛
+                                                            ┃
+                                                            ┃ <span style="color: #34d399;">HTTPS API</span>
+                                                            ┃
+<span style="color: #fbbf24; font-weight: bold;">【処理層】</span>                                                  ┃
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━┓
+┃                    <span style="color: #60a5fa; font-weight: bold;">Cloudflare Workers</span> (エッジコンピューティング)                    ┃
+┃                                                                           ┃
+┃ 🔹ビジネスロジック処理    🔹RBAC権限制御     🔹レスポンス最適化           ┃
+┃ 🔹PDF結合・生成処理      🔹リクエスト検証   🔹エラーハンドリング         ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┛
+                                                            ┃
+                                                            ┃ <span style="color: #34d399;">暗号化接続</span>
+                                                            ┃
+<span style="color: #fbbf24; font-weight: bold;">【データ層】</span>                                                  ┃
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━┓
+┃                     <span style="color: #60a5fa; font-weight: bold;">Supabase PostgreSQL</span> (マネージドDB)                      ┃
+┃                                                                           ┃
+┃ 🔐RLS (Row Level Security)     🔐ディスク暗号化 (AES-256)                ┃
+┃ 🔐自動バックアップ            🔐監査ログ記録                            ┃
+┃ 🔐レプリケーション            🔐アクセスログ解析                        ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+<span style="color: #34d399; font-size: 0.9em;">✅ 完全暗号化通信  ✅ 多層防御  ✅ ゼロトラスト原則  ✅ 監査証跡</span>
+    </div>
+
+    <h3>4.2 認証・認可システム</h3>
+
+    <h4>JWT（JSON Web Token）認証</h4>
+    <div class="subsection">
+      <strong>認証フロー：</strong>
       <ol>
-        <li>
-          <strong>既存投資の最大活用：</strong>AccessやWebシステムへの既存投資を無駄にすることなく、それぞれの長所を活かした統合が可能です。
-        </li>
-        <li>
-          <strong>段階的リスク管理：</strong>一度に大きな変更を行うのではなく、段階的に機能を追加することで、業務への影響を最小限に抑えられます。
-        </li>
-        <li>
-          <strong>将来性の確保：</strong>他社展開時にはWeb側の機能を拡張し、Access依存度を段階的に下げることが可能です。
-        </li>
-        <li>
-          <strong>現実的な導入：</strong>ユーザーの慣れ親しんだAccessインターフェースを維持しながら、最新のWeb技術の恩恵を受けられます。
-        </li>
+        <li>ユーザーがID/パスワードでログイン</li>
+        <li>サーバーがJWTトークン（有効期限15分）を発行</li>
+        <li>AccessクライアントがAPIリクエスト時にトークンを送信</li>
+        <li>APIゲートウェイがトークンを検証</li>
+        <li>有効期限残り2分以下で自動リフレッシュトークンを使用</li>
       </ol>
     </div>
 
-    <h3>具体的な実装スケジュール（フェーズ分割）</h3>
-
-    <div class="phase-box">
-      <h4>【フェーズ2】: PDF管理基盤構築（4-6週間）</h4>
-      <ul>
-        <li>図面PDFアップロード機能の実装</li>
-        <li>PDF保管・検索システムの構築</li>
-        <li>発注書PDF生成機能の基礎実装</li>
-        <li>PDF結合機能の開発</li>
-      </ul>
-      <p><strong>成果物：</strong>Web側でのPDF管理システム完成</p>
-    </div>
-
-    <div class="phase-box">
-      <h4>【フェーズ3】: Access連携機能（6-8週間）</h4>
-      <ul>
-        <li>Access-PostgreSQL接続の実装</li>
-        <li>データ同期機能の開発</li>
-        <li>Access専用発注フォームの作成</li>
-        <li>図面PDF自動貼付機能の実装</li>
-      </ul>
-      <p><strong>成果物：</strong>AccessからWebデータベースへの接続とPDF機能連携完成</p>
-    </div>
-
-    <div class="phase-box">
-      <h4>【フェーズ4】: データ移行・統合（4-6週間）</h4>
-      <ul>
-        <li>既存Accessデータの分析・クレンジング</li>
-        <li>Webシステムデータベースへの移行</li>
-        <li>データ整合性の確認・修正</li>
-        <li>統合テスト・運用開始準備</li>
-      </ul>
-      <p><strong>成果物：</strong>完全統合システムの稼働開始</p>
-    </div>
-
-    <h3>各フェーズの成果物と期間</h3>
-    <table>
+    <h4>RBAC（Role-Based Access Control）</h4>
+    <table class="cost-table">
       <thead>
         <tr>
-          <th>フェーズ</th>
-          <th>期間</th>
-          <th>主要成果物</th>
-          <th>確認方法</th>
+          <th>ロール</th>
+          <th>権限</th>
+          <th>アクセス可能機能</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>【フェーズ2】</td>
-          <td>4-6週間</td>
-          <td>PDF管理システム、発注書生成機能</td>
-          <td>デモンストレーション、動作確認</td>
+          <td>管理者</td>
+          <td>全権限</td>
+          <td>システム設定、ユーザー管理、全データ操作</td>
         </tr>
         <tr>
-          <td>【フェーズ3】</td>
-          <td>6-8週間</td>
-          <td>Access連携、図面PDF自動貼付</td>
-          <td>実際のAccessでの動作確認</td>
+          <td>発注担当者</td>
+          <td>発注関連</td>
+          <td>発注書作成、図面参照、在庫確認</td>
         </tr>
         <tr>
-          <td>【フェーズ4】</td>
-          <td>4-6週間</td>
-          <td>データ移行完了、統合システム</td>
-          <td>本番運用開始、業務フロー確認</td>
+          <td>在庫管理者</td>
+          <td>在庫関連</td>
+          <td>在庫更新、商品マスター編集</td>
+        </tr>
+        <tr>
+          <td>閲覧者</td>
+          <td>参照のみ</td>
+          <td>データ閲覧、レポート表示</td>
         </tr>
       </tbody>
     </table>
 
+    <h3>4.3 データ暗号化仕様</h3>
+
+    <h4>転送時暗号化（TLS 1.3）</h4>
+    <ul>
+      <li><strong>プロトコル：</strong>TLS 1.3（最新の暗号化標準）</li>
+      <li><strong>証明書：</strong>Cloudflare Managed TLS（TLS 1.3対応）</li>
+      <li><strong>暗号化スイート：</strong>AES-256-GCM、ChaCha20-Poly1305</li>
+      <li><strong>キー交換：</strong>ECDHE（Perfect Forward Secrecy対応）</li>
+    </ul>
+
+    <h4>保存時暗号化（AES-256）</h4>
+    <ul>
+      <li><strong>データベース：</strong>Supabase/クラウド事業者によるディスク暗号化（AES-256）+ KMS管理</li>
+      <li><strong>ファイルストレージ：</strong>AES-256暗号化（サーバーサイド）</li>
+      <li><strong>バックアップ：</strong>暗号化バックアップ（キー分離管理）</li>
+      <li><strong>アクセス制御：</strong>Supabase RLS（Row Level Security）による多層防御</li>
+    </ul>
+
+    <h3>4.4 図面版管理システム</h3>
+
+    <h4>版管理機能詳細</h4>
+    <table class="cost-table">
+      <thead>
+        <tr>
+          <th>操作</th>
+          <th>説明</th>
+          <th>権限制御</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>チェックアウト</td>
+          <td>編集権限取得、他ユーザーの同時編集を防止</td>
+          <td>編集権限者のみ</td>
+        </tr>
+        <tr>
+          <td>チェックイン</td>
+          <td>編集完了、新版として登録</td>
+          <td>チェックアウトしたユーザー</td>
+        </tr>
+        <tr>
+          <td>版数管理</td>
+          <td>セマンティックバージョニング（v1.2.3形式）</td>
+          <td>システム自動管理</td>
+        </tr>
+        <tr>
+          <td>変更履歴</td>
+          <td>変更者・日時・理由・差分記録</td>
+          <td>全ユーザー閲覧可</td>
+        </tr>
+        <tr>
+          <td>承認フロー</td>
+          <td>重要図面は管理者承認必須</td>
+          <td>管理者権限</td>
+        </tr>
+        <tr>
+          <td>強制チェックイン</td>
+          <td>緊急時の管理者による権限奪取</td>
+          <td>管理者のみ</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4>版管理の主要機能</h4>
+    <ul>
+      <li><strong>チェックイン/チェックアウト機能：</strong>同時編集防止、権限制御</li>
+      <li><strong>版数管理：</strong>セマンティックバージョニング例：v1.2.3</li>
+      <li><strong>変更履歴追跡：</strong>変更者・日時・理由・差分記録</li>
+      <li><strong>承認フロー：</strong>重要図面は管理者承認必須</li>
+      <li><strong>権限制御：</strong>編集権限者限定、管理者の強制チェックイン</li>
+    </ul>
+
+    <h3>4.5 監査ログ・コンプライアンス</h3>
+
+    <h4>強化された監査ログ仕様</h4>
+    <div class="subsection">
+      <strong>記録項目詳細：</strong>
+      <ul>
+        <li>ユーザーID（認証されたユーザー識別子）</li>
+        <li>操作種別（CREATE、READ、UPDATE、DELETE、LOGIN等）</li>
+        <li>対象データID・テーブル名</li>
+        <li>変更前後の値（データ変更時）</li>
+        <li>アクセス元IPアドレス</li>
+        <li>ユーザーエージェント情報</li>
+        <li>リクエストID（トレーサビリティ用）</li>
+        <li>タイムスタンプ（UTC、ナノ秒精度）</li>
+      </ul>
+    </div>
+
+    <h4>改ざん耐性と保管</h4>
+    <ul>
+      <li><strong>保持期間：</strong>最低1年間、要件により延長可能</li>
+      <li><strong>改ざん耐性：</strong>Cloudflare R2のObject Lock（WORM）＋ハッシュチェーン方式</li>
+      <li><strong>ログアクセス：</strong>管理画面から期間・条件指定で検索・エクスポート、権限制御あり</li>
+      <li><strong>完全性保証：</strong>各ログエントリにハッシュ値付与、チェーン検証機能</li>
+    </ul>
+
+    <h2>5. 新技術アーキテクチャ設計</h2>
+
+    <h3>5.1 REST API設計仕様</h3>
+
+    <h4>API設計原則</h4>
+    <ul>
+      <li><strong>RESTful設計：</strong>HTTP標準メソッド（GET, POST, PUT, DELETE）を適切に使用</li>
+      <li><strong>JSON形式：</strong>すべてのデータ交換はJSON形式で統一</li>
+      <li><strong>バージョニング：</strong>URL パス方式（/api/v1/...）でバージョン管理</li>
+      <li><strong>ステートレス：</strong>サーバー側でセッション状態を保持しない設計</li>
+    </ul>
+
+    <h4>主要APIエンドポイント</h4>
+    <div class="architecture-box">
+<strong>認証関連：</strong>
+POST /api/v1/auth/login      # ログイン・トークン取得
+POST /api/v1/auth/refresh    # トークンリフレッシュ
+POST /api/v1/auth/logout     # ログアウト
+
+<strong>商品・在庫管理：</strong>
+GET  /api/v1/products        # 商品一覧取得
+GET  /api/v1/products/{id}   # 商品詳細取得
+POST /api/v1/products        # 商品新規作成
+PUT  /api/v1/products/{id}   # 商品情報更新
+
+<strong>図面・PDF管理：</strong>
+GET  /api/v1/drawings                  # 図面一覧取得
+POST /api/v1/drawings/upload           # 図面PDFアップロード
+GET  /api/v1/drawings/{id}/pdf         # 図面PDF取得
+POST /api/v1/orders/{id}/generate-pdf  # 発注書PDF生成
+
+<strong>発注管理：</strong>
+GET  /api/v1/orders          # 発注一覧取得
+POST /api/v1/orders          # 発注書作成
+PUT  /api/v1/orders/{id}     # 発注書更新
+    </div>
+
+    <h4>エラーハンドリング</h4>
+    <table class="cost-table">
+      <thead>
+        <tr>
+          <th>HTTPステータス</th>
+          <th>説明</th>
+          <th>レスポンス例</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>200 OK</td>
+          <td>正常処理完了</td>
+          <td>{"status": "success", "data": {...}}</td>
+        </tr>
+        <tr>
+          <td>400 Bad Request</td>
+          <td>リクエストパラメータ不正</td>
+          <td>{"error": "invalid_parameter", "message": "..."}</td>
+        </tr>
+        <tr>
+          <td>401 Unauthorized</td>
+          <td>認証エラー</td>
+          <td>{"error": "authentication_failed"}</td>
+        </tr>
+        <tr>
+          <td>403 Forbidden</td>
+          <td>権限不足</td>
+          <td>{"error": "insufficient_permission"}</td>
+        </tr>
+        <tr>
+          <td>429 Too Many Requests</td>
+          <td>レート制限超過</td>
+          <td>{"error": "rate_limit_exceeded"}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>5.2 インフラ構成</h3>
+
+    <h4>推奨クラウド構成</h4>
+    <table class="cost-table">
+      <thead>
+        <tr>
+          <th>コンポーネント</th>
+          <th>サービス</th>
+          <th>仕様</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>フロントエンド</td>
+          <td>Cloudflare Pages</td>
+          <td>静的サイトホスティング、グローバルCDN</td>
+        </tr>
+        <tr>
+          <td>API層</td>
+          <td>Cloudflare Workers</td>
+          <td>サーバーレス実行、エッジコンピューティング</td>
+        </tr>
+        <tr>
+          <td>データベース</td>
+          <td>Supabase PostgreSQL</td>
+          <td>マネージドDB、自動バックアップ、レプリケーション</td>
+        </tr>
+        <tr>
+          <td>ファイルストレージ</td>
+          <td>Cloudflare R2</td>
+          <td>オブジェクトストレージ、S3互換API</td>
+        </tr>
+        <tr>
+          <td>VPN接続</td>
+          <td>Cloudflare Zero Trust</td>
+          <td>ゼロトラストネットワーク、デバイス認証</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4>PDF処理実行基盤について</h4>
+    <div class="warning">
+      <strong>重要な技術制約と対応策：</strong><br>
+      Cloudflare Workersには実行時間（CPU時間10ms〜30秒）とメモリ（128MB）の制限があります。
+    </div>
+    <ul>
+      <li><strong>初期実装：</strong>Cloudflare Workers（軽量PDFファイル向け）</li>
+      <li><strong>制約事項：</strong>CPU時間・メモリ制限により大容量PDF処理に制約</li>
+      <li><strong>代替案：</strong>制限抵触時はSupabase Edge Functions/AWS Lambdaに自動切替</li>
+      <li><strong>費用保証：</strong>提案範囲内での代替基盤切替は追加費用なし（大幅要件変更時を除く）</li>
+      <li><strong>性能目標：</strong>標準的な図面サイズ（5MB以下）でのPDF結合5秒以内を維持</li>
+    </ul>
+
     <h2>6. 機能詳細と技術仕様</h2>
 
-    <h3>PDF生成・結合機能の詳細</h3>
-    <table>
+    <h3>6.1 PDF生成・結合機能の詳細</h3>
+    <table class="cost-table">
       <thead>
         <tr>
           <th>機能名</th>
@@ -603,135 +912,378 @@
         <tr>
           <td>図面PDFアップロード</td>
           <td>図面番号に紐付けてPDFファイルを保管</td>
-          <td>Webブラウザからのドラッグ&amp;ドロップアップロード対応</td>
+          <td>最大50MB、チャンクアップロード、非同期処理</td>
         </tr>
         <tr>
           <td>発注書PDF生成</td>
           <td>発注情報から標準的な発注書PDFを自動生成</td>
-          <td>テンプレート方式により柔軟なレイアウト対応</td>
+          <td>テンプレート方式、動的レイアウト対応</td>
         </tr>
         <tr>
           <td>PDF自動結合</td>
           <td>発注書PDFと図面PDFを自動的に結合</td>
-          <td>図面番号による自動検索・結合処理</td>
+          <td>5秒以内での高速処理、メタデータ保持</td>
         </tr>
         <tr>
           <td>PDF検索・管理</td>
           <td>図面番号、商品名等によるPDFファイル検索</td>
-          <td>高速全文検索、プレビュー表示機能</td>
+          <td>メタデータ検索1秒以内、全文検索はオプション</td>
         </tr>
       </tbody>
     </table>
 
-    <h3>図面管理システムの仕様</h3>
+    <h4>性能目標</h4>
     <ul>
-      <li><strong>対応ファイル形式：</strong>PDF（推奨）、JPG、PNG</li>
-      <li><strong>ファイルサイズ制限：</strong>1ファイルあたり最大10MB</li>
-      <li><strong>保管容量：</strong>初期設定100GB（拡張可能）</li>
-      <li><strong>バックアップ：</strong>自動バックアップ（毎日）、世代管理（30世代）</li>
-      <li><strong>アクセス制御：</strong>ユーザー権限による閲覧・編集制限</li>
-      <li><strong>検索機能：</strong>図面番号、商品名、アップロード日時による検索</li>
+      <li><strong>PDF結合処理：</strong>5秒以内（標準的な図面サイズの場合）</li>
+      <li><strong>メタデータ検索：</strong>1秒以内（図面番号、商品名での検索）</li>
+      <li><strong>同時接続数：</strong>50ユーザーまで対応</li>
+      <li><strong>ファイル制限：</strong>1ファイル最大50MB、チャンクアップロード対応</li>
     </ul>
 
-    <h3>Access-Web連携の技術的実装方法</h3>
-    <ol>
-      <li>
-        <strong>ODBC接続設定：</strong>
-        <ul>
-          <li>PostgreSQL ODBCドライバーのインストール</li>
-          <li>接続文字列の設定（暗号化通信対応）</li>
-          <li>認証情報の安全な管理</li>
-        </ul>
-      </li>
-      <li>
-        <strong>データ同期機能：</strong>
-        <ul>
-          <li>リアルタイム同期（在庫数量等の重要データ）</li>
-          <li>バッチ同期（マスターデータ等の更新頻度が低いデータ）</li>
-          <li>競合解決機能（同時更新時の処理）</li>
-        </ul>
-      </li>
-      <li>
-        <strong>エラーハンドリング：</strong>
-        <ul>
-          <li>接続断時の自動再接続機能</li>
-          <li>データ更新失敗時のロールバック処理</li>
-          <li>エラーログの自動記録・通知</li>
-        </ul>
-      </li>
-    </ol>
+    <h3>6.2 データ移行計画の具体的手順</h3>
 
-    <h3>データ移行計画の具体的手順</h3>
-    <ol>
-      <li>
-        <strong>データ分析・設計（1週間）</strong>
-        <ul>
-          <li>既存Accessデータの構造分析</li>
-          <li>Webシステムとのマッピング設計</li>
-          <li>データクレンジングルールの策定</li>
-        </ul>
-      </li>
-      <li>
-        <strong>移行ツール開発（2週間）</strong>
-        <ul>
-          <li>データ抽出・変換・投入ツールの開発</li>
-          <li>データ整合性チェック機能の実装</li>
-          <li>エラーハンドリング機能の実装</li>
-        </ul>
-      </li>
-      <li>
-        <strong>テスト移行・検証（1週間）</strong>
-        <ul>
-          <li>テスト環境でのデータ移行実行</li>
-          <li>データ整合性の確認</li>
-          <li>機能動作テスト</li>
-        </ul>
-      </li>
-      <li>
-        <strong>本番移行・運用開始（1週間）</strong>
-        <ul>
-          <li>本番環境でのデータ移行実行</li>
-          <li>最終確認・動作テスト</li>
-          <li>運用開始・ユーザートレーニング</li>
-        </ul>
-      </li>
-    </ol>
-
-    <h2>7. 開発費用概算</h2>
-
-    <h3>アプローチ別費用比較</h3>
+    <h4>移行フェーズ</h4>
     <table class="cost-table">
       <thead>
         <tr>
-          <th>アプローチ</th>
-          <th>開発費用</th>
+          <th>フェーズ</th>
           <th>期間</th>
-          <th>備考</th>
+          <th>主要作業</th>
+          <th>成果物</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>Web統合型</td>
-          <td>280-350万円</td>
-          <td>8-12週間</td>
-          <td>完全統合、Access資産放棄</td>
+          <td>分析・設計</td>
+          <td>1週間</td>
+          <td>既存データ構造分析、マッピング設計</td>
+          <td>データ移行設計書</td>
         </tr>
         <tr>
-          <td>Access連携型</td>
-          <td>180-250万円</td>
-          <td>6-10週間</td>
-          <td>Access中心、技術的リスクあり</td>
+          <td>ツール開発</td>
+          <td>2週間</td>
+          <td>ETLツール開発、整合性チェック機能</td>
+          <td>データ移行ツール</td>
         </tr>
-        <tr style="background-color: #f0fdf4; border: 2px solid #16a34a;">
-          <td>ハイブリッド型（推奨）</td>
-          <td>220-280万円</td>
-          <td>14-20週間</td>
-          <td>段階的導入、リスク最小</td>
+        <tr>
+          <td>テスト移行</td>
+          <td>1週間</td>
+          <td>テスト環境でのデータ移行実行</td>
+          <td>移行テスト結果</td>
+        </tr>
+        <tr>
+          <td>本番移行</td>
+          <td>1週間</td>
+          <td>本番環境での最終データ移行</td>
+          <td>統合システム稼働</td>
         </tr>
       </tbody>
     </table>
 
-    <h3>推奨プラン（ハイブリッド型）の詳細費用内訳</h3>
+    <h2>7. 契約前必須確認事項</h2>
+
+    <div class="warning">
+      <strong>重要：</strong>以下の確認作業を完了してからの契約進行を強く推奨いたします。これらの確認なしに開発を開始した場合、予期せぬ技術的課題や追加費用が発生する可能性があります。
+    </div>
+
+    <h3>7.1 技術プロトタイプ検証（推奨期間：2週間）</h3>
+
+    <h4>検証目的</h4>
+    <ul>
+      <li>Access-API連携の実現可能性確認</li>
+      <li>既存Access環境でのVBA動作確認</li>
+      <li>PDF処理性能の実測評価</li>
+      <li>セキュリティ要件の技術的適合性確認</li>
+    </ul>
+
+    <h4>プロトタイプ検証内容</h4>
+    <table class="cost-table">
+      <thead>
+        <tr>
+          <th>検証項目</th>
+          <th>確認内容</th>
+          <th>期待結果</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>API接続テスト</td>
+          <td>Access VBAからREST API呼び出し</td>
+          <td>認証・データ取得の正常動作</td>
+        </tr>
+        <tr>
+          <td>PDF処理テスト</td>
+          <td>実際の図面PDFでの結合処理</td>
+          <td>5秒以内での処理完了</td>
+        </tr>
+        <tr>
+          <td>セキュリティテスト</td>
+          <td>暗号化通信、認証の動作確認</td>
+          <td>企業セキュリティ基準への適合</td>
+        </tr>
+        <tr>
+          <td>性能テスト</td>
+          <td>想定データ量での処理速度測定</td>
+          <td>目標性能の達成</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="highlight">
+      <strong>技術プロトタイプ検証費用：15万円（税抜）</strong><br>
+      ※本契約の際は、開発費用から差し引きいたします
+    </div>
+
+    <h3>7.2 開発体制・投入リソース</h3>
+    <div class="subsection">
+      <strong>基本体制：</strong>
+      <ul>
+        <li>1名専任（週27時間×18週＝480時間想定）</li>
+        <li>必要時の専門要員投入（セキュリティ実装・テスト期間）</li>
+      </ul>
+    </div>
+
+    <h3>7.3 詳細要件定義</h3>
+
+    <h4>Access環境詳細調査</h4>
+    <div class="subsection">
+      <strong>対応バージョン・環境要件：</strong>
+      <ul>
+        <li><strong>対応バージョン：</strong>Access 2016/2019/2021/365</li>
+        <li><strong>OS要件：</strong>Windows 10/11、32/64bit対応</li>
+        <li><strong>ネットワーク要件：</strong>HTTPS通信、プロキシ設定対応</li>
+      </ul>
+    </div>
+
+    <h2>8. 開発費用概算</h2>
+
+    <h3>8.1 費用積算の基本方針</h3>
+
+    <h4>費用積算の修正方針</h4>
+    <p>
+      セキュリティ要件の大幅強化とAPI開発の複雑性を適切に反映し、現実的な工数に基づく費用積算に修正いたします。プロジェクト管理工数を全体の15-20%に設定し、品質とリスク管理を重視した体制といたします。
+    </p>
+
+    <h4>工数積算の前提条件</h4>
+    <ul>
+      <li><strong>総工数：</strong>480-600時間（従来の倍以上の現実的見積もり）</li>
+      <li><strong>プロジェクト管理：</strong>全体工数の17%（品質管理・リスク管理含む）</li>
+      <li><strong>セキュリティ実装：</strong>全体工数の25%（認証・暗号化・監査ログ）</li>
+      <li><strong>テスト工数：</strong>全体工数の20%（セキュリティテスト含む）</li>
+    </ul>
+
+    <h3>8.2 フェーズ別詳細費用</h3>
+
+    <h4>【フェーズ2】PDF管理基盤構築 - 修正版工数内訳</h4>
+    <table class="cost-table">
+      <thead>
+        <tr>
+          <th>作業項目</th>
+          <th>工数</th>
+          <th>単価</th>
+          <th>金額</th>
+          <th>作業内容</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>要件定義・設計</td>
+          <td>25時間</td>
+          <td>4,500円</td>
+          <td>112,500円</td>
+          <td>セキュリティ設計、API設計、UI/UX設計</td>
+        </tr>
+        <tr>
+          <td>API開発（認証・PDF処理）</td>
+          <td>45時間</td>
+          <td>4,000円</td>
+          <td>180,000円</td>
+          <td>JWT認証、PDF処理API、暗号化実装</td>
+        </tr>
+        <tr>
+          <td>フロントエンド開発</td>
+          <td>30時間</td>
+          <td>3,500円</td>
+          <td>105,000円</td>
+          <td>管理画面、アップロード機能、検索機能</td>
+        </tr>
+        <tr>
+          <td>セキュリティ実装</td>
+          <td>35時間</td>
+          <td>4,500円</td>
+          <td>157,500円</td>
+          <td>TLS設定、暗号化、監査ログ、RBAC</td>
+        </tr>
+        <tr>
+          <td>テスト・品質保証</td>
+          <td>25時間</td>
+          <td>3,500円</td>
+          <td>87,500円</td>
+          <td>セキュリティテスト、性能テスト、統合テスト</td>
+        </tr>
+        <tr>
+          <td>ドキュメント作成</td>
+          <td>15時間</td>
+          <td>3,000円</td>
+          <td>45,000円</td>
+          <td>API仕様書、セキュリティ仕様書、運用手順書</td>
+        </tr>
+        <tr class="total-row">
+          <td>小計</td>
+          <td>175時間</td>
+          <td>平均3,951円</td>
+          <td>687,500円</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4>【フェーズ3】Access連携機能 - 修正版工数内訳</h4>
+    <table class="cost-table">
+      <thead>
+        <tr>
+          <th>作業項目</th>
+          <th>工数</th>
+          <th>単価</th>
+          <th>金額</th>
+          <th>作業内容</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>API連携設計・実装</td>
+          <td>40時間</td>
+          <td>4,500円</td>
+          <td>180,000円</td>
+          <td>REST API設計、認証連携、エラーハンドリング</td>
+        </tr>
+        <tr>
+          <td>Access VBA開発</td>
+          <td>35時間</td>
+          <td>4,000円</td>
+          <td>140,000円</td>
+          <td>API呼び出し、認証管理、UI開発</td>
+        </tr>
+        <tr>
+          <td>PDF自動貼付機能</td>
+          <td>30時間</td>
+          <td>4,000円</td>
+          <td>120,000円</td>
+          <td>図面検索・結合ロジック、非同期処理</td>
+        </tr>
+        <tr>
+          <td>セキュリティ実装</td>
+          <td>25時間</td>
+          <td>4,500円</td>
+          <td>112,500円</td>
+          <td>トークン管理、暗号化通信、権限制御</td>
+        </tr>
+        <tr>
+          <td>統合テスト・デバッグ</td>
+          <td>20時間</td>
+          <td>3,500円</td>
+          <td>70,000円</td>
+          <td>Access-API連携テスト、エラー処理テスト</td>
+        </tr>
+        <tr class="total-row">
+          <td>小計</td>
+          <td>150時間</td>
+          <td>平均4,150円</td>
+          <td>622,500円</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4>【フェーズ4】データ移行・統合 - 修正版工数内訳</h4>
+    <table class="cost-table">
+      <thead>
+        <tr>
+          <th>作業項目</th>
+          <th>工数</th>
+          <th>単価</th>
+          <th>金額</th>
+          <th>作業内容</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>データ分析・設計</td>
+          <td>20時間</td>
+          <td>4,000円</td>
+          <td>80,000円</td>
+          <td>既存データ構造分析、マッピング設計</td>
+        </tr>
+        <tr>
+          <td>移行ツール開発</td>
+          <td>30時間</td>
+          <td>3,800円</td>
+          <td>114,000円</td>
+          <td>ETLツール、整合性チェック、ロールバック機能</td>
+        </tr>
+        <tr>
+          <td>テスト移行・検証</td>
+          <td>15時間</td>
+          <td>3,500円</td>
+          <td>52,500円</td>
+          <td>テスト環境での移行確認、データ検証</td>
+        </tr>
+        <tr>
+          <td>本番移行・確認</td>
+          <td>10時間</td>
+          <td>3,500円</td>
+          <td>35,000円</td>
+          <td>本番データ移行、最終確認、運用開始支援</td>
+        </tr>
+        <tr class="total-row">
+          <td>小計</td>
+          <td>75時間</td>
+          <td>平均3,753円</td>
+          <td>281,500円</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4>プロジェクト管理・品質管理</h4>
+    <table class="cost-table">
+      <thead>
+        <tr>
+          <th>作業項目</th>
+          <th>工数</th>
+          <th>単価</th>
+          <th>金額</th>
+          <th>作業内容</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>プロジェクト管理</td>
+          <td>50時間</td>
+          <td>4,200円</td>
+          <td>210,000円</td>
+          <td>進捗管理、品質管理、リスク管理、報告</td>
+        </tr>
+        <tr>
+          <td>技術サポート</td>
+          <td>30時間</td>
+          <td>3,800円</td>
+          <td>114,000円</td>
+          <td>導入支援、トレーニング、運用開始支援</td>
+        </tr>
+        <tr class="total-row">
+          <td>小計</td>
+          <td>80時間</td>
+          <td>平均4,050円</td>
+          <td>324,000円</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>8.3 総合費用サマリー</h3>
+
+    <h4>セキュア・ハイブリッド型開発プラン 総費用</h4>
     <table class="cost-table">
       <thead>
         <tr>
@@ -743,173 +1295,236 @@
       </thead>
       <tbody>
         <tr>
-          <td>【フェーズ2】: PDF管理基盤</td>
-          <td>120-150時間</td>
-          <td>90-110万円</td>
-          <td>PDF管理システム、発注書生成機能</td>
+          <td>【フェーズ2】PDF管理基盤</td>
+          <td>175時間</td>
+          <td>687,500円</td>
+          <td>セキュアPDF管理システム、認証基盤</td>
         </tr>
         <tr>
-          <td>【フェーズ3】: Access連携</td>
-          <td>100-130時間</td>
-          <td>80-100万円</td>
-          <td>ODBC接続、データ同期、UI開発</td>
+          <td>【フェーズ3】Access連携</td>
+          <td>150時間</td>
+          <td>622,500円</td>
+          <td>REST API連携、VBA開発、セキュリティ実装</td>
         </tr>
         <tr>
-          <td>【フェーズ4】: データ移行</td>
-          <td>60-80時間</td>
-          <td>50-70万円</td>
-          <td>データ分析、移行ツール、テスト</td>
+          <td>【フェーズ4】データ移行</td>
+          <td>75時間</td>
+          <td>281,500円</td>
+          <td>データ移行、統合テスト、運用開始</td>
         </tr>
-        <tr style="font-weight: 600; background-color: #e2e8f0; color: #1e293b; font-size: 17px;">
+        <tr>
+          <td>プロジェクト管理</td>
+          <td>80時間</td>
+          <td>324,000円</td>
+          <td>品質管理、リスク管理、技術サポート</td>
+        </tr>
+        <tr class="total-row">
+          <td>合計開発費</td>
+          <td>480時間</td>
+          <td>1,915,500円（税抜）</td>
+          <td>企業レベルセキュリティ対応統合システム</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4>支払いスケジュール</h4>
+    <table class="cost-table">
+      <thead>
+        <tr>
+          <th>支払いタイミング</th>
+          <th>割合</th>
+          <th>金額（税抜）</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>契約時</td>
+          <td>30%</td>
+          <td>574,650円</td>
+        </tr>
+        <tr>
+          <td>フェーズ2完了</td>
+          <td>35%</td>
+          <td>670,425円</td>
+        </tr>
+        <tr>
+          <td>フェーズ3完了</td>
+          <td>25%</td>
+          <td>478,875円</td>
+        </tr>
+        <tr>
+          <td>最終納品</td>
+          <td>10%</td>
+          <td>191,550円</td>
+        </tr>
+        <tr class="total-row">
           <td>合計</td>
-          <td>280-360時間</td>
-          <td>220-280万円</td>
-          <td>全機能統合完了</td>
+          <td>100%</td>
+          <td>1,915,500円</td>
         </tr>
       </tbody>
     </table>
 
-    <h3>期待される業務効率化効果（定量化）</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>効率化項目</th>
-          <th>現在の作業時間</th>
-          <th>改善後の作業時間</th>
-          <th>削減時間</th>
-          <th>月間削減時間</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>図面PDF検索・取得</td>
-          <td>10分/件</td>
-          <td>1分/件</td>
-          <td>9分/件</td>
-          <td>18時間<br>（120件/月想定）</td>
-        </tr>
-        <tr>
-          <td>発注書PDF作成・結合</td>
-          <td>15分/件</td>
-          <td>3分/件</td>
-          <td>12分/件</td>
-          <td>24時間<br>（120件/月想定）</td>
-        </tr>
-        <tr>
-          <td>データ入力・転記</td>
-          <td>20分/件</td>
-          <td>5分/件</td>
-          <td>15分/件</td>
-          <td>30時間<br>（120件/月想定）</td>
-        </tr>
-        <tr style="font-weight: 600; background-color: #e2e8f0; color: #1e293b; font-size: 17px;">
-          <td>合計削減時間</td>
-          <td>-</td>
-          <td>-</td>
-          <td>36分/件</td>
-          <td>72時間/月</td>
-        </tr>
-      </tbody>
-    </table>
+    <h3>8.4 PDF処理実行基盤について</h3>
 
-    <p><strong>年間効果：</strong>72時間/月 × 12ヶ月 = 864時間/年の業務時間削減（約22営業日相当）</p>
-
-    <h2>8. リスク分析と対策</h2>
-
-    <h3>技術的リスク</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>リスク項目</th>
-          <th>リスクレベル</th>
-          <th>影響</th>
-          <th>対策</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>ODBC接続の不安定性</td>
-          <td><span class="risk-level-medium">中</span></td>
-          <td>Access-Web間のデータ同期に遅延や失敗が発生</td>
-          <td>冗長接続設定、自動再接続機能、手動同期バックアップ機能の実装</td>
-        </tr>
-        <tr>
-          <td>データ移行時の整合性エラー</td>
-          <td><span class="risk-level-medium">中</span></td>
-          <td>データの不整合により業務に支障</td>
-          <td>段階的移行、詳細なテスト計画、ロールバック手順の準備</td>
-        </tr>
-        <tr>
-          <td>PDF処理のパフォーマンス問題</td>
-          <td><span class="risk-level-low">低</span></td>
-          <td>大容量PDFファイルの処理で遅延発生</td>
-          <td>ファイルサイズ制限、非同期処理、プログレス表示の実装</td>
-        </tr>
-        <tr>
-          <td>システム間の認証連携エラー</td>
-          <td><span class="risk-level-low">低</span></td>
-          <td>Access側からWebシステムへのアクセス拒否</td>
-          <td>専用認証トークンの発行、定期的な認証更新機能</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <h3>運用リスク</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>リスク項目</th>
-          <th>リスクレベル</th>
-          <th>影響</th>
-          <th>対策</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>ユーザーの操作ミス増加</td>
-          <td><span class="risk-level-medium">中</span></td>
-          <td>新機能への不慣れによる作業効率低下</td>
-          <td>段階的トレーニング、操作マニュアル作成、サポート体制強化</td>
-        </tr>
-        <tr>
-          <td>既存業務フローとの不整合</td>
-          <td><span class="risk-level-medium">中</span></td>
-          <td>業務の混乱、効率低下</td>
-          <td>業務フロー分析、カスタマイズ対応、段階的導入</td>
-        </tr>
-        <tr>
-          <td>システム依存度の増加</td>
-          <td><span class="risk-level-low">低</span></td>
-          <td>システム障害時の業務停止リスク</td>
-          <td>手動代替手順の整備、定期的なバックアップ、冗長化対応</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <h3>各リスクの対策と軽減方法</h3>
-
-    <div class="approach-item">
-      <h4>技術的リスク対策</h4>
-      <ul>
-        <li><strong>開発段階での対策：</strong>プロトタイプ開発による事前検証、段階的開発によるリスク分散</li>
-        <li><strong>テスト段階での対策：</strong>包括的なテストシナリオ、負荷テスト、障害復旧テスト</li>
-        <li><strong>運用段階での対策：</strong>24時間監視体制、自動アラート機能、迅速な障害対応体制</li>
-      </ul>
+    <h4>技術制約と対応策</h4>
+    <div class="warning">
+      <strong>重要：</strong>PDF処理機能にはCloudflare Workersの技術制約があります。以下の制約事項と対応策をご確認ください。
     </div>
 
-    <div class="approach-item">
-      <h4>運用リスク対策</h4>
-      <ul>
-        <li><strong>導入前対策：</strong>ユーザーヒアリング、業務フロー分析、カスタマイズ要件定義</li>
-        <li><strong>導入時対策：</strong>段階的ロールアウト、集中トレーニング、専任サポート配置</li>
-        <li><strong>導入後対策：</strong>定期的なフォローアップ、改善提案、継続的なサポート提供</li>
-      </ul>
+    <table class="cost-table">
+      <thead>
+        <tr>
+          <th>制約項目</th>
+          <th>制約内容</th>
+          <th>対応策</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>CPU時間制限</td>
+          <td>最大30秒（有料プラン時）</td>
+          <td>非同期処理、プログレスバー表示、分割処理</td>
+        </tr>
+        <tr>
+          <td>メモリ制限</td>
+          <td>最大128MB</td>
+          <td>ストリーミング処理、チャンク分割、メモリ最適化</td>
+        </tr>
+        <tr>
+          <td>PDF結合時間</td>
+          <td>大容量PDF（50MB以上）で処理遅延の可能性</td>
+          <td>事前圧縮、適正ファイルサイズの運用ガイド提供</td>
+        </tr>
+        <tr>
+          <td>同時処理数</td>
+          <td>同時大量処理時のパフォーマンス影響</td>
+          <td>キューイング機能、優先度制御、処理状況の可視化</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4>代替処理方式（必要時）</h4>
+    <ul>
+      <li><strong>バックグラウンド処理：</strong>大容量PDF処理時の非同期実行</li>
+      <li><strong>外部API連携：</strong>制約超過時の代替PDF処理サービス利用</li>
+      <li><strong>ローカル処理オプション：</strong>Access側での軽量PDF結合機能</li>
+      <li><strong>処理状況通知：</strong>メール・チャット通知による完了確認</li>
+    </ul>
+
+    <h3>8.5 費用に含まない項目</h3>
+
+    <div class="warning">
+      <strong>重要：以下の項目は本開発費用に含まれておりません。</strong><br>
+      契約の透明性確保のため、別途発生する可能性のある費用を明記いたします。
+    </div>
+
+    <h4>継続的費用</h4>
+    <ul>
+      <li><strong>Cloudflare、Supabaseの月次利用料：</strong>目安5.5〜8.0万円/月（PDF転送量・API課金により変動）</li>
+      <li><strong>24時間監視・運用保守費用：</strong>別途お見積り</li>
+      <li><strong>ドメイン・SSL証明書費用：</strong>年間数千円～数万円</li>
+    </ul>
+
+    <h4>オプション機能費用</h4>
+    <ul>
+      <li><strong>OCRや全文検索エンジンのライセンス費用：</strong>オプション選択時に別途</li>
+      <li><strong>セキュリティ監査・ペネトレーションテスト費用：</strong>30-100万円程度</li>
+    </ul>
+
+    <h4>その他実費</h4>
+    <ul>
+      <li><strong>出張旅費・交通費：</strong>実費精算</li>
+      <li><strong>ハードウェア購入費用：</strong>必要時実費</li>
+      <li><strong>第三者ライセンス費用：</strong>使用する場合実費</li>
+    </ul>
+
+
+
+
+
+    <h2>8.6 受け入れ基準</h2>
+
+    <h3>8.6.1 機能要件の受け入れ基準</h3>
+    <table class="cost-table">
+      <thead>
+        <tr>
+          <th>機能分類</th>
+          <th>受け入れ基準</th>
+          <th>測定方法</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>図面PDF管理</td>
+          <td>図面番号による検索が1秒以内、PDFアップロード成功率99%以上</td>
+          <td>自動テスト、負荷テスト実施</td>
+        </tr>
+        <tr>
+          <td>PDF自動結合</td>
+          <td>標準的図面（5MB以下）の結合処理が5秒以内完了</td>
+          <td>処理時間測定、複数パターンテスト</td>
+        </tr>
+        <tr>
+          <td>Access連携</td>
+          <td>API呼び出し成功率99.5%以上、認証エラー率0.1%以下</td>
+          <td>統合テスト、エラーログ解析</td>
+        </tr>
+        <tr>
+          <td>データ移行</td>
+          <td>原則全件移行（不整合データは事前洗い出し・個別対応）、データ整合性確認</td>
+          <td>移行前後データ比較、チェックサム検証</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>8.6.2 性能要件の受け入れ基準</h3>
+    <ul>
+      <li><strong>応答時間：</strong>API応答時間2秒以内（95パーセンタイル）</li>
+      <li><strong>同時接続：</strong>50ユーザー同時接続で性能劣化なし</li>
+      <li><strong>稼働率：</strong>月間稼働率99.5%以上（計画メンテナンス除く）</li>
+      <li><strong>データ処理：</strong>10,000件の商品データ処理が10秒以内</li>
+    </ul>
+
+    <h3>8.6.3 セキュリティ要件の受け入れ基準</h3>
+    <ul>
+      <li><strong>認証機能：</strong>JWT認証の正常動作、不正アクセス遮断確認</li>
+      <li><strong>暗号化通信：</strong>TLS1.3による完全暗号化、証明書有効性確認</li>
+      <li><strong>監査ログ：</strong>全操作の記録、改ざん耐性の確認</li>
+      <li><strong>権限制御：</strong>RBAC権限による適切なアクセス制御確認</li>
+    </ul>
+
+    <h2>8.7 想定Q&amp;A</h2>
+
+    <h3>Q1. 既存のAccessデータはそのまま使えますか？</h3>
+    <div class="subsection">
+      <p><strong>A:</strong>はい、既存のAccessデータは専用の移行ツールを開発して、Webシステムのデータベースに移行いたします。データの形式や構造が異なる場合は、自動変換機能により適切な形式に調整します。移行前にテスト環境で事前検証を行い、データの整合性を確認してから本番移行を実施いたします。</p>
+    </div>
+
+    <h3>Q2. インターネット接続が不安定な場合の対策はありますか？</h3>
+    <div class="subsection">
+      <p><strong>A:</strong>Accessクライアント側に一時的なデータキャッシュ機能とオフライン対応機能を実装予定です。接続が復旧した際の自動同期機能により、ネットワーク障害時でも基本的な業務継続が可能です。ただし、リアルタイム性が重要なデータ更新については、接続復旧後の確認をお願いいたします。</p>
+    </div>
+
+    <h3>Q3. 他社展開時のライセンス費用や制約はありますか？</h3>
+    <div class="subsection">
+      <p><strong>A:</strong>開発したシステムの著作権は富士精工様に帰属いたします。他社展開時の基本システム利用に追加ライセンス費用は原則発生いたしません。ただし、クラウドサービス（Cloudflare、Supabase）の利用料は展開先ごとに発生いたします。技術サポートや カスタマイズが必要な場合は別途お見積りとなります。</p>
+    </div>
+
+    <h3>Q4. システム障害時のサポート体制はどうなっていますか？</h3>
+    <div class="subsection">
+      <p><strong>A:</strong>基本プランでは平日9:00-18:00のサポートとなります。24時間365日監視・サポートが必要な場合は、月額5万円の保守契約により対応可能です。重要度レベル1（システム停止）の場合は2時間以内、レベル2（機能障害）は4時間以内、レベル3（軽微な問題）は1営業日以内の初動対応を基準としています。</p>
+    </div>
+
+    <h3>Q5. 将来的な機能追加や仕様変更は可能ですか？</h3>
+    <div class="subsection">
+      <p><strong>A:</strong>はい、システムは拡張性を重視した設計となっており、将来的な機能追加や仕様変更に柔軟に対応できます。API設計により新機能の追加が容易で、既存機能への影響を最小限に抑えた開発が可能です。変更規模により、軽微な修正（数万円〜）から大規模カスタマイズ（数十万円〜）まで対応いたします。事前お見積りにより透明性の高い価格設定を行います。</p>
     </div>
 
     <h2>9. 実装スケジュールと次ステップ</h2>
 
-    <h3>詳細な開発スケジュール</h3>
-    <table>
+    <h3>9.1 詳細な開発スケジュール</h3>
+    <table class="cost-table">
       <thead>
         <tr>
           <th>期間</th>
@@ -928,104 +1543,123 @@
           <td>業務フロー確認、要件レビュー</td>
         </tr>
         <tr>
-          <td>3-5週目</td>
+          <td>3-6週目</td>
           <td>PDF管理システム開発</td>
           <td>PDF管理機能</td>
           <td>テスト用図面PDFの準備</td>
         </tr>
         <tr>
-          <td>6週目</td>
+          <td>7週目</td>
           <td>テスト、調整</td>
           <td>【フェーズ2】完成</td>
           <td>動作確認、フィードバック</td>
         </tr>
         <tr>
-          <td>7-8週目</td>
-          <td rowspan="4">【フェーズ3】<br>Access連携</td>
-          <td>Access-DB連携設計</td>
+          <td>8-9週目</td>
+          <td rowspan="3">【フェーズ3】<br>Access連携</td>
+          <td>Access-API連携設計</td>
           <td>連携設計書</td>
           <td>Access環境情報の提供</td>
         </tr>
         <tr>
-          <td>9-11週目</td>
-          <td>ODBC接続、UI開発</td>
+          <td>10-12週目</td>
+          <td>API接続、VBA開発</td>
           <td>Access連携機能</td>
           <td>Accessフォームの要件確認</td>
         </tr>
         <tr>
-          <td>12-13週目</td>
-          <td>図面PDF自動貼付開発</td>
-          <td>自動貼付機能</td>
-          <td>業務テストの実施</td>
-        </tr>
-        <tr>
-          <td>14週目</td>
-          <td>統合テスト</td>
+          <td>13-14週目</td>
+          <td>図面PDF自動貼付開発、統合テスト</td>
           <td>【フェーズ3】完成</td>
-          <td>総合動作確認</td>
+          <td>業務テスト、総合動作確認</td>
         </tr>
         <tr>
           <td>15-16週目</td>
-          <td rowspan="3">【フェーズ4】<br>データ移行</td>
+          <td rowspan="2">【フェーズ4】<br>データ移行</td>
           <td>データ分析、移行設計</td>
           <td>移行計画書</td>
           <td>既存データの整理、提供</td>
         </tr>
         <tr>
           <td>17-18週目</td>
-          <td>移行ツール開発、テスト</td>
-          <td>移行完了</td>
-          <td>移行データの検証</td>
-        </tr>
-        <tr>
-          <td>19-20週目</td>
-          <td>統合テスト、運用開始</td>
+          <td>移行ツール開発、本番移行</td>
           <td>システム完成</td>
-          <td>ユーザートレーニング参加</td>
+          <td>移行データ検証、運用開始</td>
         </tr>
       </tbody>
     </table>
 
-    <h3>各フェーズの依存関係</h3>
+    <h3>9.2 運用・保守の考慮事項</h3>
+
+    <h4>SLA（Service Level Agreement）測定基準</h4>
     <ul>
-      <li><strong>【フェーズ2】 → 【フェーズ3】：</strong>PDF管理システムが完成してからAccess連携を開始</li>
-      <li><strong>【フェーズ3】 → 【フェーズ4】：</strong>Access連携が安定してからデータ移行を実施</li>
-      <li><strong>並行作業可能：</strong>【フェーズ2】の後半と【フェーズ3】の設計は並行実施可能</li>
-      <li><strong>クリティカルパス：</strong>PDF機能 → Access連携 → データ移行の順序は変更不可</li>
+      <li><strong>稼働率目標：</strong>99.5%（月次集計、計画メンテナンス時間除外）</li>
+      <li><strong>RPO（Recovery Point Objective）：</strong>1時間以内</li>
+      <li><strong>RTO（Recovery Time Objective）：</strong>4時間以内</li>
+      <li><strong>応答時間：</strong>API応答2秒以内、PDF生成5秒以内</li>
     </ul>
 
-    <h3>富士精工様にお願いしたい準備作業</h3>
+    <h4>監視体制</h4>
+    <ul>
+      <li><strong>Cloudflare/Supabaseの監視ダッシュボード：</strong>リアルタイム稼働状況確認</li>
+      <li><strong>アラート設定：</strong>エラー率・応答時間・稼働率の閾値監視</li>
+      <li><strong>エスカレーション：</strong>重要度に応じた連絡体制</li>
+    </ul>
 
-    <div class="summary-box">
-      <h4>【フェーズ2】開始前（2週間以内）</h4>
-      <ul>
-        <li>既存の図面PDFファイルの整理と棚卸し</li>
-        <li>図面番号の命名規則・管理方法の整理</li>
-        <li>発注書のテンプレート・レイアウト要件の決定</li>
-        <li>PDF管理の運用ルール策定（アクセス権限、更新手順等）</li>
-      </ul>
+    <h4>セキュリティパッチ管理</h4>
+    <ul>
+      <li><strong>月次定期更新：</strong>セキュリティパッチ・機能更新の適用</li>
+      <li><strong>緊急時対応：</strong>重要なセキュリティ脆弱性は48時間以内対応</li>
+      <li><strong>テスト環境：</strong>本番適用前の事前検証実施</li>
+    </ul>
 
-      <h4>【フェーズ3】開始前（8週間後）</h4>
-      <ul>
-        <li>現在使用中のAccessファイルのバックアップ</li>
-        <li>Access環境の技術情報提供（バージョン、OS、設定等）</li>
-        <li>Access側で必要な発注フォームの要件整理</li>
-        <li>ユーザー権限・アクセス制御要件の決定</li>
-      </ul>
-
-      <h4>【フェーズ4】開始前（15週間後）</h4>
-      <ul>
-        <li>移行対象データの整理・クレンジング</li>
-        <li>データ移行の優先順位決定</li>
-        <li>移行期間中の業務継続計画策定</li>
-        <li>ユーザートレーニングのスケジュール調整</li>
-      </ul>
-    </div>
+    <h4>月次運用コスト概算</h4>
+    <table class="cost-table">
+      <thead>
+        <tr>
+          <th>項目</th>
+          <th>金額（月額）</th>
+          <th>備考</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Cloudflare Pro</td>
+          <td>2,500円</td>
+          <td>セキュリティ機能・分析機能</td>
+        </tr>
+        <tr>
+          <td>Supabase Pro</td>
+          <td>3,000円</td>
+          <td>データベース・認証・ストレージ<a data-v-a7167e99="" href="https://page.gensparksite.com/docs_agent/2b7bd21a-c2c1-43c7-8635-7f552ab5de38/e35b06fa-79e7-4228-888f-bec6cd1875ac/dc6e107a-938d-40d6-a35e-577c337f6bd7.html" target="_blank" class="exported-url-link"><svg data-v-a7167e99="" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.0003 3H11.4448M17.0003 3L8.66699 11.3333M17.0003 3V8.55556" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17 13.1111V15.4444C17 15.857 16.8361 16.2527 16.5444 16.5444C16.2527 16.8361 15.857 17 15.4444 17H4.55556C4.143 17 3.74733 16.8361 3.45561 16.5444C3.16389 16.2527 3 15.857 3 15.4444V4.55556C3 4.143 3.16389 3.74733 3.45561 3.45561C3.74733 3.16389 4.143 3 4.55556 3H6.88889" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg> HTMLをダウンロードするにはクリック</a></td>
+        </tr>
+        <tr>
+          <td>Cloudflare R2 + 転送</td>
+          <td>1,000-15,000円</td>
+          <td>PDFファイル保存・転送（使用量により大幅変動）</td>
+        </tr>
+        <tr>
+          <td>API課金（Workers）</td>
+          <td>500-10,000円</td>
+          <td>リクエスト数により変動（一日100-10,000リクエスト想定）</td>
+        </tr>
+        <tr>
+          <td>監視・保守（オプション）</td>
+          <td>50,000円</td>
+          <td>24時間監視・月次保守作業</td>
+        </tr>
+        <tr class="total-row">
+          <td>合計目安</td>
+          <td>57,000-80,000円</td>
+          <td>基本運用コスト（PDF転送量・API課金により変動）</td>
+        </tr>
+      </tbody>
+    </table>
 
     <h2>10. 付録</h2>
 
-    <h3>技術用語集（一般語での解説）</h3>
-    <table>
+    <h3>10.1 技術用語集（一般語での解説）</h3>
+    <table class="cost-table">
       <thead>
         <tr>
           <th>技術用語</th>
@@ -1038,103 +1672,90 @@
           <td>企業向けデータベースソフトウェア。大量のデータを安全に保管・管理できる</td>
         </tr>
         <tr>
-          <td>ODBC接続</td>
-          <td>AccessからWebシステムのデータベースに接続するための仕組み</td>
+          <td>REST API</td>
+          <td>システム同士が自動的にデータをやり取りする仕組み</td>
+        </tr>
+        <tr>
+          <td>JWT認証</td>
+          <td>利用者の身元を確認するための安全なデジタル身分証明書</td>
         </tr>
         <tr>
           <td>PDF結合</td>
           <td>複数のPDFファイルを1つのファイルにまとめる機能</td>
         </tr>
         <tr>
-          <td>API連携</td>
-          <td>システム同士が自動的にデータをやり取りする仕組み</td>
-        </tr>
-        <tr>
           <td>クラウドストレージ</td>
           <td>インターネット上にファイルを保管できるサービス</td>
         </tr>
         <tr>
-          <td>Webブラウザ</td>
-          <td>インターネットを閲覧するためのソフト（Chrome、Edge等）</td>
-        </tr>
-        <tr>
-          <td>データ同期</td>
-          <td>複数のシステム間でデータを最新状態に保つ処理</td>
-        </tr>
-        <tr>
-          <td>バックアップ</td>
-          <td>データの紛失に備えてコピーを保管すること</td>
+          <td>RLS（Row Level Security）</td>
+          <td>データベースの行レベルでアクセス権限を制御するセキュリティ機能</td>
         </tr>
       </tbody>
     </table>
 
-    <h3>システム構成図（文字ベース）</h3>
-    <div class="approach-item">
-      <h4>推奨システム構成（ハイブリッド型）</h4>
-      <pre style="font-family: 'Courier New', monospace; background-color: #f1f5f9; padding: 20px; font-size: 14px; line-height: 1.6; border: 2px solid #cbd5e1; border-radius: 6px;">┌─────────────────┐    ┌─────────────────┐
-│   Access前端    │    │   Web前端       │
-│  ・発注フォーム  │    │  ・商品管理     │
-│  ・PDF貼付     │    │  ・在庫管理     │
-│  ・帳票出力     │    │  ・統計表示     │
-└─────────┬───────┘    └─────────┬───────┘
-           │                           │
-           │ ODBC接続                   │ HTTPS接続
-           │                           │
-           └───────┬───────────────┬───────┘
-                   │                   │
-         ┌─────────┴───────────────────┴─────────┐
-         │        Webシステム（バックエンド）        │
-         │  ・PostgreSQLデータベース              │
-         │  ・PDF管理システム                    │
-         │  ・認証・権限管理                     │
-         │  ・API・データ連携                    │
-         └─────────────────────────────────────┘
-                           │
-                  ┌────────┴────────┐
-                  │   クラウドストレージ   │
-                  │  ・図面PDF保管       │
-                  │  ・発注書PDF保管     │
-                  │  ・自動バックアップ   │
-                  └─────────────────┘
-        </pre>
+    <div class="summary-stats">
+      <div class="stat-card">
+        <div class="number"><i class="fas fa-yen-sign"></i> 191.6万円</div>
+        <div class="label">開発費用（税抜）</div>
+      </div>
+      <div class="stat-card">
+        <div class="number"><i class="fas fa-clock"></i> 18週間</div>
+        <div class="label">開発期間</div>
+      </div>
+      <div class="stat-card">
+        <div class="number"><i class="fas fa-user-clock"></i> 480時間</div>
+        <div class="label">総工数</div>
+      </div>
     </div>
 
-    <h3>前提条件・要確認事項リスト</h3>
+    <h3>総合推奨プランのメリット</h3>
 
-    <div class="summary-box">
-      <h4>技術的前提条件</h4>
-      <ul>
-        <li>Microsoft Access 2016以降がインストールされていること</li>
-        <li>PostgreSQL ODBCドライバーのインストールが可能であること</li>
-        <li>インターネット接続が常時利用可能であること</li>
-        <li>Windows 10以降のOSが使用されていること</li>
-      </ul>
+    <div class="grid">
+      <div class="card">
+        <h4><i class="fas fa-rocket"></i> ビジネス価値</h4>
+        <ul>
+          <li><strong>作業効率化：</strong>図面検索・PDF結合作業の自動化</li>
+          <li><strong>品質向上：</strong>ヒューマンエラーの減少</li>
+          <li><strong>情報統合：</strong>AccessとWebシステムのデータ一元化</li>
+          <li><strong>セキュリティ強化：</strong>企業レベルの監査・アクセス制御</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4><i class="fas fa-shield-alt"></i> 技術的メリット</h4>
+        <ul>
+          <li><strong>将来性確保：</strong>他社展開を見据えた拡張可能な設計</li>
+          <li><strong>高可用性：</strong>クラウド基盤による24/7稼働</li>
+          <li><strong>スケーラビリティ：</strong>ユーザー数・データ量の増加に対応</li>
+          <li><strong>保守性：</strong>モダンな技術スタックによる長期サポート</li>
+        </ul>
+      </div>
+    </div>
 
-      <h4>業務的前提条件</h4>
+    <div class="warning">
+      <h4><i class="fas fa-exclamation-triangle"></i> 重要なリスク管理項目</h4>
       <ul>
-        <li>図面番号による商品管理が現在も実施されていること</li>
-        <li>図面PDFファイルがデジタル形式で存在すること</li>
-        <li>発注業務が月間100件以上発生していること</li>
-        <li>複数ユーザーでの同時利用が必要であること</li>
-      </ul>
-
-      <h4>要確認事項</h4>
-      <ul>
-        <li>現在の図面PDFファイルの総容量と件数</li>
-        <li>Accessファイルの現在のサイズと構造</li>
-        <li>移行対象データの詳細範囲</li>
-        <li>ユーザー数と同時利用数の想定</li>
-        <li>セキュリティ・権限管理の要件</li>
-        <li>他システムとの連携要件</li>
+        <li><strong>技術リスク：</strong>プロトタイプ検証により事前回避（成功率向上を目標、実績ベース95%程度）</li>
+        <li><strong>運用リスク：</strong>段階的移行により業務停止リスクを最小化</li>
+        <li><strong>セキュリティリスク：</strong>多層防御とゼロトラスト原則で対策済み</li>
+        <li><strong>コストリスク：</strong>固定価格契約範囲内での予算超過防止（変動費は別途提示の通り）</li>
       </ul>
     </div>
 
-    <hr style="margin: 50px 0; border: none; border-top: 3px solid #1e40af; border-radius: 2px;">
+    <div class="highlight">
+      <h4><i class="fas fa-phone-alt"></i> 緊急時サポート体制</h4>
+      <p><strong>24時間365日対応：</strong>重要度レベル1（システム停止）は2時間以内に初動対応開始</p>
+      <p><strong>エスカレーション：</strong>シニアエンジニア → プロジェクトマネージャー → CTO の3段階体制</p>
+    </div>
 
-    <p style="text-align: center; color: #475569; font-size: 16px; font-weight: 500; line-height: 1.8;">
-      本提案書に関するご質問・ご相談は、担当者までお気軽にお問い合わせください。<br>
-      富士精工様の業務効率化と競争力向上のため、最適なソリューションをご提供いたします。
-    </p>
+    <div class="footer">
+      <p><i class="fas fa-envelope"></i> 本提案書に関するご質問・ご相談は、担当者までお気軽にお問い合わせください。</p>
+      <p><strong>富士精工様の業務効率化と競争力向上のため、最適なソリューションをご提供いたします。</strong></p>
+      <p><i class="fas fa-shield-check"></i> <strong>品質保証：</strong>ISO27001準拠のセキュリティ管理体制でお客様の重要データを保護</p>
+    </div>
+    
+      </div> <!-- content -->
+    </div> <!-- container -->
   
 
 </body></html>

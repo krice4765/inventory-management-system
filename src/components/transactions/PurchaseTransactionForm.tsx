@@ -47,6 +47,7 @@ export const PurchaseTransactionForm: React.FC<PurchaseTransactionFormProps> = (
   const allowedMax = remainingInfo 
     ? Math.max(0, remainingInfo.orderTotal - remainingInfo.siblingsTotal) 
     : Number.MAX_SAFE_INTEGER;
+    
 
   // 入力値を0〜allowedMaxにクランプ
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {

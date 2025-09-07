@@ -6,17 +6,66 @@ import { useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import type { DeliveryProgress } from '../types';
 import { useDeliveryModal } from '../stores/deliveryModal.store';
+import { DeliveryModal } from '../components/DeliveryModal';
 
 
 
 const fetchOrders = async () => {
-  const { data, error } = await supabase
-    .from('delivery_progress')
+  // 🚨 購入発注データと分納実績を統合取得
+  const { data: purchaseOrders, error: ordersError } = await supabase
+    .from('purchase_orders_stable_v1')
     .select('*')
-    .order('order_date', { ascending: false });
+    .order('created_at', { ascending: false });
 
-  if (error) throw error;
-  return data || [];
+  if (ordersError) throw ordersError;
+  
+  // 🚨 各発注に対する分納実績を計算
+  const deliveryProgressData = await Promise.all(
+    (purchaseOrders || []).map(async (order: any) => {
+      // 分納実績を集計
+      const { data: deliveries, error: deliveryError } = await supabase
+        .from('transactions')
+        .select('total_amount')
+        .eq('parent_order_id', order.id)
+        .eq('transaction_type', 'purchase')
+        .eq('status', 'confirmed');
+      
+      if (deliveryError) {
+        console.warn(`分納実績取得エラー (Order: ${order.id}):`, deliveryError);
+      }
+      
+      const delivered_amount = (deliveries || []).reduce(
+        (sum, delivery) => sum + (delivery.total_amount || 0), 0
+      );
+      
+      const ordered_amount = order.total_amount || 0;
+      const remaining_amount = Math.max(0, ordered_amount - delivered_amount);
+      
+      // 進捗状況を正確に判定
+      let progress_status: string;
+      if (remaining_amount === 0 && delivered_amount > 0) {
+        progress_status = '納品完了';
+      } else if (delivered_amount > 0) {
+        progress_status = '一部納品';
+      } else {
+        progress_status = '未納品';
+      }
+      
+      return {
+        purchase_order_id: order.id,
+        order_no: order.order_no,
+        partner_name: order.partner_name,
+        order_date: order.created_at,
+        delivery_deadline: order.delivery_date,
+        ordered_amount,
+        delivered_amount,
+        remaining_amount,
+        progress_status
+      };
+    })
+  );
+  
+  return deliveryProgressData;
 };
 
 export default function Orders() {

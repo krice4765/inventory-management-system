@@ -9,8 +9,8 @@ export function useRemainingAmount(
   excludeTransactionId?: string
 ) {
   return useQuery({
-    queryKey: ['remainingAmount', parentOrderId, currentAmount, excludeTransactionId],
-    enabled: !!parentOrderId && currentAmount > 0,
+    queryKey: ['remainingAmount', parentOrderId, excludeTransactionId],
+    enabled: !!parentOrderId,
     staleTime: 10 * 1000, // 10秒
     gcTime: 30 * 1000,    // 30秒
     refetchOnWindowFocus: false,

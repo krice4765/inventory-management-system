@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, User, Package, DollarSign, FileText, Clock, CheckCircle } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, db } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { useDarkMode } from '../hooks/useDarkMode';
 
@@ -49,47 +49,51 @@ export default function OrderDetail() {
     try {
       setLoading(true);
 
-      // 発注基本情報を取得
-      const { data: orderData, error: orderError } = await supabase
-        .from('delivery_progress')
-        .select('*')
-        .eq('purchase_order_id', orderId)
-        .single();
-
-      if (orderError) throw orderError;
-
-      // 発注明細を取得
-      const { data: itemsData, error: itemsError } = await supabase
-        .from('purchase_order_items')
-        .select(`
-          quantity,
-          unit_price,
-          total_amount,
-          product_id,
-          products!purchase_order_items_product_id_fkey (
-            name,
-            product_code
-          )
-        `)
-        .eq('purchase_order_id', orderId);
-
-      if (itemsError) throw itemsError;
-
-      setOrder(orderData);
+      // 🚨 安定化ビューAPIを使用してN/A表示を完全回避
+      const result = await db.stableViews.getPurchaseOrderDetails(orderId);
       
-      // 明細データを整形
-      const formattedItems = itemsData.map(item => ({
-        product_name: item.products?.product_name || 'N/A',
-        product_code: item.products?.product_code || 'N/A',
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        total_amount: item.total_amount,
-      }));
+      if (!result.success || !result.data) {
+        throw new Error(result.error?.message || 'Failed to fetch order details');
+      }
+      
+      const orderDetailData = result.data;
+      
+      // 発注基本情報を設定（安定化ビューから取得、N/A表示なし）
+      const orderInfo: OrderDetail = {
+        purchase_order_id: orderDetailData.id,
+        order_no: orderDetailData.order_no,
+        partner_name: orderDetailData.partner_name, // 🚨 ビューでCOALESCE済み
+        partner_code: orderDetailData.partner_code || '—',
+        order_date: orderDetailData.created_at,
+        delivery_deadline: orderDetailData.delivery_date,
+        order_manager_name: orderDetailData.manager_name || undefined,
+        order_manager_department: orderDetailData.manager_department || undefined,
+        ordered_amount: orderDetailData.total_amount || 0,
+        delivered_amount: 0, // 暫定値（納品管理機能実装時に正確な値設定）
+        remaining_amount: orderDetailData.total_amount || 0,
+        progress_status: orderDetailData.status === 'completed' ? '納品完了' : 
+                        orderDetailData.status === 'confirmed' ? '一部納品' : '未納品',
+        memo: orderDetailData.notes,
+        created_at: orderDetailData.created_at
+      };
+      
+      setOrder(orderInfo);
+      
+      // 🚨 明細データを安全に整形（N/A表示完全回避）
+      const formattedItems: OrderItem[] = Array.isArray(orderDetailData.items) && orderDetailData.items.length > 0
+        ? orderDetailData.items.map((item: any) => ({
+            product_name: item.product_name || '商品名未設定', // 🚨 N/A → 適切なデフォルト値
+            product_code: item.product_code || '—',
+            quantity: item.quantity || 0,
+            unit_price: item.unit_price || 0,
+            total_amount: item.total_amount || 0,
+          }))
+        : []; // 明細がない場合は空配列
       
       setItems(formattedItems);
     } catch (error) {
       console.error('Order detail fetch error:', error);
-      toast.error('発注詳細の取得に失敗しました');
+      toast.error(`発注詳細の取得に失敗しました: ${(error as Error).message}`);
       navigate('/orders');
     } finally {
       setLoading(false);

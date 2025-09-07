@@ -92,7 +92,7 @@ export const ConfirmOrderButton: React.FC<ConfirmOrderButtonProps> = ({
       
       // 🎯 RPC関数による原子的確定処理
       const { data, error } = await supabase.rpc('confirm_purchase_transaction', { 
-        p_tx_id: transactionId 
+        p_transaction_id: transactionId
       });
         
       if (error) {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, User, Package, DollarSign, FileText, Clock, CheckCircle, Plus } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, db } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { ConfirmOrderButton } from '../components/transactions/ConfirmOrderButton';
@@ -52,27 +52,35 @@ export default function PurchaseOrderDetail() {
     try {
       setLoading(true);
 
-      // 直接transaction_idで取得を試す
-      const { data: orderData, error: orderError } = await supabase
-        .from('transactions')
-        .select(`
-          *,
-          partners (
-            name,
-            partner_code
-          )
-        `)
-        .eq('id', orderId)
-        .maybeSingle();
+      // 🚨 安定化ビューAPIを使用してN/A表示を完全回避
+      const result = await db.stableViews.getPurchaseOrderDetails(orderId);
+      
+      if (!result.success || !result.data) {
+        throw new Error(result.error?.message || 'Failed to fetch purchase order details');
+      }
+      
+      const orderDetailData = result.data;
+      
+      // 発注基本情報を設定（安定化ビューから取得、N/A表示なし）
+      setOrderDetail({
+        order_no: orderDetailData.order_no,
+        partner_name: orderDetailData.partner_name, // 🚨 ビューでCOALESCE済み
+        partner_code: orderDetailData.partner_code || '—',
+        order_date: orderDetailData.created_at,
+        delivery_deadline: orderDetailData.delivery_date,
+        order_manager_name: orderDetailData.manager_name || undefined,
+        order_manager_department: orderDetailData.manager_department || undefined,
+        total_amount: orderDetailData.total_amount || 0,
+        memo: orderDetailData.notes,
+        created_at: orderDetailData.created_at,
+      });
 
-      if (orderError) throw orderError;
-
-      // 関連する全ての取引を取得（parent_order_idまたは同じIDの取引）
+      // 🚨 関連取引をSupabaseから直接取得（安全なpartners結合）
       const { data: transactionData, error: transactionError } = await supabase
         .from('transactions')
         .select(`
           *,
-          partners (
+          partners!transactions_partner_id_fkey (
             name,
             partner_code
           )
@@ -80,28 +88,18 @@ export default function PurchaseOrderDetail() {
         .or(`parent_order_id.eq.${orderId},id.eq.${orderId}`)
         .order('installment_no', { ascending: true });
 
-      if (transactionError) throw transactionError;
-
-      if (orderData) {
-        setOrderDetail({
-          order_no: orderData.transaction_no,
-          partner_name: orderData.partners?.name || 'N/A',
-          partner_code: orderData.partners?.partner_code || 'N/A',
-          order_date: orderData.created_at,
-          delivery_deadline: orderData.delivery_date,
-          order_manager_name: orderData.order_manager_name,
-          order_manager_department: orderData.order_manager_department,
-          total_amount: orderData.total_amount,
-          memo: orderData.memo,
-          created_at: orderData.created_at,
-        });
+      if (transactionError) {
+        console.warn('Transactions fetch error, using order data only:', transactionError);
+        setTransactions([]);
+        return;
       }
 
+      // 🚨 取引データを安全にマッピング（N/A表示回避）
       setTransactions(transactionData?.map(tx => ({
         id: tx.id,
         transaction_no: tx.transaction_no,
-        partner_name: tx.partners?.name || 'N/A',
-        partner_code: tx.partners?.partner_code || 'N/A',
+        partner_name: tx.partners?.name || orderDetailData.partner_name || '仕入先未設定', // 🚨 N/A回避
+        partner_code: tx.partners?.partner_code || orderDetailData.partner_code || '—',
         transaction_date: tx.created_at,
         status: tx.status,
         total_amount: tx.total_amount,
@@ -112,7 +110,7 @@ export default function PurchaseOrderDetail() {
       })) || []);
     } catch (error) {
       console.error('Purchase order detail fetch error:', error);
-      toast.error('分納詳細の取得に失敗しました');
+      toast.error(`分納詳細の取得に失敗しました: ${(error as Error).message}`);
       navigate('/purchase-orders');
     } finally {
       setLoading(false);

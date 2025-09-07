@@ -52,6 +52,16 @@ export class SupabaseHelper {
     };
   }
 
+  // 🛡️ 汎用検索クエリサニタイゼーション関数
+  private static sanitizeSearchTerm(term: string, maxLength: number = 100): string {
+    if (!term?.trim()) return '';
+    
+    return term.trim()
+      .replace(/[,%"'\\]/g, '') // SQLで特別な意味を持つ文字を除去
+      .replace(/[^\w\s\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\-_.]/g, '') // 英数字、日本語、基本記号のみ許可
+      .substring(0, maxLength); // 長さ制限
+  }
+
   static products = {
     async list() {
       const result = await supabase
@@ -67,7 +77,11 @@ export class SupabaseHelper {
         return this.list();
       }
       
-      const term = searchTerm.trim();
+      const term = SupabaseHelper.sanitizeSearchTerm(searchTerm);
+      if (!term) {
+        return this.list();
+      }
+      
       const result = await supabase
         .from('products')
         .select('*')
@@ -89,8 +103,8 @@ export class SupabaseHelper {
     async create(product: Omit<Record<string, unknown>, 'id' | 'created_at'>) {
       const productData = {
         ...product,
-        created_at: new Date().toISOString(),
         is_active: true
+        // created_at はデータベースに委譲
       };
       
       const result = await supabase
@@ -102,10 +116,8 @@ export class SupabaseHelper {
     },
 
     async update(id: string, updates: Partial<Record<string, unknown>>) {
-      const updateData = {
-        ...updates,
-        updated_at: new Date().toISOString()
-      };
+      // updated_at はトリガーで自動更新されるため送信不要
+      const updateData = { ...updates };
       
       const result = await supabase
         .from('products')
@@ -117,10 +129,10 @@ export class SupabaseHelper {
     },
 
     async delete(id: string) {
-      // 論理削除
+      // 論理削除 (updated_at はトリガーで自動更新)
       const result = await supabase
         .from('products')
-        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .update({ is_active: false })
         .eq('id', id)
         .select()
         .single();
@@ -143,7 +155,11 @@ export class SupabaseHelper {
         return this.list();
       }
       
-      const term = searchTerm.trim();
+      const term = SupabaseHelper.sanitizeSearchTerm(searchTerm);
+      if (!term) {
+        return this.list();
+      }
+      
       const result = await supabase
         .from('partners')
         .select('*')
@@ -165,8 +181,8 @@ export class SupabaseHelper {
     async create(partner: Omit<Record<string, unknown>, 'id' | 'created_at'>) {
       const partnerData = {
         ...partner,
-        created_at: new Date().toISOString(),
         is_active: true
+        // created_at はデータベースに委譲
       };
       
       const result = await supabase
@@ -196,58 +212,245 @@ export class SupabaseHelper {
     },
 
     async getWithItems(orderId: string) {
-      const result = await supabase
-        .from('purchase_orders')
-        .select(`
-          *,
-          partners!purchase_orders_partner_id_fkey (
+      // 🚨 UUID検証強化
+      if (!orderId || orderId === 'undefined' || orderId === 'null' || 
+          !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(orderId)) {
+        console.error('Invalid UUID provided:', orderId);
+        return SupabaseHelper.handleResult({ 
+          data: null, 
+          error: { message: 'Invalid order ID provided', code: 'INVALID_UUID' } as any
+        });
+      }
+
+      try {
+        // 🚨 明示的制約名でPostgREST関係性エラー解決
+        const result = await supabase
+          .from('purchase_orders')
+          .select(`
             id,
-            name,
-            quality_grade,
-            payment_terms
-          ),
-          purchase_order_items (
-            *,
-            products (
-              product_name,
-              product_code,
-              drawing_no,
-              standard_price
+            order_no,
+            created_at,
+            updated_at,
+            status,
+            total_amount,
+            notes,
+            partner_id,
+            partners!purchase_orders_partner_id_fkey (
+              id,
+              name,
+              quality_grade,
+              payment_terms,
+              specialties
+            ),
+            purchase_order_items!purchase_order_items_purchase_order_id_fkey (
+              id,
+              quantity,
+              unit_price,
+              total_amount,
+              created_at,
+              product_id,
+              products!purchase_order_items_product_id_fkey (
+                id,
+                product_name,
+                product_code,
+                drawing_no,
+                standard_price,
+                material,
+                specifications
+              )
             )
-          )
-        `)
-        .eq('id', orderId)
-        .single();
-      return SupabaseHelper.handleResult(result);
+          `)
+          .eq('id', orderId)
+          .single();
+
+        return SupabaseHelper.handleResult(result);
+        
+      } catch (error) {
+        console.error('Order detail fetch error:', error);
+        return SupabaseHelper.handleResult({ 
+          data: null, 
+          error: error as any
+        });
+      }
     },
 
-    async create(order: Omit<Record<string, unknown>, 'id' | 'created_at'>) {
+    async create(order: Omit<Record<string, unknown>, 'id' | 'created_at' | 'updated_at'>) {
       const orderData = {
         ...order,
-        created_at: new Date().toISOString(), // 🚨 発行時刻問題解決
         status: order.status || 'pending'
+        // created_at/updated_at はデータベースに委譲
       };
       
       const result = await supabase
         .from('purchase_orders')
         .insert(orderData)
-        .select()
+        .select(`
+          *,
+          partners!purchase_orders_partner_id_fkey (
+            id, name, quality_grade, payment_terms
+          )
+        `)
         .single();
       return SupabaseHelper.handleResult(result);
     },
 
     async update(id: string, updates: Partial<Record<string, unknown>>) {
-      const updateData = {
-        ...updates,
-        updated_at: new Date().toISOString()
-      };
+      // UUID検証
+      if (!id || id === 'undefined' || id === 'null') {
+        return SupabaseHelper.handleResult({ 
+          data: null, 
+          error: { message: 'Invalid order ID for update', code: 'INVALID_UUID' } as any
+        });
+      }
+
+      // updated_at はトリガーで自動更新されるため送信不要
       
       const result = await supabase
         .from('purchase_orders')
-        .update(updateData)
+        .update({ ...updates })
         .eq('id', id)
+        .select(`
+          *,
+          partners!purchase_orders_partner_id_fkey (
+            id, name, quality_grade, payment_terms
+          )
+        `)
+        .single();
+      return SupabaseHelper.handleResult(result);
+    }
+  };
+
+  static orderItems = {
+    async getByOrderId(orderId: string) {
+      if (!orderId || orderId === 'undefined' || orderId === 'null' || 
+          !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(orderId)) {
+        console.error('Invalid UUID provided for orderItems:', orderId);
+        return SupabaseHelper.handleResult({ 
+          data: [], 
+          error: { message: 'Invalid order ID provided', code: 'INVALID_UUID' } as any
+        });
+      }
+
+      try {
+        const result = await supabase
+          .from('purchase_order_items')
+          .select(`
+            id,
+            quantity,
+            unit_price,
+            total_amount,
+            created_at,
+            updated_at,
+            purchase_order_id,
+            product_id,
+            products!purchase_order_items_product_id_fkey (
+              id,
+              product_name,
+              product_code,
+              drawing_no,
+              standard_price,
+              material,
+              specifications,
+              current_stock,
+              category
+            )
+          `)
+          .eq('purchase_order_id', orderId)
+          .order('created_at');
+        return SupabaseHelper.handleResult(result);
+      } catch (error) {
+        console.error('OrderItems fetch error:', error);
+        return SupabaseHelper.handleResult({ 
+          data: [], 
+          error: error as any
+        });
+      }
+    },
+
+    async create(orderItem: Omit<Record<string, unknown>, 'id' | 'created_at' | 'updated_at'>) {
+      const orderItemData = {
+        ...orderItem
+        // created_at/updated_at はデータベースに委譲
+      };
+      
+      const result = await supabase
+        .from('purchase_order_items')
+        .insert(orderItemData)
+        .select(`
+          *,
+          products!purchase_order_items_product_id_fkey (
+            id,
+            product_name,
+            product_code,
+            standard_price
+          )
+        `)
+        .single();
+      return SupabaseHelper.handleResult(result);
+    },
+
+    async update(itemId: string, updates: Partial<Record<string, unknown>>) {
+      if (!itemId || itemId === 'undefined' || itemId === 'null') {
+        return SupabaseHelper.handleResult({ 
+          data: null, 
+          error: { message: 'Invalid item ID for update', code: 'INVALID_UUID' } as any
+        });
+      }
+
+      // updated_at はトリガーで自動更新されるため送信不要
+      
+      const result = await supabase
+        .from('purchase_order_items')
+        .update({ ...updates })
+        .eq('id', itemId)
+        .select(`
+          *,
+          products!purchase_order_items_product_id_fkey (
+            id,
+            product_name,
+            product_code,
+            standard_price
+          )
+        `)
+        .single();
+      return SupabaseHelper.handleResult(result);
+    },
+
+    async delete(itemId: string) {
+      if (!itemId || itemId === 'undefined' || itemId === 'null') {
+        return SupabaseHelper.handleResult({ 
+          data: null, 
+          error: { message: 'Invalid item ID for deletion', code: 'INVALID_UUID' } as any
+        });
+      }
+
+      const result = await supabase
+        .from('purchase_order_items')
+        .delete()
+        .eq('id', itemId)
         .select()
         .single();
+      return SupabaseHelper.handleResult(result);
+    },
+
+    async bulkCreate(orderItems: Array<Omit<Record<string, unknown>, 'id' | 'created_at' | 'updated_at'>>) {
+      const itemsData = orderItems.map(item => ({
+        ...item
+        // created_at/updated_at はデータベースに委譲
+      }));
+      
+      const result = await supabase
+        .from('purchase_order_items')
+        .insert(itemsData)
+        .select(`
+          *,
+          products!purchase_order_items_product_id_fkey (
+            id,
+            product_name,
+            product_code,
+            standard_price
+          )
+        `);
       return SupabaseHelper.handleResult(result);
     }
   };
@@ -270,8 +473,8 @@ export class SupabaseHelper {
 
     async addMovement(movement: Omit<Record<string, unknown>, 'id' | 'created_at'>) {
       const movementData = {
-        ...movement,
-        created_at: new Date().toISOString()
+        ...movement
+        // created_at はデータベースに委譲
       };
       
       const result = await supabase
@@ -310,7 +513,7 @@ export class SupabaseHelper {
   static auth = {
     async getCurrentUser() {
       const { data: { user }, error } = await supabase.auth.getUser();
-      return this.handleResult({ data: user, error });
+      return SupabaseHelper.handleResult({ data: user, error });
     },
 
     async signIn(email: string, password: string) {
@@ -318,12 +521,140 @@ export class SupabaseHelper {
         email,
         password
       });
-      return this.handleResult({ data: result.data.user, error: result.error });
+      return SupabaseHelper.handleResult({ data: result.data.user, error: result.error });
     },
 
     async signOut() {
       const { error } = await supabase.auth.signOut();
-      return this.handleResult({ data: true, error });
+      return SupabaseHelper.handleResult({ data: true, error });
+    }
+  };
+
+  // 統合ビューを使用した効率的データ取得
+  static stableViews = {
+    // 🛡️ 日付変換ユーティリティ
+    toISO(dateValue: any): string | undefined {
+      if (!dateValue) return undefined;
+      
+      if (typeof dateValue === 'string') {
+        const date = new Date(dateValue);
+        return isNaN(date.getTime()) ? undefined : date.toISOString();
+      }
+      
+      if (dateValue instanceof Date) {
+        return isNaN(dateValue.getTime()) ? undefined : dateValue.toISOString();
+      }
+      
+      // Day.js対応
+      if (typeof dateValue?.toDate === 'function') {
+        const date = dateValue.toDate();
+        return isNaN(date.getTime()) ? undefined : date.toISOString();
+      }
+      
+      return undefined;
+    },
+
+    // 🚨 強化版発注一覧取得API（未確定フィルター完全対応）
+    async getPurchaseOrdersStable(params?: {
+      q?: string;
+      status?: 'all' | 'draft' | 'confirmed' | 'completed';
+      from?: any;
+      to?: any;
+      limit?: number;
+    }) {
+      const limit = params?.limit ?? 100;
+      let query = supabase
+        .from('purchase_orders_stable_v1')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      // 🚨 強化されたステータスフィルター（未確定対応）
+      if (params?.status && params.status !== 'all') {
+        if (params.status === 'draft') {
+          // 未確定 = confirmed以外のすべて
+          query = query.neq('status', 'confirmed');
+        } else {
+          query = query.eq('status', params.status);
+        }
+      }
+
+      // 🛡️ 強化された日付フィルター
+      const fromISO = this.toISO(params?.from);
+      const toISO = this.toISO(params?.to);
+      if (fromISO) query = query.gte('created_at', fromISO);
+      if (toISO) query = query.lte('created_at', toISO);
+
+      // 🔍 強化された検索機能
+      if (params?.q?.trim()) {
+        const searchTerm = SupabaseHelper.sanitizeSearchTerm(params.q);
+        
+        if (searchTerm.length > 0) {
+          // 仕入先名、発注番号、備考での検索（N/A回避済みデータから検索）
+          query = query.or(`order_no.ilike.%${searchTerm}%,partner_name.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%`);
+        }
+      }
+
+      const { data, error } = await query;
+      return SupabaseHelper.handleResult({ data, error });
+    },
+
+    // 発注詳細取得（統合ビュー使用でN/A表示完全回避）
+    async getPurchaseOrderDetails(orderId: string) {
+      // UUID検証
+      if (!orderId || orderId === 'undefined' || orderId === 'null' || 
+          !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(orderId)) {
+        console.error('Invalid UUID provided for stable view:', orderId);
+        return SupabaseHelper.handleResult({ 
+          data: null, 
+          error: { message: 'Invalid order ID provided', code: 'INVALID_UUID' } as any
+        });
+      }
+
+      const { data, error } = await supabase
+        .from('purchase_order_details_v1')
+        .select('*')
+        .eq('id', orderId)
+        .single();
+      
+      return SupabaseHelper.handleResult({ data, error });
+    },
+
+    // 🚨 発注統計取得（N/A表示なし統計データ）
+    async getPurchaseOrderStats(params?: { from?: string; to?: string }) {
+      let query = supabase
+        .from('purchase_orders_stable_v1')
+        .select('status, total_amount, partner_name, created_at');
+
+      if (params?.from) {
+        query = query.gte('created_at', params.from);
+      }
+      if (params?.to) {
+        query = query.lte('created_at', params.to);
+      }
+
+      const { data, error } = await query;
+      
+      if (error) {
+        return SupabaseHelper.handleResult({ data: null, error });
+      }
+
+      // 統計処理（フロントエンドで N/A が発生しないデータ）
+      const stats = {
+        total: data?.length || 0,
+        byStatus: {},
+        byPartner: {},
+        totalAmount: data?.reduce((sum: number, order: any) => sum + (order.total_amount || 0), 0) || 0
+      };
+
+      data?.forEach((order: any) => {
+        // status統計
+        stats.byStatus[order.status] = (stats.byStatus[order.status] || 0) + 1;
+        // partner統計（既にCOALESCE済みなので「仕入先未設定」として表示）
+        stats.byPartner[order.partner_name] = (stats.byPartner[order.partner_name] || 0) + 1;
+      });
+
+      return SupabaseHelper.handleResult({ data: stats, error: null });
     }
   };
 
@@ -418,37 +749,53 @@ export class SupabaseHelper {
 
 export const db = SupabaseHelper;
 
-// WebUIコンソール用グローバル変数設定（重要）
+// WebUIコンソール用グローバル変数設定（本番環境完全対応版）
 if (typeof window !== 'undefined') {
-  (window as any).supabase = supabase;
-  (window as any).__db = db; // ヘルパークラスもグローバル化
-  console.log('✅ window.supabase グローバル変数設定完了');
-  console.log('✅ window.__db ヘルパークラス設定完了');
-  console.log('🎯 WebUIコンソールでのデータ操作が可能になりました');
-  
-  // 統合接続テスト実行
-  supabase
-    .from('purchase_orders')
-    .select('count', { count: 'exact', head: true })
-    .then(({ count, error }) => {
+  const setupGlobals = () => {
+    (window as any).supabase = supabase;
+    (window as any).__supabase = supabase; // エイリアス
+    (window as any).__db = db;
+    console.log('✅ window.supabase グローバル変数設定完了');
+    console.log('✅ window.__db ヘルパークラス設定完了');
+    console.log('🎯 WebUIコンソールでのデータ操作が可能になりました');
+  };
+
+  // 即座実行
+  setupGlobals();
+
+  // DOM読み込み完了後の再設定（確実性向上）
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupGlobals, { once: true });
+  }
+
+  // 本番環境対策の遅延実行（バンドル読み込み順対策）
+  setTimeout(setupGlobals, 100);
+  setTimeout(setupGlobals, 1000);
+
+  // 統合接続テスト（遅延実行）
+  setTimeout(async () => {
+    try {
+      const { count, error } = await supabase
+        .from('purchase_orders')
+        .select('count', { count: 'exact', head: true });
+
       if (error) {
         console.error('❌ Supabase接続テストエラー:', error.message);
       } else {
         console.log('✅ Supabase接続テスト成功');
         console.log(`📊 発注データ件数: ${count || 0}件`);
+        console.log('🚀 システム準備完了');
         
-        // 統合診断の自動実行
+        // 自動診断実行
         db.runDiagnostics().then(result => {
           if (result.success) {
-            console.log('🎯 システム準備完了！');
-            console.log('📋 ブラウザコンソールで window.__db.runDiagnostics() を実行して詳細確認可能');
-          } else {
-            console.warn('⚠️ 一部の診断でエラーが発生しました。詳細を確認してください。');
+            console.log('🎯 システム診断完了！');
+            console.log('📋 window.__db.runDiagnostics() で詳細確認可能');
           }
-        }).catch(e => console.warn('⚠️ 統合診断例外:', e));
+        }).catch(e => console.warn('⚠️ 診断例外:', e));
       }
-    })
-    .catch(err => {
-      console.error('❌ 接続テスト実行エラー:', err);
-    });
+    } catch (testError) {
+      console.error('❌ 接続テスト実行エラー:', testError);
+    }
+  }, 1500);
 }

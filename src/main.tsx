@@ -1,12 +1,10 @@
-﻿import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import App from './App.tsx'
-import './index.css'
-
-// Supabaseクライアントの確実な初期化（重要）
-import './lib/supabase'
+﻿import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './lib/supabase'; // 🚨 副作用起動用インポート追加（必須）
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import App from './App.tsx';
+import './index.css';
 
 // 富士精工様向けシステム用QueryClient - 本番環境最適化設定
 const queryClient = new QueryClient({

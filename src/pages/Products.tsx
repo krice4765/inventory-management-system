@@ -10,7 +10,7 @@ interface Product {
   product_name: string;
   product_code: string;
   category: string;
-  purchase_price: number;
+  standard_price: number;  // 🚨 修正: purchase_price → standard_price
   selling_price: number;
   current_stock: number;
   min_stock_level: number;
@@ -33,7 +33,7 @@ export default function Products() {
     product_name: '',
     product_code: '',
     category: '',
-    purchase_price: '',
+    standard_price: '',  // 🚨 修正: purchase_price → standard_price
     selling_price: '',
     current_stock: '',
     min_stock_level: '',
@@ -121,10 +121,10 @@ export default function Products() {
     
     try {
       const productData = {
-        name: formData.name,
+        product_name: formData.product_name,  // 🚨 修正: name → product_name
         product_code: formData.product_code,
         category: formData.category,
-        purchase_price: parseFloat(formData.purchase_price),
+        standard_price: parseFloat(formData.standard_price),  // 🚨 修正: purchase_price → standard_price
         selling_price: parseFloat(formData.selling_price),
         current_stock: parseInt(formData.current_stock),
         min_stock_level: parseInt(formData.min_stock_level),
@@ -161,7 +161,7 @@ export default function Products() {
       product_name: product.product_name,
       product_code: product.product_code,
       category: product.category,
-      purchase_price: product.purchase_price.toString(),
+      standard_price: product.standard_price.toString(),  // 🚨 修正: purchase_price → standard_price
       selling_price: product.selling_price.toString(),
       current_stock: product.current_stock.toString(),
       min_stock_level: product.min_stock_level.toString(),
@@ -192,7 +192,7 @@ export default function Products() {
       product_name: '',
       product_code: '',
       category: '',
-      purchase_price: '',
+      standard_price: '',  // 🚨 修正: purchase_price → standard_price
       selling_price: '',
       current_stock: '',
       min_stock_level: '',
@@ -267,13 +267,13 @@ export default function Products() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">仕入単価</label>
+              <label className="block text-sm font-medium text-gray-700">標準単価</label>
               <input
                 type="number"
                 required
                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
-                value={formData.purchase_price}
-                onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
+                value={formData.standard_price}
+                onChange={(e) => setFormData({ ...formData, standard_price: e.target.value })}
               />
             </div>
             <div>
@@ -357,7 +357,7 @@ export default function Products() {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">仕入: {safeYenFormat(product.purchase_price)}</div>
+                  <div className="text-sm text-gray-900">標準: {safeYenFormat(product.standard_price)}</div>
                   <div className="text-sm text-gray-500">販売: {safeYenFormat(product.selling_price)}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">

@@ -1,6 +1,6 @@
 // src/hooks/useTransactionsByPartner.ts - PostgREST最適化版
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '../lib/supabase';
+import { supabase, db } from '../lib/supabase';
 import type { TransactionWithManager, TransactionFilters } from '../utils/format';
 import { 
   createSafeSearchQuery, 
@@ -17,98 +17,91 @@ export function useTransactionsByPartner(
   filters?: TransactionFilters
 ) {
   return useQuery<TransactionWithManager[]> ({
-    queryKey: ['transactions', partnerId, searchKeyword, filters],
-    enabled: true,
-    staleTime: 10 * 1000,
-    gcTime: 30 * 1000,
+    queryKey: ['purchaseOrdersStable', partnerId, searchKeyword, filters],
+    staleTime: 1000 * 60 * 5, // 5分間キャッシュ
     refetchOnWindowFocus: false,
     retry: 1,
     queryFn: async () => {
-      let query = supabase
-        .from('transactions') // 基本のtransactionsテーブルを使用
-        .select(`
-          id, transaction_no, transaction_type,
-          partner_id, transaction_date, due_date,
-          status, total_amount, parent_order_id,
-          memo,
-          created_at
-        `)
-        .order('created_at', { ascending: false });
-
-      // 仕入先フィルタリング
-      if (partnerId && partnerId !== 'all-partners') {
-        query = query.eq('partner_id', partnerId);
+      // 🚨 強化されたフィルター対応検索パラメータ構築
+      const searchParams: any = {};
+      
+      // 検索キーワードをパラメータに設定
+      if (searchKeyword?.trim()) {
+        searchParams.q = searchKeyword.trim();
       }
-
-      // PostgREST準拠の安全な検索
-      if (searchKeyword && searchKeyword.trim()) {
-        const textSearchQuery = createSafeSearchQuery(
-          searchKeyword,
-          ['memo', 'transaction_no'], // テキストカラム
-          [], // 数値カラム
-          [] // 日付カラム
-        );
+      
+      // 🚨 強化されたフィルター条件（memo_actionの指示通り）
+      if (filters) {
+        // ステータスフィルター（未確定対応）
+        if (filters.status === 'unconfirmed') {
+          searchParams.status = 'draft'; // 未確定 → draft
+        } else if (filters.status === 'confirmed') {
+          searchParams.status = 'confirmed';
+        } else if (filters.status && filters.status !== 'all') {
+          searchParams.status = filters.status;
+        }
         
-        const idSearchQuery = isValidUUID(searchKeyword.trim()) 
-          ? `id.eq.${searchKeyword.trim()}`
-          : '';
-        
-        const combinedQuery = combineSearchConditions(textSearchQuery, idSearchQuery);
-        
-        if (combinedQuery) {
-          query = query.or(combinedQuery);
+        // 日付フィルター
+        if (filters.startDate) {
+          searchParams.from = filters.startDate;
+        }
+        if (filters.endDate) {
+          searchParams.to = filters.endDate;
         }
       }
-
-      // 新規フィルター条件の適用
+      
+      // 🚨 強化された安定化ビューAPIを使用
+      const result = await db.stableViews.getPurchaseOrdersStable(searchParams);
+      
+      if (!result.success || !result.data) {
+        console.error('Failed to fetch stable purchase orders:', result.error);
+        throw new Error(result.error?.message || 'Failed to fetch purchase orders');
+      }
+      
+      let stableData = result.data;
+      
+      // 仕入先フィルタリング（クライアントサイド）
+      if (partnerId && partnerId !== 'all-partners') {
+        stableData = stableData.filter(order => order.partner_id === partnerId);
+      }
+      
+      // 🎯 金額フィルタリング（クライアントサイド）
       if (filters) {
-        // 金額フィルター
         if (typeof filters.minAmount === 'number') {
-          query = query.gte('total_amount', filters.minAmount);
+          stableData = stableData.filter(order => (order.total_amount || 0) >= filters.minAmount);
         }
         if (typeof filters.maxAmount === 'number') {
-          query = query.lte('total_amount', filters.maxAmount);
+          stableData = stableData.filter(order => (order.total_amount || 0) <= filters.maxAmount);
         }
-
-        // ステータスフィルター
-        if (filters.status && filters.status !== 'all') {
-          if (filters.status === 'confirmed') {
-            query = query.eq('status', 'confirmed');
-          } else if (filters.status === 'draft') {
-            query = query.neq('status', 'confirmed');
-          }
-        }
-
-        // 作成日フィルター (安全な日付範囲処理)
-        const dateCondition = createDateRangeCondition(
-          'created_at', 
-          filters.startDate, 
-          filters.endDate
-        );
-        
-        if (dateCondition) {
-          const dateConditions = dateCondition.split(',');
-          dateConditions.forEach(condition => {
-            const [field, operator, value] = condition.split('.');
-            if (operator === 'gte') {
-              query = query.gte(field, value);
-            } else if (operator === 'lt') {
-              query = query.lt(field, value);
-            }
-          });
-        }
-
-        // 発注担当者フィルター（暫定的に無効化）
-        // if (filters.orderManagerId) {
-        //   // 担当者フィルタリング機能は後で実装
-        // }
       }
-
-      // parent_order_idが設定されている取引のみを取得
-      query = query.not('parent_order_id', 'is', null);
-
-      // 安全なクエリ実行
-      return await executeSafeQuery(query, []);
+      
+      // 既存のインターフェースに変換
+      return stableData.map((order: any) => ({
+        id: order.id,
+        transaction_id: order.id,
+        transaction_no: order.order_no,
+        transaction_type: 'purchase',
+        partner_id: order.partner_id,
+        partner_name: order.partner_name,
+        transaction_date: order.created_at,
+        due_date: order.delivery_date,
+        status: order.status,
+        total_amount: order.total_amount,
+        parent_order_id: order.id,
+        memo: order.notes,
+        order_memo: order.notes,
+        transaction_memo: order.notes,
+        product_name: order.item_summary,
+        display_name: order.item_summary,
+        item_summary: order.item_summary,
+        item_count: order.item_count || 1,
+        quantity: order.item_count,
+        order_manager_name: order.manager_name || '—',
+        order_manager_department: order.manager_department,
+        installment_no: order.installment_no || 1,
+        created_at: order.created_at,
+        updated_at: order.updated_at
+      }));
     },
   });
 }
