@@ -20,7 +20,7 @@ export function useTransactionsByPartner(
       let query = supabase
         .from('transactions') // 基本のtransactionsテーブルを使用
         .select(`
-          id as transaction_id, transaction_no, transaction_type,
+          id, transaction_no, transaction_type,
           partner_id, transaction_date, due_date,
           status, total_amount, parent_order_id,
           order_memo,

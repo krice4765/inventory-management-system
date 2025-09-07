@@ -51,7 +51,7 @@ export default function Inventory() {
 
     let filtered = movements.filter(movement => {
       const matchesSearch = !searchTerm || (
-        movement.products.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        movement.products.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         movement.products.product_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
         movement.memo.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -67,12 +67,12 @@ export default function Inventory() {
   const fetchData = async () => {
     try {
       const [productsResult, movementsResult] = await Promise.all([
-        supabase.from('products').select('id, product_name as name, product_code, current_stock').order('product_name'),
+        supabase.from('products').select('id, product_name, product_code, current_stock').order('product_name'),
         supabase
           .from('inventory_movements')
           .select(`
             *,
-            products (id, product_name as name, product_code, current_stock)
+            products (id, product_name, product_code, current_stock)
           `)
           .order('created_at', { ascending: false })
           .limit(50)
@@ -239,7 +239,7 @@ export default function Inventory() {
                 <option value="">商品を選択</option>
                 {products.map((product) => (
                   <option key={product.id} value={product.id}>
-                    {product.name} ({product.product_code}) - 在庫: {product.current_stock}
+                    {product.product_name} ({product.product_code}) - 在庫: {product.current_stock}
                   </option>
                 ))}
               </select>
@@ -366,7 +366,7 @@ export default function Inventory() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">{movement.products.name}</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">{movement.products.product_name}</div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">{movement.products.product_code}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
