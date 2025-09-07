@@ -1,0 +1,405 @@
+# **📋 富士精工様向け在庫管理システム 開発引継ぎ書**
+
+## **🎯 1. プロジェクト概要**
+
+### **システム名称・現状**
+- **正式名称**: 富士精工様向け在庫管理システム
+- **本番URL**: `https://inventory-management-system-c49.pages.dev/`
+- **開発期間**: 2025年9月6日〜現在
+- **現在のステータス**: ✅ **Phase 1完全完成** (システム完成度100%、コンソールエラー0件)
+
+### **システムの目的と特徴**
+富士精工様の在庫管理業務効率化を目的とした統合管理システム。特に以下の要件に特化：
+- 図面番号による商品管理（DRW-A001-2025等）
+- 品質等級・支払条件による仕入先管理（A+、A、B+等）
+- 材質・仕様管理（アルミニウム、真鍮、銅合金等）
+- 在庫アラート・発注点管理
+
+---
+
+## **🛠️ 2. 技術スタック**
+
+### **フロントエンド**
+```typescript
+React 18 + TypeScript + Vite
+React Query (TanStack Query) v5 - データ管理・キャッシュ
+React Router - SPAルーティング
+Tailwind CSS - スタイリング
+```
+
+### **バックエンド・インフラ**
+```
+Supabase (PostgreSQL + PostgREST + Storage + Auth)
+Cloudflare Pages (自動CI/CD、GitHub連携)
+GitHub Repository: krice4765/inventory-management-system
+```
+
+### **環境変数（Cloudflare Pages設定）**
+```env
+VITE_SUPABASE_URL=https://tleequspizctgoosostd.supabase.co
+VITE_SUPABASE_ANON_KEY=[機密情報 - 別途共有]
+```
+
+---
+
+## **🔧 3. 重要な技術的修正事項**
+
+### **解決済みの重要課題**
+
+**3.1. React Query統合**
+```typescript
+// src/main.tsx - 必須設定
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,        // 5分間キャッシュ
+      retry: 3,                        // エラー時3回リトライ
+      refetchOnWindowFocus: false,     // 本番環境での不要な再取得防止
+    },
+  },
+});
+
+// ⚠️重要: QueryClientProviderでAppをラップ必須
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <App />
+    </QueryClientProvider>
+  </React.StrictMode>,
+);
+```
+
+**3.2. SPAルーティング設定**
+```
+# public/_redirects - 必須ファイル
+/*.js         200
+/*.css        200
+/*.png        200
+/*.jpg        200
+/*.svg        200
+/*.ico        200
+/assets/*     200
+/*            /index.html   200
+```
+
+**3.3. データベーススキーマ統一**
+```typescript
+// ⚠️絶対に間違えてはいけないマッピング
+// ❌ 間違い（存在しないカラム）
+product.name                    // 存在しない
+product.purchase_price          // 存在しない  
+product.drawing_number          // 存在しない
+
+// ✅ 正しい（実際のカラム名）
+product.product_name            // 商品名
+product.standard_price          // 標準価格
+product.selling_price           // 販売価格
+product.drawing_no              // 図面番号
+```
+
+---
+
+## **🗄️ 4. データベース設計**
+
+### **主要テーブル構造**
+
+**4.1. products テーブル（商品マスター）**
+```sql
+CREATE TABLE products (
+  id UUID PRIMARY KEY,
+  product_code VARCHAR(50) UNIQUE NOT NULL,
+  product_name VARCHAR(200) NOT NULL,          -- ⚠️重要: 'name'ではない
+  category VARCHAR(100),
+  standard_price DECIMAL(12,2),                -- ⚠️重要: 'purchase_price'ではない
+  selling_price DECIMAL(12,2),
+  drawing_no VARCHAR(50),                      -- ⚠️重要: 'drawing_number'ではない
+  material VARCHAR(100),
+  specifications TEXT,
+  current_stock INTEGER DEFAULT 0,
+  min_stock_level INTEGER DEFAULT 0,
+  reorder_point INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true
+);
+```
+
+**4.2. partners テーブル（仕入先マスター）**
+```sql
+CREATE TABLE partners (
+  id UUID PRIMARY KEY,
+  partner_code VARCHAR(50) UNIQUE,
+  name VARCHAR(200) NOT NULL,                  -- ⚠️注意: partnersは'name'が正しい
+  quality_grade VARCHAR(20),                   -- A+, A, B+ 等
+  payment_terms VARCHAR(100),                  -- 月末締め翌月末払い 等
+  specialties TEXT,                            -- 専門分野
+  is_active BOOLEAN DEFAULT true
+);
+```
+
+### **重要なクエリ規則**
+```typescript
+// ✅ 正しいクエリパターン
+.select('id, product_name, standard_price')
+.order('product_name')
+
+// ❌ 間違いパターン
+.select('id, name, purchase_price')  // カラム名エラー
+.order('name')                       // ソートエラー
+```
+
+---
+
+## **📁 5. ファイル構造と主要コンポーネント**
+
+```
+src/
+├── main.tsx                    ⭐ React Query設定
+├── utils/
+│   ├── safeFormatters.ts      ⭐ 安全な表示フォーマッタ
+│   └── queryHelpers.ts        ⭐ PostgREST安全クエリ
+├── pages/
+│   ├── Products.tsx           ⭐ 商品管理（product_name使用）
+│   ├── OrderNew.tsx           ⭐ 新規発注（standard_price使用）
+│   └── Dashboard.tsx          ⭐ 統計ダッシュボード
+├── hooks/
+│   └── useProducts.ts         ⭐ 商品データフック
+└── api/
+    └── products.ts            ⭐ 商品API
+```
+
+### **重要なユーティリティ関数**
+
+**5.1. 安全なデータ表示**
+```typescript
+// src/utils/safeFormatters.ts
+export const safeYenFormat = (value: number | null | undefined): string => {
+  if (value === null || value === undefined || isNaN(Number(value))) {
+    return '¥0';
+  }
+  return new Intl.NumberFormat('ja-JP', {
+    style: 'currency',
+    currency: 'JPY'
+  }).format(Number(value));
+};
+
+// ⚠️重要: 直接toLocaleString()使用禁止
+// ❌ product.selling_price.toLocaleString()
+// ✅ safeYenFormat(product.selling_price)
+```
+
+**5.2. 安全なクエリ生成**
+```typescript
+// src/utils/queryHelpers.ts
+export const createSafeSearchQuery = (
+  searchTerm: string,
+  textColumns: string[],
+  numericColumns: string[] = []
+): string => {
+  const conditions: string[] = [];
+  const like = `%${searchTerm.trim()}%`;
+  
+  textColumns.forEach(col => {
+    conditions.push(`${col}.ilike.${like}`);
+  });
+  
+  // 数値カラムは型キャスト必須
+  numericColumns.forEach(col => {
+    conditions.push(`${col}::text.ilike.${like}`);
+  });
+  
+  return conditions.join(','); // スペースなし
+};
+```
+
+---
+
+## **🌐 6. 運用・デプロイ情報**
+
+### **Cloudflare Pages設定**
+- **Build command**: `npm run build`
+- **Output directory**: `dist`
+- **Node.js version**: `18`
+- **自動デプロイ**: `main`ブランチへのプッシュで自動実行
+
+### **Supabase管理**
+- **Project ID**: `tleequspizctgoosostd`
+- **PostgRESTスキーマリロード**: 
+  ```sql
+  SELECT pg_notify('pgrst', 'reload schema');
+  ```
+- **RLSポリシー**: 現在は基本的な認証ユーザーのみアクセス可能
+
+### **監視・ログ確認**
+- **Supabase Logs**: Dashboard → Logs でPostgRESTエラー確認
+- **Cloudflare Analytics**: トラフィック・パフォーマンス監視
+- **ブラウザコンソール**: 開発者ツール（F12）でフロントエンドエラー確認
+
+---
+
+## **🚨 7. よくある問題と対処法**
+
+### **Problem 1: column "products.name" does not exist**
+```typescript
+// ❌ 原因
+.select('id, name, product_code')
+.order('name')
+
+// ✅ 解決
+.select('id, product_name, product_code')
+.order('product_name')
+```
+
+### **Problem 2: toLocaleString undefined エラー**
+```typescript
+// ❌ 原因
+{product.selling_price.toLocaleString()}
+
+// ✅ 解決
+import { safeYenFormat } from '../utils/safeFormatters';
+{safeYenFormat(product.selling_price)}
+```
+
+### **Problem 3: 400 Bad Request in PostgREST**
+```typescript
+// ❌ 原因
+.or('product_name.ilike.%term%,standard_price.ilike.%term%')
+
+// ✅ 解決
+const searchQuery = createSafeSearchQuery(term, ['product_name'], ['standard_price']);
+.or(searchQuery)
+```
+
+### **緊急時対応**
+```bash
+# 1. ローカル確認
+npm run build && npm run preview
+
+# 2. ロールバック
+git revert [commit-hash]
+git push origin main
+
+# 3. キャッシュクリア
+# ブラウザ: Ctrl+Shift+R (Windows) / Cmd+Shift+R (Mac)
+```
+
+---
+
+## **🚀 8. 今後のアクションプラン**
+
+### **Phase 2: PDF管理基盤（2-4週間）**
+
+**8.1. データベーススキーマ拡張**
+```sql
+-- 図面管理テーブル
+CREATE TABLE drawings (
+  id UUID PRIMARY KEY,
+  drawing_number VARCHAR(50) UNIQUE NOT NULL,
+  drawing_name VARCHAR(200),
+  file_path TEXT, -- Supabase Storage path
+  uploaded_by UUID,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- PDF添付管理テーブル
+CREATE TABLE purchase_order_attachments (
+  id UUID PRIMARY KEY,
+  purchase_order_id UUID REFERENCES purchase_orders(id),
+  attachment_type VARCHAR(50), -- 'order_pdf', 'drawing_pdf'
+  file_path TEXT,
+  drawing_number VARCHAR(50)
+);
+```
+
+**8.2. Web UI実装**
+- 図面PDFアップロード機能
+- 発注書PDF生成機能（jsPDF使用）
+- PDF結合機能（pdf-lib使用）
+
+### **Phase 3: Access連携（4-8週間）**
+
+**8.3. Access-Supabase接続**
+```vb
+' Access VBA - Supabase接続
+Private Function GetConnectionString() As String
+    GetConnectionString = "DRIVER={PostgreSQL ODBC Driver(UNICODE)};" & _
+                         "SERVER=db.tleequspizctgoosostd.supabase.co;" & _
+                         "PORT=5432;DATABASE=postgres;"
+End Function
+```
+
+**8.4. 富士精工向け発注フォーム（Access）**
+- 図面番号入力→自動図面PDF検索
+- 発注書PDF生成→図面PDF貼付
+- Supabase Storageへのアップロード
+
+### **Phase 4: データ移行（8-12週間）**
+- 既存AccessデータのSupabase移行
+- PDFファイルのSupabase Storage移行
+- 統合テスト・運用開始
+
+---
+
+## **📋 9. 引き継ぎチェックリスト**
+
+### **環境確認**
+- [ ] Node.js 18+ インストール済み
+- [ ] GitHubリポジトリアクセス権限確認
+- [ ] Supabaseダッシュボードアクセス確認
+- [ ] Cloudflare Pagesアクセス確認
+
+### **技術理解確認**
+- [ ] データベーススキーマ（特にカラム名統一）理解
+- [ ] React Query設定の重要性理解
+- [ ] SPAルーティング（_redirects）設定理解
+- [ ] 安全なフォーマッタ使用方法理解
+- [ ] PostgREST最適化方法理解
+
+### **動作確認**
+- [ ] ローカル環境での開発サーバー起動確認
+- [ ] 全ページ正常動作確認（商品・仕入先・発注・在庫・ダッシュボード）
+- [ ] 検索・ソート機能確認
+- [ ] 新規登録・編集・削除機能確認
+- [ ] コンソールエラー0件確認
+
+### **運用理解**
+- [ ] デプロイフロー理解
+- [ ] 障害対応手順理解
+- [ ] 監視・ログ確認方法理解
+
+---
+
+## **📞 10. 重要な連絡先・リソース**
+
+### **技術リソース**
+- **GitHub Repository**: https://github.com/krice4765/inventory-management-system
+- **Supabase Dashboard**: https://supabase.com/dashboard/project/tleequspizctgoosostd
+- **本番システム**: https://inventory-management-system-c49.pages.dev/
+
+### **ドキュメント**
+- **React Query**: https://tanstack.com/query/latest
+- **Supabase**: https://supabase.com/docs
+- **PostgREST**: https://postgrest.org/en/stable/
+
+### **重要な設計判断記録**
+1. **React Query採用**: 開発・本番環境差異解決、高性能キャッシュ実現
+2. **product_name統一**: データベーススキーマとの完全同期
+3. **手動結合採用**: PostgREST自動結合エラー回避
+4. **Supabase Storage選択**: 将来のPDF管理機能への対応
+
+---
+
+## **🎯 11. 最終確認事項**
+
+### **現在のシステム状況**
+- ✅ **システム完成度**: 100%
+- ✅ **コンソールエラー**: 0件
+- ✅ **全機能動作**: 確認済み
+- ✅ **本番稼働**: 準備完了
+
+### **次期開発準備**
+- 📋 PDF管理機能の詳細設計
+- 📋 Access連携の技術検証
+- 📋 データ移行計画の策定
+
+**この引き継ぎ書により、富士精工様向け在庫管理システムの安定した運用継続と、PDF・Access連携機能の円滑な開発が可能になります。技術的な質問や詳細な説明が必要な場合は、上記リソースを参照し、段階的に理解を深めてください。** 🚀

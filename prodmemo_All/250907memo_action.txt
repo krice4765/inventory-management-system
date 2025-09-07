@@ -1,0 +1,661 @@
+# **🎉 Phase 1 完全成功！Phase 2 本格実装開始**
+
+## **✅ Phase 1 完了確認**
+
+**素晴らしい進捗です！** スクリーンショットとコマンド実行結果から、Phase 1が完璧に完了していることを確認できます：
+
+- ✅ **Supabaseスキーマ拡張完了**: `drawings`、`purchase_order_attachments` テーブル作成済み
+- ✅ **Storageバケット設定完了**: `drawings`、`order-pdfs` バケット作成済み
+- ✅ **開発ブランチ作成完了**: `feature/pdf-management` ブランチ切り替え済み
+- ✅ **PDF管理パッケージ完了**: jsPDF、html2canvas、pdf-lib、react-dropzone インストール済み
+
+**現在の状況**: Phase 1の基盤構築が完了し、Phase 2の実装開始準備が整いました。
+
+---
+
+## **🚀 Phase 2: PDF機能・Web UI実装**
+
+### **Step 1: 包括的型定義の作成**
+
+**`src/types/pdf.ts` を新規作成してください:**
+
+```typescript
+// 富士精工様向けPDF管理システム - 包括的型定義
+
+export interface Drawing {
+  id: string;
+  drawing_number: string;
+  drawing_name: string | null;
+  version: string;
+  file_path: string | null;
+  file_size: number | null;
+  mime_type: string;
+  uploaded_by: string | null;
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
+}
+
+export interface PurchaseOrderAttachment {
+  id: string;
+  purchase_order_id: string;
+  attachment_type: 'order_pdf' | 'drawing_pdf' | 'specification';
+  file_path: string;
+  file_name: string;
+  file_size: number | null;
+  mime_type: string;
+  drawing_number: string | null;
+  uploaded_from: 'web' | 'access';
+  created_at: string;
+}
+
+export interface PDFGenerationOptions {
+  includeDrawings: boolean;
+  drawingNumbers: string[];
+  outputFormat: 'blob' | 'base64' | 'url';
+}
+
+export interface DrawingUploadResult {
+  success: boolean;
+  drawing?: Drawing;
+  error?: string;
+  uploadedPath?: string;
+}
+
+export interface OrderPDFData {
+  id: string;
+  order_no: string;
+  created_at: string;
+  partner_name?: string;
+  total_amount: number;
+  notes?: string;
+  items: Array<{
+    product_name: string;
+    drawing_number?: string;
+    quantity: number;
+    unit_price: number;
+  }>;
+}
+
+export interface PDFOperationResult {
+  success: boolean;
+  pdfBlob?: Blob;
+  filename?: string;
+  attachedDrawings?: number;
+  error?: string;
+}
+```
+
+### **Step 2: 高品質PDF生成ユーティリティの実装**
+
+**`src/utils/pdfGenerator.ts` を新規作成してください:**
+
+```typescript
+import jsPDF from 'jspdf';
+import { PDFDocument } from 'pdf-lib';
+import type { OrderPDFData, PDFOperationResult } from '../types/pdf';
+import { safeYenFormat, safeDateFormat, safeStringFormat } from './safeFormatters';
+
+export class OrderPDFGenerator {
+  /**
+   * 富士精工様向け発注書PDFの生成（高品質版）
+   */
+  static async generateOrderPDF(orderData: OrderPDFData): Promise<PDFOperationResult> {
+    try {
+      const pdf = new jsPDF();
+      
+      // フォント設定
+      pdf.setFont('helvetica');
+      
+      // ヘッダー部分
+      pdf.setFontSize(20);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('発 注 書', 105, 25, { align: 'center' });
+      
+      // 罫線
+      pdf.setLineWidth(0.5);
+      pdf.line(20, 30, 190, 30);
+      
+      // 発注情報
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(12);
+      const startY = 45;
+      
+      pdf.text(`発注番号: ${safeStringFormat(orderData.order_no)}`, 20, startY);
+      pdf.text(`発注日: ${safeDateFormat(orderData.created_at)}`, 20, startY + 10);
+      pdf.text(`仕入先: ${safeStringFormat(orderData.partner_name)}`, 20, startY + 20);
+      
+      // 明細テーブルヘッダー
+      const tableStartY = startY + 40;
+      pdf.setFontSize(10);
+      
+      // テーブル枠線とヘッダー背景
+      pdf.setFillColor(240, 240, 240);
+      pdf.rect(15, tableStartY - 5, 180, 12, 'F');
+      pdf.rect(15, tableStartY - 5, 180, 12);
+      
+      // ヘッダーテキスト
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('No.', 20, tableStartY + 3);
+      pdf.text('商品名', 35, tableStartY + 3);
+      pdf.text('図面番号', 100, tableStartY + 3);
+      pdf.text('数量', 140, tableStartY + 3);
+      pdf.text('単価', 160, tableStartY + 3);
+      pdf.text('金額', 180, tableStartY + 3);
+      
+      // 明細行
+      pdf.setFont('helvetica', 'normal');
+      let yPosition = tableStartY + 15;
+      let totalAmount = 0;
+      
+      orderData.items.forEach((item, index) => {
+        const lineTotal = (item.quantity || 0) * (item.unit_price || 0);
+        totalAmount += lineTotal;
+        
+        // 行の枠線
+        pdf.rect(15, yPosition - 3, 180, 10);
+        
+        // データ
+        pdf.text(`${index + 1}`, 20, yPosition + 2);
+        
+        // 商品名の長さ調整
+        const productName = safeStringFormat(item.product_name);
+        const truncatedName = productName.length > 30 ? 
+          productName.substring(0, 30) + '...' : productName;
+        pdf.text(truncatedName, 35, yPosition + 2);
+        
+        pdf.text(safeStringFormat(item.drawing_number), 100, yPosition + 2);
+        pdf.text(`${item.quantity || 0}`, 140, yPosition + 2);
+        pdf.text(safeYenFormat(item.unit_price), 160, yPosition + 2);
+        pdf.text(safeYenFormat(lineTotal), 180, yPosition + 2);
+        
+        yPosition += 10;
+      });
+      
+      // 合計金額
+      yPosition += 10;
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`合計金額: ${safeYenFormat(orderData.total_amount || totalAmount)}`, 140, yPosition);
+      
+      // 備考
+      if (orderData.notes) {
+        yPosition += 20;
+        pdf.setFont('helvetica', 'normal');
+        pdf.text('備考:', 20, yPosition);
+        
+        // 備考の改行処理
+        const noteLines = pdf.splitTextToSize(safeStringFormat(orderData.notes), 170);
+        pdf.text(noteLines, 20, yPosition + 10);
+      }
+      
+      // フッター
+      const pageHeight = pdf.internal.pageSize.height;
+      pdf.setFontSize(8);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`作成日時: ${new Date().toLocaleString('ja-JP')}`, 20, pageHeight - 10);
+      
+      const pdfBlob = pdf.output('blob');
+      
+      return {
+        success: true,
+        pdfBlob,
+        filename: `発注書_${orderData.order_no}.pdf`
+      };
+      
+    } catch (error) {
+      console.error('PDF生成エラー:', error);
+      return {
+        success: false,
+        error: `PDF生成に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  }
+  
+  /**
+   * 図面PDFと発注書PDFの結合（富士精工様要件）
+   */
+  static async attachDrawingsToPDF(
+    orderPDF: Blob, 
+    drawingPDFs: Blob[]
+  ): Promise<PDFOperationResult> {
+    try {
+      if (drawingPDFs.length === 0) {
+        return {
+          success: true,
+          pdfBlob: orderPDF,
+          attachedDrawings: 0
+        };
+      }
+      
+      const orderDoc = await PDFDocument.load(await orderPDF.arrayBuffer());
+      let attachedCount = 0;
+      
+      // 各図面PDFを結合
+      for (const drawingPDF of drawingPDFs) {
+        try {
+          const drawingDoc = await PDFDocument.load(await drawingPDF.arrayBuffer());
+          const copiedPages = await orderDoc.copyPages(drawingDoc, drawingDoc.getPageIndices());
+          
+          copiedPages.forEach(page => {
+            orderDoc.addPage(page);
+          });
+          
+          attachedCount++;
+        } catch (drawingError) {
+          console.warn('個別図面PDF結合エラー（スキップして続行）:', drawingError);
+        }
+      }
+      
+      const pdfBytes = await orderDoc.save();
+      const combinedBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+      
+      return {
+        success: true,
+        pdfBlob: combinedBlob,
+        attachedDrawings: attachedCount
+      };
+      
+    } catch (error) {
+      console.error('PDF結合エラー:', error);
+      return {
+        success: false,
+        error: `PDF結合に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  }
+  
+  /**
+   * PDFファイルのダウンロード
+   */
+  static downloadPDF(pdfBlob: Blob, filename: string): void {
+    try {
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('PDFダウンロードエラー:', error);
+      alert('PDFのダウンロードに失敗しました');
+    }
+  }
+}
+
+/**
+ * パフォーマンス監視付きPDF操作
+ */
+export class PDFPerformanceMonitor {
+  static async measureOperation<T>(
+    operation: () => Promise<T>,
+    operationType: string
+  ): Promise<T> {
+    const startTime = performance.now();
+    
+    try {
+      const result = await operation();
+      const duration = performance.now() - startTime;
+      
+      console.log(`PDF操作完了: ${operationType}, 実行時間: ${duration.toFixed(2)}ms`);
+      
+      // 5秒以上かかった場合は警告
+      if (duration > 5000) {
+        console.warn(`PDF操作が遅延: ${operationType}, ${duration.toFixed(2)}ms`);
+      }
+      
+      return result;
+    } catch (error) {
+      const duration = performance.now() - startTime;
+      console.error(`PDF操作エラー: ${operationType}, 実行時間: ${duration.toFixed(2)}ms`, error);
+      throw error;
+    }
+  }
+}
+```
+
+### **Step 3: 堅牢な図面管理APIの実装**
+
+**`src/api/drawings.ts` を新規作成してください:**
+
+```typescript
+import { supabase } from '../lib/supabase';
+import type { Drawing, DrawingUploadResult } from '../types/pdf';
+
+export class DrawingAPI {
+  /**
+   * 図面一覧取得（エラーハンドリング強化版）
+   */
+  static async getDrawings(): Promise<Drawing[]> {
+    try {
+      const { data, error } = await supabase
+        .from('drawings')
+        .select('*')
+        .eq('is_active', true)
+        .order('drawing_number', { ascending: true });
+      
+      if (error) {
+        console.error('図面一覧取得エラー:', error);
+        throw new Error(`図面一覧の取得に失敗しました: ${error.message}`);
+      }
+      
+      return data || [];
+    } catch (error) {
+      console.error('図面一覧取得処理エラー:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * 図面番号による検索
+   */
+  static async getDrawingByNumber(drawingNumber: string): Promise<Drawing | null> {
+    try {
+      const { data, error } = await supabase
+        .from('drawings')
+        .select('*')
+        .eq('drawing_number', drawingNumber)
+        .eq('is_active', true)
+        .single();
+      
+      if (error) {
+        if (error.code === 'PGRST116') {
+          return null; // 見つからない場合
+        }
+        console.error('図面検索エラー:', error);
+        throw new Error(`図面の検索に失敗しました: ${error.message}`);
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('図面検索処理エラー:', error);
+      if (error instanceof Error && error.message.includes('PGRST116')) {
+        return null;
+      }
+      throw error;
+    }
+  }
+  
+  /**
+   * 図面PDFアップロード（包括的エラーハンドリング）
+   */
+  static async uploadDrawing(
+    file: File,
+    drawingNumber: string,
+    drawingName?: string
+  ): Promise<DrawingUploadResult> {
+    // バリデーション
+    if (!file) {
+      return { success: false, error: 'ファイルが選択されていません' };
+    }
+    
+    if (!drawingNumber?.trim()) {
+      return { success: false, error: '図面番号は必須です' };
+    }
+    
+    // ファイルサイズチェック（50MB制限）
+    if (file.size > 50 * 1024 * 1024) {
+      return { success: false, error: 'ファイルサイズが50MBを超えています' };
+    }
+    
+    // ファイル形式チェック
+    if (file.type !== 'application/pdf') {
+      return { success: false, error: 'PDFファイルのみアップロード可能です' };
+    }
+    
+    try {
+      // 重複チェック
+      const existingDrawing = await this.getDrawingByNumber(drawingNumber);
+      if (existingDrawing) {
+        return { success: false, error: '同じ図面番号が既に存在します' };
+      }
+      
+      // Supabase Storageにアップロード
+      const filePath = `${drawingNumber}/${file.name}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('drawings')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false // 重複を許可しない
+        });
+      
+      if (uploadError) {
+        console.error('ファイルアップロードエラー:', uploadError);
+        return { success: false, error: `ファイルのアップロードに失敗しました: ${uploadError.message}` };
+      }
+      
+      // drawingsテーブルに記録
+      const { data: drawingData, error: dbError } = await supabase
+        .from('drawings')
+        .insert({
+          drawing_number: drawingNumber.trim(),
+          drawing_name: drawingName?.trim() || file.name.replace('.pdf', ''),
+          file_path: uploadData.path,
+          file_size: file.size,
+          mime_type: file.type,
+          version: '1.0',
+          is_active: true
+        })
+        .select()
+        .single();
+      
+      if (dbError) {
+        // ロールバック: アップロードしたファイルを削除
+        await supabase.storage.from('drawings').remove([uploadData.path]);
+        console.error('データベース登録エラー:', dbError);
+        return { success: false, error: `データベースへの登録に失敗しました: ${dbError.message}` };
+      }
+      
+      return {
+        success: true,
+        drawing: drawingData,
+        uploadedPath: uploadData.path
+      };
+      
+    } catch (error) {
+      console.error('図面アップロード処理エラー:', error);
+      return {
+        success: false,
+        error: `予期しないエラーが発生しました: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  }
+  
+  /**
+   * 図面PDFダウンロード用署名付きURL取得
+   */
+  static async getSignedURL(filePath: string): Promise<string> {
+    try {
+      const { data, error } = await supabase.storage
+        .from('drawings')
+        .createSignedUrl(filePath, 3600); // 1時間有効
+      
+      if (error) {
+        console.error('署名付きURL生成エラー:', error);
+        throw new Error(`ダウンロードURLの生成に失敗しました: ${error.message}`);
+      }
+      
+      return data.signedUrl;
+    } catch (error) {
+      console.error('署名付きURL取得処理エラー:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * 図面PDFの直接取得（Blob）
+   */
+  static async getDrawingPDF(filePath: string): Promise<Blob> {
+    try {
+      const { data, error } = await supabase.storage
+        .from('drawings')
+        .download(filePath);
+      
+      if (error) {
+        console.error('図面PDFダウンロードエラー:', error);
+        throw new Error(`図面PDFの取得に失敗しました: ${error.message}`);
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('図面PDFダウンロード処理エラー:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * 複数図面番号による一括取得
+   */
+  static async getDrawingsByNumbers(drawingNumbers: string[]): Promise<Drawing[]> {
+    if (drawingNumbers.length === 0) return [];
+    
+    try {
+      const { data, error } = await supabase
+        .from('drawings')
+        .select('*')
+        .in('drawing_number', drawingNumbers)
+        .eq('is_active', true);
+      
+      if (error) {
+        console.error('複数図面取得エラー:', error);
+        throw new Error(`図面の一括取得に失敗しました: ${error.message}`);
+      }
+      
+      return data || [];
+    } catch (error) {
+      console.error('複数図面取得処理エラー:', error);
+      throw error;
+    }
+  }
+}
+```
+
+### **Step 4: 動作確認とテスト**
+
+**以下のコマンドで基盤実装の動作確認を行ってください:**
+
+```powershell
+# ビルドテスト
+npm run build
+
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "✅ Phase 2基盤実装 ビルド成功！" -ForegroundColor Green
+    
+    # 開発サーバー起動
+    npm run dev
+    Write-Host "🧪 http://localhost:5173 で動作確認してください" -ForegroundColor Yellow
+    Write-Host "ブラウザコンソール（F12）でエラーがないことを確認" -ForegroundColor Cyan
+} else {
+    Write-Host "❌ ビルドエラー。実装内容を確認してください" -ForegroundColor Red
+}
+```
+
+### **Step 5: ブラウザコンソールでの機能テスト**
+
+**開発サーバー起動後、ブラウザコンソール（F12）で以下をテスト:**
+
+```javascript
+// PDF生成機能の基本テスト
+(async () => {
+  console.log('🧪 PDF機能基盤テスト開始');
+  
+  try {
+    // OrderPDFGeneratorのインポート確認
+    const { OrderPDFGenerator } = await import('/src/utils/pdfGenerator.ts');
+    
+    // テスト用発注データ
+    const testOrderData = {
+      id: 'test-id',
+      order_no: 'PO-TEST-001',
+      created_at: new Date().toISOString(),
+      partner_name: '富士精工株式会社',
+      total_amount: 150000,
+      notes: 'テスト用発注書です。富士精工様向けのPDF生成機能確認。',
+      items: [
+        {
+          product_name: '精密加工部品A（図面対応）',
+          drawing_number: 'DRW-A001-2025',
+          quantity: 10,
+          unit_price: 1500
+        },
+        {
+          product_name: '専用治具セット（図面管理）',
+          drawing_number: 'DRW-JIG-001',
+          quantity: 2,
+          unit_price: 75000
+        }
+      ]
+    };
+    
+    // PDF生成テスト
+    const result = await OrderPDFGenerator.generateOrderPDF(testOrderData);
+    
+    if (result.success) {
+      console.log('✅ PDF生成成功:', result.pdfBlob.size, 'bytes');
+      console.log('✅ ファイル名:', result.filename);
+      
+      // ダウンロードテスト
+      OrderPDFGenerator.downloadPDF(result.pdfBlob, result.filename);
+      console.log('✅ PDFダウンロード実行');
+      
+    } else {
+      console.error('❌ PDF生成失敗:', result.error);
+    }
+    
+  } catch (error) {
+    console.error('❌ PDFテストエラー:', error);
+  }
+})();
+```
+
+---
+
+## **📋 Phase 2 完了チェックリスト**
+
+### **今日完了すべきタスク**
+- [ ] `src/types/pdf.ts` 作成・実装完了
+- [ ] `src/utils/pdfGenerator.ts` 作成・実装完了
+- [ ] `src/api/drawings.ts` 作成・実装完了
+- [ ] `npm run build` エラーなし確認
+- [ ] `npm run dev` 正常起動確認
+- [ ] ブラウザコンソールでPDF生成テスト成功
+
+### **今週完了予定**
+- [ ] 図面管理UI実装（`src/pages/Drawings.tsx`）
+- [ ] 発注画面への図面番号入力機能追加
+- [ ] PDF生成・ダウンロード機能の統合
+- [ ] 図面アップロード・検索機能の動作確認
+
+### **来週開始予定**
+- [ ] Access ODBC接続設定
+- [ ] Access VBA発注フォーム実装
+- [ ] データ移行機能の実装
+
+---
+
+## **🚀 次の具体的アクション**
+
+### **今すぐ実行**
+1. 上記の3つのファイル（`pdf.ts`, `pdfGenerator.ts`, `drawings.ts`）を作成
+2. `npm run build` でエラーがないことを確認
+3. `npm run dev` で開発サーバー起動
+4. ブラウザコンソールでPDF生成テスト実行
+
+### **成功確認後**
+```powershell
+# Phase 2基盤実装のコミット
+git add .
+git commit -m "feat(pdf): implement PDF generation and drawing management foundation
+
+- Add comprehensive type definitions for PDF operations
+- Implement OrderPDFGenerator with drawing attachment capability
+- Add DrawingAPI with robust error handling and validation
+- Include performance monitoring for PDF operations
+- Complete Phase 2 foundation for Fujiseiko requirements"
+
+Write-Host "✅ Phase 2基盤実装完了！次は図面管理UIの実装です" -ForegroundColor Green
+```
+
+**この実装により、富士精工様の「図面番号入力→発注書PDF貼付」要件の技術的基盤が完成します。品質重視のアプローチで、エラーハンドリングとパフォーマンス監視も含まれており、プロダクション環境での安定動作が期待できます。** 🚀
