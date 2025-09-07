@@ -23,7 +23,7 @@ export function useTransactionsByPartner(
           id, transaction_no, transaction_type,
           partner_id, transaction_date, due_date,
           status, total_amount, parent_order_id,
-          order_memo,
+          memo,
           created_at
         `)
         .order('created_at', { ascending: false });
@@ -45,7 +45,7 @@ export function useTransactionsByPartner(
         };
         
         const searchConditions = [
-          `order_memo.ilike.${k}`,             // 3軸: 取引メモ
+          `memo.ilike.${k}`,                   // 取引メモ
           `transaction_no.ilike.${k}`          // 取引番号（部分一致）
         ];
         

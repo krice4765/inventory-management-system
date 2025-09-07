@@ -70,10 +70,7 @@ export default function Inventory() {
         supabase.from('products').select('id, product_name, product_code, current_stock').order('product_name'),
         supabase
           .from('inventory_movements')
-          .select(`
-            *,
-            products (id, product_name, product_code, current_stock)
-          `)
+          .select('*')
           .order('created_at', { ascending: false })
           .limit(50)
       ]);
@@ -81,9 +78,23 @@ export default function Inventory() {
       if (productsResult.error) throw productsResult.error;
       if (movementsResult.error) throw movementsResult.error;
 
-      setProducts(productsResult.data || []);
-      setMovements(movementsResult.data || []);
-      setFilteredMovements(movementsResult.data || []);
+      const products = productsResult.data || [];
+      const movements = movementsResult.data || [];
+      
+      // 手動でproductsとmovementsを結合
+      const enhancedMovements = movements.map(movement => ({
+        ...movement,
+        products: products.find(p => p.id === movement.product_id) || {
+          id: movement.product_id,
+          product_name: '商品情報なし',
+          product_code: '',
+          current_stock: 0
+        }
+      }));
+
+      setProducts(products);
+      setMovements(enhancedMovements);
+      setFilteredMovements(enhancedMovements);
     } catch (error) {
       console.error('Data fetch error:', error);
       toast.error('データの取得に失敗しました');
