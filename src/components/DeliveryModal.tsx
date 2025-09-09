@@ -1,33 +1,22 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { yupResolver } from '@hookform/resolvers/yup'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import * as yup from 'yup'
 
 import { useDeliveryModal } from '../stores/deliveryModal.store'
 import { useOrderForDelivery } from '../hooks/useOrderForDelivery'
 import { supabase } from '../lib/supabase'
 import { useOrdersSync } from '../hooks/useOrdersSync'
+import { processInventoryFromOrder } from '../utils/inventoryIntegration'
 
 interface DeliveryFormData {
   amount: number
+  deliveryType: 'amount_only' | 'amount_and_quantity'
+  quantities?: { [productId: string]: number }
   memo?: string
 }
 
-const createDeliverySchema = (maxAmount: number) =>
-  yup.object({
-    amount: yup
-      .number()
-      .typeError('数値を入力してください')
-      .positive('0より大きい値を入力してください')
-      .max(maxAmount, `残額¥${maxAmount.toLocaleString()}を超えています`)
-      .required('納品金額は必須です'),
-    memo: yup
-      .string()
-      .max(200, '備考は200文字以内で入力してください')
-      .optional(),
-  })
+// Yup schemaを削除し、React Hook Formのネイティブバリデーションを使用
 
 export const DeliveryModal = () => {
   const { isOpen, selectedOrderId, close } = useDeliveryModal()
@@ -37,10 +26,41 @@ export const DeliveryModal = () => {
   const { data: orderData, isLoading, isError, error } = useOrderForDelivery(selectedOrderId)
   
   const form = useForm<DeliveryFormData>({
-    resolver: orderData ? yupResolver(createDeliverySchema(orderData.remaining_amount)) : undefined,
-    defaultValues: { amount: 0, memo: '' },
+    defaultValues: { 
+      amount: 0, 
+      deliveryType: 'amount_only' as const,
+      quantities: {},
+      memo: '' 
+    },
     mode: 'onChange',
   })
+
+  // orderDataが更新されたときにフォームのresolverを更新
+  useEffect(() => {
+    if (orderData) {
+      console.log('📋 分納モーダル データ確認:', {
+        発注額: orderData.ordered_amount,
+        既納品: orderData.delivered_amount, 
+        残額: orderData.remaining_amount,
+        発注番号: orderData.order_no,
+        商品明細: orderData.items.map(item => ({
+          商品名: item.product_name,
+          発注数量: item.quantity,
+          分納済み: item.delivered_quantity || 0,
+          残り数量: item.remaining_quantity || item.quantity
+        }))
+      });
+      
+      // フォームエラーをクリアし、バリデーションを再実行
+      form.clearErrors();
+      
+      // 現在の値で再バリデーション実行
+      const currentAmount = form.getValues('amount');
+      if (currentAmount > 0) {
+        form.trigger('amount');
+      }
+    }
+  }, [orderData, form]);
 
   // 分納処理のMutation
   const deliveryMutation = useMutation({
@@ -61,10 +81,11 @@ export const DeliveryModal = () => {
       const nextSequence = (seqData?.delivery_sequence ?? 0) + 1
 
       // 分納記録を挿入
+      const transactionId = crypto.randomUUID();
       const { error: insertError } = await supabase
         .from('transactions')
         .insert({
-          id: crypto.randomUUID(),
+          id: transactionId,
           transaction_type: 'purchase',
           status: 'confirmed',
           partner_id: orderData.partner_id,
@@ -72,17 +93,54 @@ export const DeliveryModal = () => {
           parent_order_id: orderData.purchase_order_id,
           delivery_sequence: nextSequence,
           transaction_date: new Date().toISOString().split('T')[0],
-          memo: data.memo || `分納入力 - ${orderData.order_no} (${nextSequence}回目)`,
+          memo: data.deliveryType === 'amount_and_quantity' 
+            ? `分納入力 - ${orderData.order_no} (${nextSequence}回目) [個数指定]` 
+            : `分納入力 - ${orderData.order_no} (${nextSequence}回目)`,
           created_at: new Date().toISOString(),
         })
       
       if (insertError) throw insertError
+      
+      // 🔄 分納完了時の在庫連動処理
+      return { 
+        deliveredAmount: data.amount, 
+        memo: data.memo,
+        deliveryType: data.deliveryType,
+        quantities: data.quantities,
+        transactionId: transactionId
+      };
     },
-    onSuccess: async () => {
+    onSuccess: async (result) => {
+      const { deliveredAmount, memo, deliveryType, quantities, transactionId } = result;
       try {
+        // 🔄 在庫連動処理を実行
+        if (orderData && selectedOrderId) {
+          console.log('🔄 在庫連動処理開始:', {
+            orderId: selectedOrderId,
+            deliveredAmount,
+            memo: memo || `分納入力 - ${orderData.order_no}`
+          });
+
+          const inventoryResult = await processInventoryFromOrder(
+            selectedOrderId,
+            deliveredAmount,
+            memo || `分納入力 - ${orderData.order_no}`,
+            deliveryType,
+            quantities,
+            transactionId
+          );
+
+          if (!inventoryResult.success) {
+            console.warn('⚠️ 在庫連動処理エラー:', inventoryResult.error);
+            toast.error(`分納は登録されましたが、在庫更新に失敗しました: ${inventoryResult.error}`);
+          } else {
+            console.log('✅ 在庫連動処理成功');
+          }
+        }
+
         // useOrdersSync が正常に動作する場合
         if (syncOrderData && typeof syncOrderData === 'function') {
-          await syncOrderData('分納を登録しました');
+          await syncOrderData('分納を登録し、在庫を更新しました');
         } else {
           // フォールバック: 従来の方法で手動同期
           await Promise.all([
@@ -212,7 +270,18 @@ export const DeliveryModal = () => {
               <input
                 type="number"
                 step="1"
-                {...form.register('amount', { valueAsNumber: true })}
+                {...form.register('amount', { 
+                  valueAsNumber: true,
+                  required: '納品金額は必須です',
+                  min: { value: 1, message: '0より大きい値を入力してください' },
+                  validate: (value) => {
+                    if (!orderData) return true;
+                    if (value > orderData.remaining_amount) {
+                      return `残額¥${orderData.remaining_amount.toLocaleString()}を超えています`;
+                    }
+                    return true;
+                  }
+                })}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   form.formState.errors.amount ? 'border-red-300' : 'border-gray-300'
                 }`}
@@ -225,6 +294,80 @@ export const DeliveryModal = () => {
               )}
             </div>
 
+            {/* 分納タイプ選択 */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                分納タイプ
+              </label>
+              <div className="space-y-2">
+                <label className="inline-flex items-center">
+                  <input
+                    type="radio"
+                    {...form.register('deliveryType')}
+                    value="amount_only"
+                    className="form-radio h-4 w-4 text-blue-600"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">
+                    金額のみで分納（発注数量の100%を自動入庫）
+                  </span>
+                </label>
+                <label className="inline-flex items-center">
+                  <input
+                    type="radio"
+                    {...form.register('deliveryType')}
+                    value="amount_and_quantity"
+                    className="form-radio h-4 w-4 text-blue-600"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">
+                    金額＋個数を指定して分納
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            {/* 個数指定セクション */}
+            {form.watch('deliveryType') === 'amount_and_quantity' && orderData.items && (
+              <div className="mb-4 border border-blue-200 rounded-lg p-4 bg-blue-50">
+                <h4 className="font-medium text-blue-900 mb-3">個数指定</h4>
+                <div className="space-y-3">
+                  {orderData.items.map((item: any) => (
+                    <div key={item.product_id} className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{item.product_name}</div>
+                        <div className="text-sm text-gray-500">
+                          {item.product_code} | 発注: {item.quantity} | 分納済み: {item.delivered_quantity || 0} | 残り: {item.remaining_quantity || item.quantity}
+                        </div>
+                      </div>
+                      <div className="w-24">
+                        <input
+                          type="number"
+                          min="0"
+                          max={item.remaining_quantity || item.quantity}
+                          placeholder="0"
+                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                          {...form.register(`quantities.${item.product_id}`, { 
+                            valueAsNumber: true,
+                            min: { value: 0, message: '0以上の値を入力してください' },
+                            validate: (value) => {
+                              if (!value || value === 0) return true;
+                              const maxQuantity = item.remaining_quantity || item.quantity;
+                              if (value > maxQuantity) {
+                                return `残り数量${maxQuantity}を超えています`;
+                              }
+                              return true;
+                            }
+                          })}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-2 text-xs text-blue-600">
+                  ※ 各商品の入庫数量を指定してください（0の場合は入庫されません）
+                </div>
+              </div>
+            )}
+
             {/* 備考入力 */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -232,7 +375,9 @@ export const DeliveryModal = () => {
               </label>
               <textarea
                 rows={3}
-                {...form.register('memo')}
+                {...form.register('memo', { 
+                  maxLength: { value: 200, message: '備考は200文字以内で入力してください' } 
+                })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="備考を入力..."
               />

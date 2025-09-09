@@ -81,12 +81,14 @@ export default function OrderNew() {
 
   const handleProductChange = (index: number, productId: string) => {
     const product = products.find(p => p.id === productId);
-    const purchasePrice = Number(product?.purchase_price ?? 0);
+    // 🚨 商品マスターのstandard_priceを参照（purchase_price → standard_price）
+    const standardPrice = Number(product?.standard_price ?? 0);
 
     setItems(prev => prev.map((row, i) => {
       if (i !== index) return row;
 
-      const nextUnitPrice = row.unit_price_locked ? row.unit_price : purchasePrice;
+      // 単価ロックされていない場合のみ商品マスターの価格を自動設定
+      const nextUnitPrice = row.unit_price_locked ? row.unit_price : standardPrice;
       const nextQuantity = row.quantity_locked ? row.quantity : (isNaN(row.quantity) ? 1 : Math.max(1, Math.floor(row.quantity)));
       const nextTotal = (isNaN(nextQuantity) ? 0 : nextQuantity) * (isNaN(nextUnitPrice) ? 0 : nextUnitPrice);
 
@@ -370,7 +372,7 @@ export default function OrderNew() {
                           <option value="">商品を選択</option>
                           {products.map((product) => (
                             <option key={product.id} value={product.id}>
-                              {product.product_name} ({product.product_code})
+                              {product.product_name} ({product.product_code}) - ¥{Number(product.standard_price || 0).toLocaleString()}
                             </option>
                           ))}
                         </select>

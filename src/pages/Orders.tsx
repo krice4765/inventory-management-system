@@ -11,10 +11,16 @@ import { DeliveryModal } from '../components/DeliveryModal';
 
 
 const fetchOrders = async () => {
-  // 🚨 購入発注データと分納実績を統合取得
+  // 🚨 購入発注データと分納実績を統合取得（納期表示のため直接テーブル使用）
   const { data: purchaseOrders, error: ordersError } = await supabase
-    .from('purchase_orders_stable_v1')
-    .select('*')
+    .from('purchase_orders')
+    .select(`
+      *,
+      partners!purchase_orders_partner_id_fkey (
+        name,
+        partner_code
+      )
+    `)
     .order('created_at', { ascending: false });
 
   if (ordersError) throw ordersError;
@@ -54,9 +60,9 @@ const fetchOrders = async () => {
       return {
         purchase_order_id: order.id,
         order_no: order.order_no,
-        partner_name: order.partner_name,
+        partner_name: order.partners?.name || '取引先不明',
         order_date: order.created_at,
-        delivery_deadline: order.delivery_date,
+        delivery_deadline: order.delivery_deadline,
         ordered_amount,
         delivered_amount,
         remaining_amount,
@@ -71,6 +77,8 @@ const fetchOrders = async () => {
 export default function Orders() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | '未納品' | '一部納品' | '納品完了'>('all');
+  const [sortBy, setSortBy] = useState<'created_at' | 'delivery_deadline' | 'partner_name'>('created_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   
   const { data: orders, isLoading, isError, error, refetch, isFetching } = useQuery<DeliveryProgress[], Error>({
     queryKey: ['orders'],
@@ -86,11 +94,11 @@ export default function Orders() {
   });
   const openDeliveryModal = useDeliveryModal((state) => state.open);
 
-  // 検索・フィルタリング機能
+  // 検索・フィルタリング・ソート機能
   const filteredOrders = useMemo(() => {
     if (!orders) return [];
 
-    return orders.filter(order => {
+    let filtered = orders.filter(order => {
       const matchesSearch = !searchTerm || (
         order.order_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.partner_name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -100,11 +108,56 @@ export default function Orders() {
 
       return matchesSearch && matchesStatus;
     });
-  }, [orders, searchTerm, statusFilter]);
+
+    // ソート処理
+    filtered.sort((a: any, b: any) => {
+      let valueA, valueB;
+      
+      switch (sortBy) {
+        case 'delivery_deadline':
+          valueA = a.delivery_deadline ? new Date(a.delivery_deadline).getTime() : 0;
+          valueB = b.delivery_deadline ? new Date(b.delivery_deadline).getTime() : 0;
+          break;
+        case 'partner_name':
+          valueA = a.partner_name || '';
+          valueB = b.partner_name || '';
+          break;
+        case 'created_at':
+        default:
+          valueA = new Date(a.order_date).getTime();
+          valueB = new Date(b.order_date).getTime();
+          break;
+      }
+      
+      if (sortOrder === 'asc') {
+        return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
+      } else {
+        return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
+      }
+    });
+
+    return filtered;
+  }, [orders, searchTerm, statusFilter, sortBy, sortOrder]);
 
   const clearFilters = () => {
     setSearchTerm('');
     setStatusFilter('all');
+    setSortBy('created_at');
+    setSortOrder('desc');
+  };
+
+  const handleSort = (field: 'created_at' | 'delivery_deadline' | 'partner_name') => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('desc');
+    }
+  };
+
+  const getSortIcon = (field: 'created_at' | 'delivery_deadline' | 'partner_name') => {
+    if (sortBy !== field) return '↕️';
+    return sortOrder === 'asc' ? '↑' : '↓';
   };
 
   const getProgressColor = (status: string) => {
@@ -187,14 +240,25 @@ export default function Orders() {
             </select>
           </div>
 
+          {/* ソート表示 */}
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span>並び順:</span>
+            <span className="font-medium">
+              {sortBy === 'created_at' && '発注日'}
+              {sortBy === 'delivery_deadline' && '納期'}
+              {sortBy === 'partner_name' && '仕入先'}
+              ({sortOrder === 'asc' ? '昇順' : '降順'})
+            </span>
+          </div>
+
           {/* クリアボタン */}
-          {(searchTerm || statusFilter !== 'all') && (
+          {(searchTerm || statusFilter !== 'all' || sortBy !== 'created_at' || sortOrder !== 'desc') && (
             <button
               onClick={clearFilters}
               className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
             >
               <X className="w-4 h-4 mr-1" />
-              クリア
+              リセット
             </button>
           )}
         </div>
@@ -271,11 +335,32 @@ export default function Orders() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  発注情報
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  onClick={() => handleSort('created_at')}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>発注情報</span>
+                    <span className="text-gray-400">{getSortIcon('created_at')}</span>
+                  </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  仕入先
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  onClick={() => handleSort('partner_name')}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>仕入先</span>
+                    <span className="text-gray-400">{getSortIcon('partner_name')}</span>
+                  </div>
+                </th>
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                  onClick={() => handleSort('delivery_deadline')}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>納期</span>
+                    <span className="text-gray-400">{getSortIcon('delivery_deadline')}</span>
+                  </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   金額・進捗
@@ -310,16 +395,21 @@ export default function Orders() {
                               発行時刻: {new Date(order.order_date).toLocaleTimeString('ja-JP')}
                             </div>
                           </div>
-                          {order.delivery_deadline && (
-                            <div className="text-sm text-gray-500">
-                              納期: {new Date(order.delivery_deadline).toLocaleDateString('ja-JP')}
-                            </div>
-                          )}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{order.partner_name}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {order.delivery_deadline ? (
+                        <div className="text-sm text-gray-900">
+                          <Calendar className="inline w-4 h-4 mr-1 text-orange-500" />
+                          {new Date(order.delivery_deadline).toLocaleDateString('ja-JP')}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-400">未設定</div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">

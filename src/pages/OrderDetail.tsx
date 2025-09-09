@@ -49,41 +49,60 @@ export default function OrderDetail() {
     try {
       setLoading(true);
 
-      // 🚨 安定化ビューAPIを使用してN/A表示を完全回避
-      const result = await db.stableViews.getPurchaseOrderDetails(orderId);
+      // 🚨 納期表示のため直接purchase_ordersテーブルから取得
+      const { data: orderDetailData, error } = await supabase
+        .from('purchase_orders')
+        .select(`
+          *,
+          partners!purchase_orders_partner_id_fkey (
+            name,
+            partner_code
+          ),
+          purchase_order_items (
+            *,
+            products (
+              product_name,
+              product_code
+            )
+          )
+        `)
+        .eq('id', orderId)
+        .single();
       
-      if (!result.success || !result.data) {
-        throw new Error(result.error?.message || 'Failed to fetch order details');
+      if (error) {
+        throw new Error(error.message || 'Failed to fetch order details');
       }
       
-      const orderDetailData = result.data;
+      if (!orderDetailData) {
+        throw new Error('Order not found');
+      }
       
-      // 発注基本情報を設定（安定化ビューから取得、N/A表示なし）
+      // 発注基本情報を設定（直接テーブルから取得）
       const orderInfo: OrderDetail = {
         purchase_order_id: orderDetailData.id,
         order_no: orderDetailData.order_no,
-        partner_name: orderDetailData.partner_name, // 🚨 ビューでCOALESCE済み
-        partner_code: orderDetailData.partner_code || '—',
+        partner_name: orderDetailData.partners?.name || '取引先不明',
+        partner_code: orderDetailData.partners?.partner_code || '—',
         order_date: orderDetailData.created_at,
-        delivery_deadline: orderDetailData.delivery_date,
-        order_manager_name: orderDetailData.manager_name || undefined,
-        order_manager_department: orderDetailData.manager_department || undefined,
+        delivery_deadline: orderDetailData.delivery_deadline,
+        order_manager_name: undefined, // TODO: order_managersテーブルとの関連付け
+        order_manager_department: undefined,
         ordered_amount: orderDetailData.total_amount || 0,
         delivered_amount: 0, // 暫定値（納品管理機能実装時に正確な値設定）
         remaining_amount: orderDetailData.total_amount || 0,
         progress_status: orderDetailData.status === 'completed' ? '納品完了' : 
                         orderDetailData.status === 'confirmed' ? '一部納品' : '未納品',
-        memo: orderDetailData.notes,
+        memo: orderDetailData.memo,
         created_at: orderDetailData.created_at
       };
       
       setOrder(orderInfo);
       
-      // 🚨 明細データを安全に整形（N/A表示完全回避）
-      const formattedItems: OrderItem[] = Array.isArray(orderDetailData.items) && orderDetailData.items.length > 0
-        ? orderDetailData.items.map((item: any) => ({
-            product_name: item.product_name || '商品名未設定', // 🚨 N/A → 適切なデフォルト値
-            product_code: item.product_code || '—',
+      // 🚨 明細データを安全に整形
+      const formattedItems: OrderItem[] = Array.isArray(orderDetailData.purchase_order_items) && orderDetailData.purchase_order_items.length > 0
+        ? orderDetailData.purchase_order_items.map((item: any) => ({
+            product_name: item.products?.product_name || '商品名未設定',
+            product_code: item.products?.product_code || '—',
             quantity: item.quantity || 0,
             unit_price: item.unit_price || 0,
             total_amount: item.total_amount || 0,

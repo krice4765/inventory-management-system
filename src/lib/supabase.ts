@@ -564,7 +564,7 @@ export class SupabaseHelper {
     }) {
       const limit = params?.limit ?? 100;
       let query = supabase
-        .from('purchase_orders_stable_v1')
+        .from('purchase_orders')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -590,13 +590,45 @@ export class SupabaseHelper {
         const searchTerm = SupabaseHelper.sanitizeSearchTerm(params.q);
         
         if (searchTerm.length > 0) {
-          // 仕入先名、発注番号、備考での検索（N/A回避済みデータから検索）
-          query = query.or(`order_no.ilike.%${searchTerm}%,partner_name.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%`);
+          // 発注番号、備考での検索（基本テーブルから検索）
+          // 注: 結合テーブルの検索は別途実装が必要
+          query = query.or(`order_no.ilike.%${searchTerm}%,memo.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%`);
         }
       }
 
       const { data, error } = await query;
-      return SupabaseHelper.handleResult({ data, error });
+      
+      if (error) {
+        return SupabaseHelper.handleResult({ data, error });
+      }
+      
+      // 仕入先名を個別取得してデータを変換
+      const transformedData = [];
+      
+      if (data && data.length > 0) {
+        // 全ての仕入先IDを収集
+        const partnerIds = [...new Set(data.map(order => order.partner_id).filter(Boolean))];
+        
+        // 仕入先情報を一括取得
+        const { data: partnersData } = await supabase
+          .from('partners')
+          .select('id, name')
+          .in('id', partnerIds);
+        
+        // 仕入先情報をマップに変換
+        const partnersMap = new Map((partnersData || []).map(p => [p.id, p.name]));
+        
+        // データを変換
+        for (const order of data) {
+          transformedData.push({
+            ...order,
+            partner_name: partnersMap.get(order.partner_id) || '仕入先未設定',
+            manager_name: '担当者未設定', // 担当者情報は別途取得が必要な場合に実装
+          });
+        }
+      }
+      
+      return SupabaseHelper.handleResult({ data: transformedData, error: null });
     },
 
     // 発注詳細取得（統合ビュー使用でN/A表示完全回避）
