@@ -13,6 +13,7 @@ import { ModernAdvancedFilters } from '../components/ModernAdvancedFilters';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { AddInstallmentModal } from '../components/AddInstallmentModal';
 import { useAddInstallmentModal } from '../stores/addInstallmentModal.store';
+import SearchableSelect from '../components/SearchableSelect';
 
 // 動的カラム表示のヘルパー関数
 const getDisplayValue = (transaction: Record<string, unknown>, possibleKeys: string[], formatter?: (value: unknown) => string) => {
@@ -242,26 +243,21 @@ const { data: partners, isLoading: partnersLoading, error: partnersError } = use
         <div className="flex gap-4 items-center">
           {/* 仕入先フィルター */}
           <div>
-            <label htmlFor="partner-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               仕入先でフィルター
             </label>
-            <select
-              id="partner-select"
+            <SearchableSelect
+              options={partners?.map(partner => ({
+                value: partner.id,
+                label: partner.name,
+                description: partner.id === 'all-partners' ? 'すべての仕入先を表示' : `仕入先ID: ${partner.id}`
+              })) || []}
               value={selectedPartnerId}
-              onChange={(e) => setSelectedPartnerId(e.target.value)}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-              disabled={partnersLoading}
-            >
-              {partnersLoading ? (
-                <option>ロード中...</option>
-              ) : (
-                partners?.map((partner) => (
-                  <option key={partner.id} value={partner.id}>
-                    {partner.name}
-                  </option>
-                ))
-              )}
-            </select>
+              onChange={setSelectedPartnerId}
+              placeholder={partnersLoading ? "ロード中..." : "仕入先を選択"}
+              darkMode={isDark}
+              className="w-64"
+            />
           </div>
           
           {/* 検索フィールドの改善 */}

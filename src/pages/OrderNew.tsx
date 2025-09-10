@@ -376,19 +376,33 @@ export default function OrderNew() {
                   {items.map((item, index) => (
                     <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                       <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
-                        <SearchableSelect
-                          options={products.map(product => ({
-                            value: product.id,
-                            label: product.product_name,
-                            description: `コード: ${product.product_code} | 標準価格: ¥${Number(product.standard_price || 0).toLocaleString()}`
-                          }))}
-                          value={item.product_id}
-                          onChange={(value) => handleProductChange(index, value)}
-                          placeholder="商品を選択"
-                          required
-                          darkMode={isDark}
-                          className="text-sm"
-                        />
+                        <div className="space-y-2">
+                          <SearchableSelect
+                            options={products.map(product => ({
+                              value: product.id,
+                              label: product.product_name,
+                              description: `コード: ${product.product_code} | 標準価格: ¥${Number(product.standard_price || 0).toLocaleString()}`
+                            }))}
+                            value={item.product_id}
+                            onChange={(value) => handleProductChange(index, value)}
+                            placeholder="商品を選択"
+                            required
+                            darkMode={isDark}
+                            className="text-sm"
+                          />
+                          {item.product_id && (() => {
+                            const selectedProduct = products.find(p => p.id === item.product_id);
+                            return selectedProduct ? (
+                              <div className="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-2 rounded border">
+                                <div className="font-medium text-gray-900 dark:text-white">{selectedProduct.product_name}</div>
+                                <div className="flex justify-between mt-1">
+                                  <span>コード: {selectedProduct.product_code}</span>
+                                  <span>標準価格: ¥{Number(selectedProduct.standard_price || 0).toLocaleString()}</span>
+                                </div>
+                              </div>
+                            ) : null;
+                          })()}
+                        </div>
                       </td>
                       <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
                         <div className="flex items-center space-x-1">
