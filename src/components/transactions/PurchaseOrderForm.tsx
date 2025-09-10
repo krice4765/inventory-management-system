@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useQueryClient } from '@tanstack/react-query';
 import { OrderManagerSelect } from '../OrderManagerSelect';
+import SearchableSelect from '../SearchableSelect';
+import { useDarkMode } from '../../hooks/useDarkMode';
 import toast from 'react-hot-toast';
 
 // **発注番号生成ヘルパー関数**
@@ -41,6 +43,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
   onCancel 
 }) => {
   const queryClient = useQueryClient();
+  const { isDark } = useDarkMode();
 
   // **基本フォーム状態**
   const [orderDate, setOrderDate] = useState<string>(
@@ -341,19 +344,18 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             仕入先 <span className="text-red-500">*</span>
           </label>
-          <select
+          <SearchableSelect
+            options={suppliers.map(supplier => ({
+              value: supplier.id,
+              label: supplier.name,
+              description: `仕入先ID: ${supplier.id}`
+            }))}
             value={supplierId}
-            onChange={(e) => setSupplierId(e.target.value)}
-            className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            onChange={setSupplierId}
+            placeholder="仕入先を選択してください"
             required
-          >
-            <option value="">選択してください</option>
-            {suppliers.map(supplier => (
-              <option key={supplier.id} value={supplier.id}>
-                {supplier.name}
-              </option>
-            ))}
-          </select>
+            darkMode={isDark}
+          />
         </div>
 
         <div>
@@ -407,19 +409,19 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
           {calculations.itemsWithSubtotal.map((item, index) => (
             <div key={index} className="grid grid-cols-12 gap-3 items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <div className="col-span-4">
-                <select
+                <SearchableSelect
+                  options={products.map(product => ({
+                    value: product.id,
+                    label: product.product_name,
+                    description: `標準価格: ¥${Number(product.standard_price || 0).toLocaleString()}`
+                  }))}
                   value={item.product_id}
-                  onChange={(e) => updateItem(index, 'product_id', e.target.value)}
-                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  onChange={(value) => updateItem(index, 'product_id', value)}
+                  placeholder="商品を選択"
                   required
-                >
-                  <option value="">商品を選択</option>
-                  {products.map(product => (
-                    <option key={product.id} value={product.id}>
-                      {product.product_name}
-                    </option>
-                  ))}
-                </select>
+                  darkMode={isDark}
+                  className="text-sm"
+                />
               </div>
               <div className="col-span-2">
                 <input
