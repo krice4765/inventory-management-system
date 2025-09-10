@@ -28,7 +28,7 @@ export const useOrderForDelivery = (orderId: string | null) => {
           .eq('purchase_order_id', orderId),
         supabase
           .from('transactions')
-          .select('total_amount')
+          .select('id, total_amount')
           .eq('parent_order_id', orderId)
           .eq('transaction_type', 'purchase')
           .eq('status', 'confirmed'),
@@ -58,11 +58,27 @@ export const useOrderForDelivery = (orderId: string | null) => {
         deliveryTransactionIds.includes(m.transaction_id)
       );
       
+      // デバッグログ
+      console.log('🔍 分納数量集計デバッグ:', {
+        orderId,
+        deliveries: deliveries.length,
+        deliveryTransactionIds,
+        movements: movements.length,
+        relevantMovements: relevantMovements.length,
+        movementDetails: relevantMovements.map(m => ({
+          productId: m.product_id,
+          quantity: m.quantity,
+          transactionId: m.transaction_id
+        }))
+      });
+      
       const deliveredQuantitiesByProduct = relevantMovements.reduce((acc: { [key: string]: number }, movement) => {
         const productId = movement.product_id;
         acc[productId] = (acc[productId] || 0) + (movement.quantity || 0);
         return acc;
       }, {});
+      
+      console.log('📊 商品別分納数量:', deliveredQuantitiesByProduct);
       
       // 仕入先名を取得
       let partnerName = '仕入先未設定';

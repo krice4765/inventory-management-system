@@ -102,7 +102,8 @@ export default function Orders() {
     let filtered = orders.filter(order => {
       const matchesSearch = !searchTerm || (
         order.order_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.partner_name.toLowerCase().includes(searchTerm.toLowerCase())
+        order.partner_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.purchase_order_id.toLowerCase().includes(searchTerm.toLowerCase())
       );
 
       const matchesStatus = statusFilter === 'all' || order.progress_status === statusFilter;
@@ -234,8 +235,8 @@ export default function Orders() {
             </div>
             <input
               type="text"
-              placeholder="発注番号・仕入先で検索..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="発注番号（PO250910004など）・仕入先名で検索..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -281,13 +282,23 @@ export default function Orders() {
         </div>
 
         {/* 検索結果数表示 */}
-        <div className="mt-3 text-sm text-gray-600">
+        <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
           {searchTerm || statusFilter !== 'all' ? (
             <span>
               {filteredOrders.length}件の結果 (全{orders?.length || 0}件中)
+              {searchTerm && (
+                <span className="ml-2 text-blue-600 dark:text-blue-400">
+                  「{searchTerm}」で検索中
+                </span>
+              )}
             </span>
           ) : (
             <span>全{orders?.length || 0}件の発注</span>
+          )}
+          {searchTerm && (
+            <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+              💡 発注番号（PO250910004）、発注ID（UUID）、仕入先名で検索可能
+            </div>
           )}
         </div>
       </div>

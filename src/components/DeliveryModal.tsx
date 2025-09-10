@@ -333,9 +333,20 @@ export const DeliveryModal = () => {
                   {orderData.items.map((item: any) => (
                     <div key={item.product_id} className="flex items-center justify-between">
                       <div className="flex-1">
-                        <div className="font-medium text-gray-900">{item.product_name}</div>
+                        <div className="font-medium text-gray-900 flex items-center">
+                          {item.product_name}
+                          {item.remaining_quantity === 0 && (
+                            <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
+                              ✅ 完了
+                            </span>
+                          )}
+                        </div>
                         <div className="text-sm text-gray-500">
-                          {item.product_code} | 発注: {item.quantity} | 分納済み: {item.delivered_quantity || 0} | 残り: {item.remaining_quantity || item.quantity}
+                          {item.product_code} | 発注: {item.quantity} | 分納済み: {item.delivered_quantity || 0} | 残り: {item.remaining_quantity === 0 ? (
+                            <span className="text-green-600 font-medium">0 (完了)</span>
+                          ) : (
+                            <span className="text-blue-600 font-medium">{item.remaining_quantity || item.quantity}</span>
+                          )}
                         </div>
                       </div>
                       <div className="w-24">

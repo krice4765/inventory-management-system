@@ -351,154 +351,154 @@ export default function OrderNew() {
               </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="min-w-full border border-gray-300 dark:border-gray-600 rounded-lg">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
-                      商品
-                    </th>
-                    <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
-                      数量
-                    </th>
-                    <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
-                      単価
-                    </th>
-                    <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
-                      小計
-                    </th>
-                    <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
-                      操作
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-800">
-                  {items.map((item, index) => (
-                    <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                      <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
-                        <div className="space-y-2">
-                          <SearchableSelect
-                            options={products.map(product => ({
-                              value: product.id,
-                              label: product.product_name,
-                              description: `コード: ${product.product_code} | 標準価格: ¥${Number(product.standard_price || 0).toLocaleString()}`
-                            }))}
-                            value={item.product_id}
-                            onChange={(value) => handleProductChange(index, value)}
-                            placeholder="商品を選択"
-                            required
-                            darkMode={isDark}
-                            className="text-sm"
-                          />
-                          {item.product_id && (() => {
-                            const selectedProduct = products.find(p => p.id === item.product_id);
-                            return selectedProduct ? (
-                              <div className="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-2 rounded border">
-                                <div className="font-medium text-gray-900 dark:text-white">{selectedProduct.product_name}</div>
-                                <div className="flex justify-between mt-1">
-                                  <span>コード: {selectedProduct.product_code}</span>
-                                  <span>標準価格: ¥{Number(selectedProduct.standard_price || 0).toLocaleString()}</span>
-                                </div>
-                              </div>
-                            ) : null;
-                          })()}
-                        </div>
-                      </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
-                        <div className="flex items-center space-x-1">
-                          <input
-                            type="number"
-                            min="1"
-                            step="1"
-                            className={`flex-1 border rounded px-2 py-1 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                              item.quantity_locked 
-                                ? 'bg-yellow-50 dark:bg-yellow-900 border-yellow-300 dark:border-yellow-600 text-gray-900 dark:text-white' 
-                                : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
-                            }`}
-                            value={isNaN(item.quantity) ? '' : item.quantity}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              const numValue = parseInt(value, 10);
-                              handleQuantityChange(index, numValue);
-                            }}
-                            onBlur={(e) => {
-                              const value = parseInt(e.target.value, 10);
-                              const validatedQuantity = Math.max(1, isNaN(value) ? 1 : Math.floor(value));
-                              if (validatedQuantity !== item.quantity) {
-                                handleQuantityChange(index, validatedQuantity);
-                              }
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => toggleQuantityLock(index)}
-                            className={`p-1 rounded text-xs transition-colors ${
-                              item.quantity_locked
-                                ? 'bg-yellow-200 text-yellow-800 hover:bg-yellow-300'
-                                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                            }`}
-                            title={item.quantity_locked ? '数量固定を解除' : '数量を固定'}
-                          >
-                            {item.quantity_locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
-                          </button>
-                        </div>
-                      </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
-                        <div className="flex items-center space-x-1">
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            className={`flex-1 border rounded px-2 py-1 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                              item.unit_price_locked 
-                                ? 'bg-orange-50 dark:bg-orange-900 border-orange-300 dark:border-orange-600 text-gray-900 dark:text-white' 
-                                : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
-                            }`}
-                            value={isNaN(item.unit_price) ? '' : item.unit_price}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              const numValue = parseFloat(value);
-                              handleUnitPriceChange(index, numValue);
-                            }}
-                            onBlur={(e) => {
-                              const value = parseFloat(e.target.value);
-                              const validatedPrice = Math.max(0, isNaN(value) ? 0 : value);
-                              if (validatedPrice !== item.unit_price) {
-                                handleUnitPriceChange(index, validatedPrice);
-                              }
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => toggleUnitPriceLock(index)}
-                            className={`p-1 rounded text-xs transition-colors ${
-                              item.unit_price_locked
-                                ? 'bg-orange-200 text-orange-800 hover:bg-orange-300'
-                                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                            }`}
-                            title={item.unit_price_locked ? '単価固定を解除' : '単価を固定'}
-                          >
-                            {item.unit_price_locked ? <Lock className="w-4 h-4" /> : <DollarSign className="w-4 h-4" />}
-                          </button>
-                        </div>
-                      </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                        ¥{(isNaN(item.total_amount) ? 0 : item.total_amount).toLocaleString()}
-                      </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
+            <div className="space-y-4">
+              {items.map((item, index) => (
+                <div key={index} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+                    {/* 商品選択エリア */}
+                    <div className="lg:col-span-5">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        商品 <span className="text-red-500">*</span>
+                      </label>
+                      <SearchableSelect
+                        options={products.map(product => ({
+                          value: product.id,
+                          label: product.product_name,
+                          description: `コード: ${product.product_code} | 標準価格: ¥${Number(product.standard_price || 0).toLocaleString()}`
+                        }))}
+                        value={item.product_id}
+                        onChange={(value) => handleProductChange(index, value)}
+                        placeholder="商品を選択"
+                        required
+                        darkMode={isDark}
+                        className="text-sm"
+                      />
+                      {item.product_id && (() => {
+                        const selectedProduct = products.find(p => p.id === item.product_id);
+                        return selectedProduct ? (
+                          <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-2 rounded border border-blue-200 dark:border-blue-700">
+                            <div className="font-medium text-blue-900 dark:text-blue-100">{selectedProduct.product_name}</div>
+                            <div className="flex justify-between mt-1">
+                              <span>コード: {selectedProduct.product_code}</span>
+                              <span>標準価格: ¥{Number(selectedProduct.standard_price || 0).toLocaleString()}</span>
+                            </div>
+                          </div>
+                        ) : null;
+                      })()}
+                    </div>
+
+                    {/* 数量エリア */}
+                    <div className="lg:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        数量 <span className="text-red-500">*</span>
+                      </label>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="number"
+                          min="1"
+                          step="1"
+                          className={`flex-1 border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+                            item.quantity_locked 
+                              ? 'bg-yellow-50 dark:bg-yellow-900 border-yellow-300 dark:border-yellow-600 text-gray-900 dark:text-white' 
+                              : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
+                          }`}
+                          value={isNaN(item.quantity) ? '' : item.quantity}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            const numValue = parseInt(value, 10);
+                            handleQuantityChange(index, numValue);
+                          }}
+                          onBlur={(e) => {
+                            const value = parseInt(e.target.value, 10);
+                            const validatedQuantity = Math.max(1, isNaN(value) ? 1 : Math.floor(value));
+                            if (validatedQuantity !== item.quantity) {
+                              handleQuantityChange(index, validatedQuantity);
+                            }
+                          }}
+                        />
                         <button
                           type="button"
-                          onClick={() => removeItem(index)}
-                          className="text-red-600 hover:text-red-800 p-1"
-                          title="行削除"
+                          onClick={() => toggleQuantityLock(index)}
+                          className={`p-2 rounded transition-colors ${
+                            item.quantity_locked
+                              ? 'bg-yellow-200 text-yellow-800 hover:bg-yellow-300'
+                              : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                          }`}
+                          title={item.quantity_locked ? '数量固定を解除' : '数量を固定'}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          {item.quantity_locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
                         </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                    </div>
+
+                    {/* 単価エリア */}
+                    <div className="lg:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        単価 <span className="text-red-500">*</span>
+                      </label>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          className={`flex-1 border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+                            item.unit_price_locked 
+                              ? 'bg-orange-50 dark:bg-orange-900 border-orange-300 dark:border-orange-600 text-gray-900 dark:text-white' 
+                              : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
+                          }`}
+                          value={isNaN(item.unit_price) ? '' : item.unit_price}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            const numValue = parseFloat(value);
+                            handleUnitPriceChange(index, numValue);
+                          }}
+                          onBlur={(e) => {
+                            const value = parseFloat(e.target.value);
+                            const validatedPrice = Math.max(0, isNaN(value) ? 0 : value);
+                            if (validatedPrice !== item.unit_price) {
+                              handleUnitPriceChange(index, validatedPrice);
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => toggleUnitPriceLock(index)}
+                          className={`p-2 rounded transition-colors ${
+                            item.unit_price_locked
+                              ? 'bg-orange-200 text-orange-800 hover:bg-orange-300'
+                              : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                          }`}
+                          title={item.unit_price_locked ? '単価固定を解除' : '単価を固定'}
+                        >
+                          {item.unit_price_locked ? <Lock className="w-4 h-4" /> : <DollarSign className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 合計金額エリア */}
+                    <div className="lg:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        合計金額
+                      </label>
+                      <div className="bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm font-medium text-gray-900 dark:text-white">
+                        ¥{(isNaN(item.total_amount) ? 0 : item.total_amount).toLocaleString()}
+                      </div>
+                    </div>
+
+                    {/* 操作ボタンエリア */}
+                    <div className="lg:col-span-1 flex items-end">
+                      <button
+                        type="button"
+                        onClick={() => removeItem(index)}
+                        className="w-full bg-red-50 dark:bg-red-900 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-800 border border-red-200 dark:border-red-700 rounded-md px-3 py-2 text-sm font-medium transition-colors"
+                        title="この明細行を削除"
+                      >
+                        <Trash2 className="w-4 h-4 mx-auto" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* 合計計算 */}

@@ -77,7 +77,36 @@ export default function OrderDetail() {
         throw new Error('Order not found');
       }
       
-      // 発注基本情報を設定（直接テーブルから取得）
+      // 分納実績を集計
+      const { data: deliveries, error: deliveryError } = await supabase
+        .from('transactions')
+        .select('total_amount')
+        .eq('parent_order_id', orderDetailData.id)
+        .eq('transaction_type', 'purchase')
+        .eq('status', 'confirmed');
+      
+      if (deliveryError) {
+        console.warn(`分納実績取得エラー (Order: ${orderDetailData.id}):`, deliveryError);
+      }
+      
+      const delivered_amount = (deliveries || []).reduce(
+        (sum, delivery) => sum + (delivery.total_amount || 0), 0
+      );
+      
+      const ordered_amount = orderDetailData.total_amount || 0;
+      const remaining_amount = Math.max(0, ordered_amount - delivered_amount);
+      
+      // 進捗状況を正確に判定
+      let progress_status: string;
+      if (remaining_amount === 0 && delivered_amount > 0) {
+        progress_status = '納品完了';
+      } else if (delivered_amount > 0) {
+        progress_status = '一部納品';
+      } else {
+        progress_status = '未納品';
+      }
+
+      // 発注基本情報を設定（分納実績反映）
       const orderInfo: OrderDetail = {
         purchase_order_id: orderDetailData.id,
         order_no: orderDetailData.order_no,
@@ -87,11 +116,10 @@ export default function OrderDetail() {
         delivery_deadline: orderDetailData.delivery_deadline,
         order_manager_name: undefined, // TODO: order_managersテーブルとの関連付け
         order_manager_department: undefined,
-        ordered_amount: orderDetailData.total_amount || 0,
-        delivered_amount: 0, // 暫定値（納品管理機能実装時に正確な値設定）
-        remaining_amount: orderDetailData.total_amount || 0,
-        progress_status: orderDetailData.status === 'completed' ? '納品完了' : 
-                        orderDetailData.status === 'confirmed' ? '一部納品' : '未納品',
+        ordered_amount,
+        delivered_amount,
+        remaining_amount,
+        progress_status,
         memo: orderDetailData.memo,
         created_at: orderDetailData.created_at
       };

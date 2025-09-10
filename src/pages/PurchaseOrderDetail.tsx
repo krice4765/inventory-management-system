@@ -43,12 +43,17 @@ export default function PurchaseOrderDetail() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('🚀 PurchaseOrderDetail useEffect:', { id });
     if (id) {
+      console.log('📋 fetchPurchaseOrderDetail開始:', id);
       fetchPurchaseOrderDetail(id);
+    } else {
+      console.warn('⚠️ IDが取得できません');
     }
   }, [id]);
 
   const fetchPurchaseOrderDetail = async (orderId: string) => {
+    console.log('🔄 fetchPurchaseOrderDetail実行開始:', orderId);
     try {
       setLoading(true);
 
@@ -75,7 +80,7 @@ export default function PurchaseOrderDetail() {
         created_at: orderDetailData.created_at,
       });
 
-      // 🚨 関連取引をSupabaseから直接取得（安全なpartners結合）
+      // 🚨 関連取引をSupabaseから直接取得（分納記録に特化）
       const { data: transactionData, error: transactionError } = await supabase
         .from('transactions')
         .select(`
@@ -85,8 +90,9 @@ export default function PurchaseOrderDetail() {
             partner_code
           )
         `)
-        .or(`parent_order_id.eq.${orderId},id.eq.${orderId}`)
-        .order('installment_no', { ascending: true });
+        .eq('parent_order_id', orderId)
+        .eq('transaction_type', 'purchase')
+        .order('delivery_sequence', { ascending: true });
 
       if (transactionError) {
         console.warn('Transactions fetch error, using order data only:', transactionError);
@@ -94,16 +100,31 @@ export default function PurchaseOrderDetail() {
         return;
       }
 
-      // 🚨 取引データを安全にマッピング（N/A表示回避）
+      // 🔍 デバッグログ: 取得されたtransactionデータを確認
+      console.log('🔍 PurchaseOrderDetail デバッグ:', {
+        orderId,
+        transactionCount: transactionData?.length || 0,
+        transactionData: transactionData?.map(tx => ({
+          id: tx.id,
+          transaction_type: tx.transaction_type,
+          status: tx.status,
+          total_amount: tx.total_amount,
+          parent_order_id: tx.parent_order_id,
+          delivery_sequence: tx.delivery_sequence,
+          created_at: tx.created_at
+        }))
+      });
+
+      // 🚨 取引データを安全にマッピング（分納シーケンス対応）
       setTransactions(transactionData?.map(tx => ({
         id: tx.id,
-        transaction_no: tx.transaction_no,
+        transaction_no: tx.transaction_no || `分納-${tx.delivery_sequence || 1}`,
         partner_name: tx.partners?.name || orderDetailData.partner_name || '仕入先未設定', // 🚨 N/A回避
         partner_code: tx.partners?.partner_code || orderDetailData.partner_code || '—',
-        transaction_date: tx.created_at,
+        transaction_date: tx.transaction_date || tx.created_at,
         status: tx.status,
         total_amount: tx.total_amount,
-        installment_no: tx.installment_no || 1,
+        installment_no: tx.delivery_sequence || tx.installment_no || 1,
         memo: tx.memo,
         confirmed_at: tx.confirmed_at,
         confirmed_by: tx.confirmed_by,
@@ -268,7 +289,7 @@ export default function PurchaseOrderDetail() {
 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>確定済み</span>
+                  <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>納品済み</span>
                   <span className={`font-medium ${isDark ? 'text-green-400' : 'text-green-600'}`}>
                     ¥{getTotalConfirmedAmount().toLocaleString()}
                   </span>
@@ -281,7 +302,7 @@ export default function PurchaseOrderDetail() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>残額</span>
-                  <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  <span className={`font-medium ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
                     ¥{getRemainingAmount().toLocaleString()}
                   </span>
                 </div>

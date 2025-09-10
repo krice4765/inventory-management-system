@@ -41,6 +41,11 @@ export default function Inventory() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedMovement, setSelectedMovement] = useState<InventoryMovement | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  
+  // 日付範囲フィルター状態
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const [quickFormData, setQuickFormData] = useState({
     product_id: '',
@@ -54,7 +59,7 @@ export default function Inventory() {
     fetchData();
   }, []);
 
-  // 検索・フィルタリング・ソート機能（Orders画面に合わせて強化）
+  // 検索・フィルタリング・ソート機能（日付範囲フィルター追加）
   useEffect(() => {
     if (!movements.length) return;
 
@@ -63,7 +68,10 @@ export default function Inventory() {
         movement.products.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         movement.products.product_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
         movement.memo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (movement.related_order_no && movement.related_order_no.toLowerCase().includes(searchTerm.toLowerCase()))
+        movement.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        movement.product_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (movement.related_order_no && movement.related_order_no.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (movement.delivery_sequence && movement.delivery_sequence.toString().includes(searchTerm))
       );
 
       const matchesType = movementTypeFilter === 'all' || movement.movement_type === movementTypeFilter;
@@ -76,7 +84,19 @@ export default function Inventory() {
         matchesDelivery = !movement.memo.includes('[分納:') && !movement.memo.includes('分納入力');
       }
 
-      return matchesSearch && matchesType && matchesDelivery;
+      // 日付範囲フィルター
+      let matchesDateRange = true;
+      const movementDate = new Date(movement.created_at).toDateString();
+      if (startDate) {
+        const start = new Date(startDate).toDateString();
+        matchesDateRange = matchesDateRange && movementDate >= start;
+      }
+      if (endDate) {
+        const end = new Date(endDate).toDateString();
+        matchesDateRange = matchesDateRange && movementDate <= end;
+      }
+
+      return matchesSearch && matchesType && matchesDelivery && matchesDateRange;
     });
 
     // ソート処理（Orders画面と同様）
@@ -107,7 +127,24 @@ export default function Inventory() {
     });
 
     setFilteredMovements(filtered);
-  }, [movements, searchTerm, movementTypeFilter, deliveryFilter, sortBy, sortOrder]);
+  }, [movements, searchTerm, movementTypeFilter, deliveryFilter, sortBy, sortOrder, startDate, endDate]);
+
+  // フィルターリセット関数
+  const resetFilters = () => {
+    setSearchTerm('');
+    setMovementTypeFilter('all');
+    setDeliveryFilter('all');
+    setStartDate('');
+    setEndDate('');
+  };
+
+  // クイックフィルター関数
+  const setQuickDateFilter = (days: number) => {
+    const today = new Date();
+    const startDate = new Date(today.setDate(today.getDate() - days));
+    setStartDate(startDate.toISOString().split('T')[0]);
+    setEndDate(new Date().toISOString().split('T')[0]);
+  };
 
   const fetchData = async () => {
     try {
@@ -246,82 +283,164 @@ export default function Inventory() {
         </div>
 
         {/* 検索・フィルター機能 */}
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-          <div className="flex flex-col sm:flex-row gap-4 items-center">
-            {/* 検索バー */}
-            <div className="flex-1 relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+          <div className="p-4">
+            {/* 検索バー（上段） */}
+            <div className="mb-4">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="商品名・商品コード・商品ID・発注番号・移動ID・メモで検索..."
+                  className="w-full pl-11 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
-              <input
-                type="text"
-                placeholder="商品名・商品コード・メモで検索..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
             </div>
 
-            {/* 移動種別フィルター */}
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">種別:</label>
-              <select
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={movementTypeFilter}
-                onChange={(e) => setMovementTypeFilter(e.target.value as 'all' | 'in' | 'out')}
-              >
-                <option value="all">すべて</option>
-                <option value="in">入庫</option>
-                <option value="out">出庫</option>
-              </select>
-            </div>
+            {/* フィルター行（中段） */}
+            <div className="flex flex-wrap gap-3 items-center mb-4">
+              {/* 移動種別フィルター */}
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">種別:</label>
+                <select
+                  className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-w-[120px]"
+                  value={movementTypeFilter}
+                  onChange={(e) => setMovementTypeFilter(e.target.value as 'all' | 'in' | 'out')}
+                >
+                  <option value="all">すべて</option>
+                  <option value="in">入庫</option>
+                  <option value="out">出庫</option>
+                </select>
+              </div>
 
-            {/* 分納フィルター */}
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">分納:</label>
-              <select
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={deliveryFilter}
-                onChange={(e) => setDeliveryFilter(e.target.value as 'all' | 'partial_delivery' | 'manual')}
-              >
-                <option value="all">すべて</option>
-                <option value="partial_delivery">分納のみ</option>
-                <option value="manual">手動のみ</option>
-              </select>
-            </div>
+              {/* 分納フィルター */}
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">分納:</label>
+                <select
+                  className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-w-[120px]"
+                  value={deliveryFilter}
+                  onChange={(e) => setDeliveryFilter(e.target.value as 'all' | 'partial_delivery' | 'manual')}
+                >
+                  <option value="all">すべて</option>
+                  <option value="partial_delivery">分納のみ</option>
+                  <option value="manual">手動のみ</option>
+                </select>
+              </div>
 
-            {/* ソート表示 */}
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-              <span>並び順:</span>
-              <span className="font-medium">
-                {sortBy === 'created_at' && '日時'}
-                {sortBy === 'product_name' && '商品名'}
-                {sortBy === 'total_amount' && '金額'}
-                ({sortOrder === 'asc' ? '昇順' : '降順'})
-              </span>
-            </div>
 
-            {/* リセットボタン */}
-            {(searchTerm || movementTypeFilter !== 'all' || deliveryFilter !== 'all' || sortBy !== 'created_at' || sortOrder !== 'desc') && (
+              {/* 日付範囲フィルター展開ボタン */}
               <button
-                onClick={clearFilters}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className={`inline-flex items-center px-3 py-1.5 border rounded-lg text-sm font-medium transition-colors ${
+                  showAdvancedFilters || startDate || endDate
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600'
+                }`}
               >
-                <X className="w-4 h-4 mr-1" />
-                リセット
+                <Calendar className="w-4 h-4 mr-1" />
+                <span className="whitespace-nowrap">日付範囲</span>
+                {(startDate || endDate) && <span className="ml-1 text-xs">●</span>}
               </button>
+
+              {/* リセットボタン */}
+              {(searchTerm || movementTypeFilter !== 'all' || deliveryFilter !== 'all' || startDate || endDate || sortBy !== 'created_at' || sortOrder !== 'desc') && (
+                <button
+                  onClick={resetFilters}
+                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                  title="すべてのフィルターをクリア"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  <span className="whitespace-nowrap">全リセット</span>
+                </button>
+              )}
+            </div>
+
+            {/* 高度なフィルター（日付範囲） */}
+            {showAdvancedFilters && (
+              <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* 開始日 */}
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">開始日</label>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    />
+                  </div>
+                  
+                  {/* 終了日 */}
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">終了日</label>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    />
+                  </div>
+
+                  {/* クイック日付フィルター */}
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">クイック選択</label>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setQuickDateFilter(7)}
+                        className="flex-1 px-3 py-2 text-sm bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors"
+                      >
+                        7日
+                      </button>
+                      <button
+                        onClick={() => setQuickDateFilter(30)}
+                        className="flex-1 px-3 py-2 text-sm bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg hover:bg-green-200 dark:hover:bg-green-900/40 transition-colors"
+                      >
+                        30日
+                      </button>
+                      <button
+                        onClick={() => setQuickDateFilter(90)}
+                        className="flex-1 px-3 py-2 text-sm bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-lg hover:bg-yellow-200 dark:hover:bg-yellow-900/40 transition-colors"
+                      >
+                        90日
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
 
-          {/* 検索結果数表示 */}
-          <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
-            {searchTerm || movementTypeFilter !== 'all' ? (
-              <span>
-                {filteredMovements.length}件の結果 (全{movements.length}件中)
-              </span>
-            ) : (
-              <span>全{movements.length}件の入出庫履歴</span>
-            )}
+          {/* 検索結果数表示（下段） */}
+          <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-600 rounded-b-lg">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              {searchTerm || movementTypeFilter !== 'all' || deliveryFilter !== 'all' || startDate || endDate ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-medium">{filteredMovements.length}件の結果</span>
+                  <span className="text-gray-500 dark:text-gray-500">(全{movements.length}件中)</span>
+                  {searchTerm && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
+                      「{searchTerm}」で検索中
+                    </span>
+                  )}
+                  {startDate && endDate && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
+                      期間: {startDate} ～ {endDate}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <span className="font-medium">全{movements.length}件の入出庫履歴</span>
+              )}
+              {searchTerm && (
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-500 bg-blue-50 dark:bg-blue-900/10 px-3 py-2 rounded-lg">
+                  💡 商品名・商品コード・商品ID（UUID）・発注番号（PO250910004）・移動ID・分納回次・メモで検索可能
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -420,6 +539,11 @@ export default function Inventory() {
                   <div className="flex items-center space-x-1">
                     <span>日時</span>
                     <span className="text-gray-400">{getSortIcon('created_at')}</span>
+                    {sortBy === 'created_at' && (
+                      <span className="text-blue-600 dark:text-blue-400 text-xs font-normal lowercase">
+                        ({sortOrder === 'asc' ? '昇順' : '降順'})
+                      </span>
+                    )}
                   </div>
                 </th>
                 <th 
@@ -429,6 +553,11 @@ export default function Inventory() {
                   <div className="flex items-center space-x-1">
                     <span>商品</span>
                     <span className="text-gray-400">{getSortIcon('product_name')}</span>
+                    {sortBy === 'product_name' && (
+                      <span className="text-blue-600 dark:text-blue-400 text-xs font-normal lowercase">
+                        ({sortOrder === 'asc' ? '昇順' : '降順'})
+                      </span>
+                    )}
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -447,6 +576,11 @@ export default function Inventory() {
                   <div className="flex items-center space-x-1">
                     <span>金額</span>
                     <span className="text-gray-400">{getSortIcon('total_amount')}</span>
+                    {sortBy === 'total_amount' && (
+                      <span className="text-blue-600 dark:text-blue-400 text-xs font-normal lowercase">
+                        ({sortOrder === 'asc' ? '昇順' : '降順'})
+                      </span>
+                    )}
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
