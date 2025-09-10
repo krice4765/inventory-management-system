@@ -30,7 +30,10 @@ export default function Products() {
     searchKeyword: '',
     status: 'all',
     startDate: '',
-    endDate: ''
+    endDate: '',
+    category: '',
+    priceRange: '',
+    stockRange: ''
   });
 
   const [formData, setFormData] = useState({
@@ -61,7 +64,8 @@ export default function Products() {
 
   // フィルター適用された商品リスト
   const filteredProducts = useMemo(() => {
-    return products.filter(product => {
+    try {
+      return products.filter(product => {
       // 検索キーワードフィルター
       if (filters.searchKeyword) {
         const keyword = filters.searchKeyword.toLowerCase();
@@ -90,8 +94,53 @@ export default function Products() {
         if (productDate > filters.endDate) return false;
       }
 
+      // カテゴリフィルター
+      if (filters.category && filters.category.trim() !== '' && filters.category !== 'all' && product.category !== filters.category) return false;
+      
+      // 価格帯フィルター
+      if (filters.priceRange && filters.priceRange.trim() !== '' && filters.priceRange !== 'all') {
+        const price = product.selling_price;
+        switch (filters.priceRange) {
+          case 'under-1000':
+            if (price >= 1000) return false;
+            break;
+          case '1000-5000':
+            if (price < 1000 || price >= 5000) return false;
+            break;
+          case '5000-10000':
+            if (price < 5000 || price >= 10000) return false;
+            break;
+          case 'over-10000':
+            if (price < 10000) return false;
+            break;
+        }
+      }
+      
+      // 在庫数フィルター
+      if (filters.stockRange && filters.stockRange.trim() !== '' && filters.stockRange !== 'all') {
+        const stock = product.current_stock;
+        switch (filters.stockRange) {
+          case 'zero':
+            if (stock !== 0) return false;
+            break;
+          case 'low':
+            if (stock > product.min_stock_level) return false;
+            break;
+          case 'normal':
+            if (stock <= product.min_stock_level || stock > 100) return false;
+            break;
+          case 'high':
+            if (stock <= 100) return false;
+            break;
+        }
+      }
+
       return true;
-    });
+      });
+    } catch (error) {
+      console.error('Filter error:', error);
+      return products; // エラーが発生した場合は全ての商品を返す
+    }
   }, [products, filters]);
 
   const handleFiltersReset = () => {
@@ -99,7 +148,10 @@ export default function Products() {
       searchKeyword: '',
       status: 'all', 
       startDate: '',
-      endDate: ''
+      endDate: '',
+      category: '',
+      priceRange: '',
+      stockRange: ''
     });
   };
 

@@ -17,6 +17,9 @@ interface BaseFilters {
   startDate?: string;
   endDate?: string;
   status?: string;
+  category?: string;
+  priceRange?: string;
+  stockRange?: string;
 }
 
 interface UniversalFiltersProps {

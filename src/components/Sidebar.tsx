@@ -1,15 +1,34 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Package, Warehouse, Users, FileText, LogOut, Sparkles } from 'lucide-react';
+import { Home, Package, Warehouse, Users, FileText, LogOut, Sparkles, Menu, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/authStore';
 import { useDarkMode } from '../hooks/useDarkMode';
 import toast from 'react-hot-toast';
+import { useState, useEffect } from 'react';
 
 export default function Sidebar() {
   const location = useLocation();
   const { user, setUser } = useAuthStore();
   const { isDark } = useDarkMode();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // モバイルメニューを閉じる（リンククリック時）
+  const handleLinkClick = () => {
+    setIsMobileMenuOpen(false);
+  };
+
+  // 画面サイズ変更時にモバイルメニューを閉じる
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -34,12 +53,40 @@ export default function Sidebar() {
   ];
 
   return (
-    <motion.div 
-      className="fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-white via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-800 text-gray-900 dark:text-white flex flex-col border-r border-gray-200/50 dark:border-gray-700/50 shadow-xl backdrop-blur-md transition-all duration-300"
-      initial={{ x: -64 }}
-      animate={{ x: 0 }}
-      transition={{ type: "spring", stiffness: 100 }}
-    >
+    <>
+      {/* モバイルハンバーガーメニューボタン */}
+      <div className="lg:hidden fixed top-4 left-4 z-50">
+        <motion.button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-3 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {isMobileMenuOpen ? (
+            <X className="w-6 h-6" />
+          ) : (
+            <Menu className="w-6 h-6" />
+          )}
+        </motion.button>
+      </div>
+
+      {/* オーバーレイ（モバイル用） */}
+      {isMobileMenuOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* サイドバー */}
+      <motion.div 
+        className={`fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-white via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-800 text-gray-900 dark:text-white flex flex-col border-r border-gray-200/50 dark:border-gray-700/50 shadow-xl backdrop-blur-md transition-all duration-300 z-50 ${
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
+        initial={{ x: -64 }}
+        animate={{ x: 0 }}
+        transition={{ type: "spring", stiffness: 100 }}
+      >
       {/* ヘッダー */}
       <motion.div 
         className="flex items-center justify-center h-16 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700 relative overflow-hidden"
@@ -94,6 +141,7 @@ export default function Sidebar() {
               >
                 <Link
                   to={item.path}
+                  onClick={handleLinkClick}
                   className={`group flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
                     isActive
                       ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg transform scale-[1.02]'
@@ -132,5 +180,6 @@ export default function Sidebar() {
         </motion.button>
       </motion.div>
     </motion.div>
+    </>
   );
 }

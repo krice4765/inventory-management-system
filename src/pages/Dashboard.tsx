@@ -11,6 +11,10 @@ interface DashboardStats {
   totalStock: number;
   lowStockItems: number;
   totalValue: number;
+  monthlySales: number;
+  totalCustomers: number;
+  pendingOrders: number;
+  monthlyProfit: number;
 }
 
 export default function Dashboard() {
@@ -20,6 +24,10 @@ export default function Dashboard() {
     totalStock: 0,
     lowStockItems: 0,
     totalValue: 0,
+    monthlySales: 0,
+    totalCustomers: 0,
+    pendingOrders: 0,
+    monthlyProfit: 0,
   });
   const [loading, setLoading] = useState(true);
   const [weeklyActivity, setWeeklyActivity] = useState({
@@ -130,11 +138,22 @@ export default function Dashboard() {
         sum + ((product.current_stock || 0) * (product.selling_price || 0)), 0
       ) || 0;
 
+      // モック売上データ（将来的には実際のデータベースから取得）
+      const currentMonth = new Date().getMonth();
+      const mockMonthlySales = Math.floor(Math.random() * 5000000) + 2000000; // 200万〜700万
+      const mockTotalCustomers = Math.floor(Math.random() * 200) + 50; // 50〜250顧客
+      const mockPendingOrders = Math.floor(Math.random() * 15) + 5; // 5〜20件
+      const mockMonthlyProfit = Math.floor(mockMonthlySales * 0.15); // 売上の15%を利益と仮定
+
       setStats({
         totalProducts,
         totalStock,
         lowStockItems,
         totalValue,
+        monthlySales: mockMonthlySales,
+        totalCustomers: mockTotalCustomers,
+        pendingOrders: mockPendingOrders,
+        monthlyProfit: mockMonthlyProfit,
       });
     } catch (error) {
       console.error('Dashboard stats fetch error:', error);
@@ -214,7 +233,7 @@ export default function Dashboard() {
         </motion.div>
 
         {/* 統計カードグリッド */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -297,6 +316,114 @@ export default function Dashboard() {
             </ModernCard>
           </motion.div>
         </div>
+
+        {/* 売上統計セクション */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+          className="mb-8"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg">
+              <TrendingUp className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">売上統計</h2>
+            <span className="text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2 py-1 rounded-full font-medium">
+              PREVIEW - モックデータ
+            </span>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* 月間売上 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.7 }}
+            >
+              <ModernCard className="p-6 hover:shadow-xl transition-shadow duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      月間売上
+                    </p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                      ¥{stats.monthlySales.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                    <TrendingUp className="h-8 w-8 text-green-600 dark:text-green-400" />
+                  </div>
+                </div>
+              </ModernCard>
+            </motion.div>
+
+            {/* 顧客数 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+            >
+              <ModernCard className="p-6 hover:shadow-xl transition-shadow duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      総顧客数
+                    </p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.totalCustomers}</p>
+                  </div>
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                    <Package className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                  </div>
+                </div>
+              </ModernCard>
+            </motion.div>
+
+            {/* 保留中注文 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.9 }}
+            >
+              <ModernCard className="p-6 hover:shadow-xl transition-shadow duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      保留中注文
+                    </p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.pendingOrders}</p>
+                  </div>
+                  <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl">
+                    <AlertTriangle className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+                  </div>
+                </div>
+              </ModernCard>
+            </motion.div>
+
+            {/* 月間利益 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 1.0 }}
+            >
+              <ModernCard className="p-6 hover:shadow-xl transition-shadow duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      月間利益
+                    </p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                      ¥{stats.monthlyProfit.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
+                    <DollarSign className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                </div>
+              </ModernCard>
+            </motion.div>
+          </div>
+        </motion.div>
 
         {/* 1週間の活動早見表 */}
         <motion.div

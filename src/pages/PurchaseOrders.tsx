@@ -16,7 +16,10 @@ import { useAddInstallmentModal } from '../stores/addInstallmentModal.store';
 import SearchableSelect from '../components/SearchableSelect';
 import { motion } from 'framer-motion';
 import { ModernCard } from '../components/ui/ModernCard';
-import { ShoppingCart, Plus, RefreshCw, Search, Sparkles } from 'lucide-react';
+import { ShoppingCart, Plus, RefreshCw, Search, Sparkles, FileDown, Printer } from 'lucide-react';
+import { OrderPDFGenerator, PDFPerformanceMonitor } from '../utils/pdfGenerator';
+import type { OrderPDFData } from '../types/pdf';
+import toast from 'react-hot-toast';
 
 // 動的カラム表示のヘルパー関数
 const getDisplayValue = (transaction: Record<string, unknown>, possibleKeys: string[], formatter?: (value: unknown) => string) => {
@@ -186,6 +189,74 @@ const { data: partners, isLoading: partnersLoading, error: partnersError } = use
     setSelectedPartnerId('all-partners');
   };
 
+  // PDF生成処理
+  const handleGeneratePDF = async (transaction: Record<string, unknown>) => {
+    try {
+      toast.loading('PDF生成中...', { id: 'pdf-generation' });
+
+      // トランザクションデータをOrderPDFData形式に変換
+      const pdfData: OrderPDFData = {
+        id: String(transaction.transaction_id || transaction.id),
+        order_no: String(transaction.transaction_no || transaction.order_no || 'ORDER-' + Date.now()),
+        created_at: String(transaction.created_at || new Date().toISOString()),
+        partner_name: String(transaction.partner_name || '仕入先未設定'),
+        total_amount: Number(transaction.total_amount || 0),
+        notes: String(transaction.transaction_memo || transaction.order_memo || ''),
+        items: [
+          {
+            product_name: String(transaction.display_name || transaction.product_name || '商品名未設定'),
+            drawing_number: String(transaction.drawing_number || ''),
+            quantity: Number(transaction.quantity || 1),
+            unit_price: Number(transaction.unit_price || transaction.total_amount || 0)
+          }
+        ]
+      };
+
+      // パフォーマンス監視付きPDF生成
+      const result = await PDFPerformanceMonitor.measureOperation(
+        () => OrderPDFGenerator.generateOrderPDF(pdfData),
+        'PDF生成'
+      );
+
+      if (result.success && result.pdfBlob && result.filename) {
+        // PDFダウンロード
+        OrderPDFGenerator.downloadPDF(result.pdfBlob, result.filename);
+        toast.success('PDF生成完了！', { id: 'pdf-generation' });
+      } else {
+        throw new Error(result.error || 'PDF生成に失敗しました');
+      }
+
+    } catch (error) {
+      console.error('PDF生成エラー:', error);
+      toast.error(`PDF生成に失敗しました: ${error instanceof Error ? error.message : '不明なエラー'}`, { 
+        id: 'pdf-generation' 
+      });
+    }
+  };
+
+  // 全取引のバッチPDF生成
+  const handleBatchPDFGeneration = async () => {
+    if (!transactions.length) {
+      toast.error('PDF生成する取引がありません');
+      return;
+    }
+
+    try {
+      toast.loading(`${transactions.length}件のPDF生成中...`, { id: 'batch-pdf' });
+
+      for (const transaction of transactions) {
+        await handleGeneratePDF(transaction);
+        // APIレート制限回避のため少し待機
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      toast.success(`${transactions.length}件のPDF生成完了！`, { id: 'batch-pdf' });
+    } catch (error) {
+      console.error('バッチPDF生成エラー:', error);
+      toast.error('一部のPDF生成に失敗しました', { id: 'batch-pdf' });
+    }
+  };
+
   // 統合エラーハンドリング
   const hasError = partnersError || transactionsError;
   
@@ -265,6 +336,21 @@ const { data: partners, isLoading: partnersLoading, error: partnersError } = use
               <Plus className="w-4 h-4" />
               新規発注作成
             </motion.button>
+            {transactions.length > 0 && (
+              <motion.button
+                onClick={handleBatchPDFGeneration}
+                className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl font-semibold"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                title={`${transactions.length}件の発注書をPDF出力`}
+              >
+                <Printer className="w-4 h-4" />
+                一括PDF出力
+                <span className="px-2 py-1 bg-white/20 rounded-full text-xs">
+                  {transactions.length}件
+                </span>
+              </motion.button>
+            )}
             <motion.button
               onClick={toggleDarkMode}
               className="p-3 rounded-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-lg hover:shadow-xl"
@@ -520,23 +606,39 @@ const { data: partners, isLoading: partnersLoading, error: partnersError } = use
         {getDisplayValue(transaction, ['created_at'], formatDate)}
       </td>
       <td className="px-6 py-4">
-        <div className="flex space-x-2">
-          <button 
+        <div className="flex space-x-2 flex-wrap gap-1">
+          <motion.button 
             onClick={() => handleEditClick(transaction)}
-            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium disabled:text-gray-400 disabled:cursor-not-allowed transition-colors text-xs"
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium disabled:text-gray-400 disabled:cursor-not-allowed transition-colors text-xs px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40"
             disabled={false}
             title="編集・確定"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             編集・確定
-          </button>
+          </motion.button>
+          
+          <motion.button 
+            onClick={() => handleGeneratePDF(transaction)}
+            className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 font-medium transition-colors text-xs px-2 py-1 rounded bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 flex items-center gap-1"
+            title="発注書PDF出力"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <FileDown className="w-3 h-3" />
+            PDF出力
+          </motion.button>
+          
           {transaction.parent_order_id && (
-            <button 
+            <motion.button 
               onClick={() => openAddInstallmentModal(String(transaction.parent_order_id))}
-              className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 font-medium transition-colors text-xs"
+              className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 font-medium transition-colors text-xs px-2 py-1 rounded bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40"
               title="分納追加"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               分納追加
-            </button>
+            </motion.button>
           )}
         </div>
       </td>

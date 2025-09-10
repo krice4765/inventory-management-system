@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+// Force rebuild for gradient fixes
 export default {
   content: [
     "./index.html",

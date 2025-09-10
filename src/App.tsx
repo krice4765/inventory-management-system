@@ -52,7 +52,7 @@ function App() {
     <Router>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Sidebar />
-        <div className="pl-64">
+        <div className="lg:pl-64">
           <main className="min-h-screen">
             <Routes>
               <Route path="/" element={<Dashboard />} />

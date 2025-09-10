@@ -12,10 +12,10 @@ interface Partner {
   name: string;
   partner_code: string;
   partner_type: 'supplier' | 'customer' | 'both';
-  contact_person: string;
-  phone: string;
-  email: string;
-  address: string;
+  contact_person?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
   is_active: boolean;
   created_at: string;
 }
@@ -50,13 +50,14 @@ export default function Partners() {
   useEffect(() => {
     if (!partners.length) return;
 
-    let filtered = partners.filter(partner => {
+    try {
+      let filtered = partners.filter(partner => {
       const matchesSearch = !searchTerm || (
-        partner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        partner.partner_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        partner.contact_person.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        partner.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        partner.phone.toLowerCase().includes(searchTerm.toLowerCase())
+        (partner.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (partner.partner_code?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (partner.contact_person?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (partner.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (partner.phone?.toLowerCase() || '').includes(searchTerm.toLowerCase())
       );
 
       const matchesType = partnerTypeFilter === 'all' || partner.partner_type === partnerTypeFilter;
@@ -66,9 +67,13 @@ export default function Partners() {
         (statusFilter === 'inactive' && !partner.is_active);
 
       return matchesSearch && matchesType && matchesStatus;
-    });
+      });
 
-    setFilteredPartners(filtered);
+      setFilteredPartners(filtered);
+    } catch (error) {
+      console.error('Filter error in Partners:', error);
+      setFilteredPartners(partners); // エラー時は全パートナーを表示
+    }
   }, [partners, searchTerm, partnerTypeFilter, statusFilter]);
 
   const fetchPartners = async () => {

@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
-import { Plus, FileText, Calendar, TrendingUp, Package, AlertCircle, Search, X, Filter, RefreshCw } from 'lucide-react';
+import { Plus, FileText, Calendar, TrendingUp, Package, AlertCircle, Search, X, Filter, RefreshCw, FileDown, Printer } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { JapanesePDFGenerator } from '../utils/japanesePdfGenerator';
+import { PDFPerformanceMonitor } from '../utils/pdfGenerator';
+import type { OrderPDFData } from '../types/pdf';
 import { useQuery } from '@tanstack/react-query';
 import { useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
@@ -32,13 +35,14 @@ const fetchOrders = async () => {
   // 🚨 各発注に対する分納実績を計算
   const deliveryProgressData = await Promise.all(
     (purchaseOrders || []).map(async (order: any) => {
-      // 分納実績を集計
+      // 分納実績を集計（重複排除とソート追加）
       const { data: deliveries, error: deliveryError } = await supabase
         .from('transactions')
-        .select('total_amount')
+        .select('id, total_amount, delivery_sequence, created_at')
         .eq('parent_order_id', order.id)
         .eq('transaction_type', 'purchase')
-        .eq('status', 'confirmed');
+        .eq('status', 'confirmed')
+        .order('delivery_sequence', { ascending: true });
       
       if (deliveryError) {
         console.warn(`分納実績取得エラー (Order: ${order.id}):`, deliveryError);
@@ -51,19 +55,63 @@ const fetchOrders = async () => {
       const ordered_amount = order.total_amount || 0;
       const remaining_amount = Math.max(0, ordered_amount - delivered_amount);
       
-      // 進捗状況を正確に判定
+      // 個数指定分納があるかチェック
+      const hasQuantityDelivery = deliveries?.some(d => 
+        d.memo && d.memo.includes('[個数指定]')
+      ) || false;
+      
+      // 進捗状況を正確に判定（浮動小数点誤差を考慮）
       let progress_status: string;
-      if (remaining_amount === 0 && delivered_amount > 0) {
-        progress_status = '納品完了';
-      } else if (delivered_amount > 0) {
-        progress_status = '一部納品';
+      const tolerance = 1; // 1円の誤差許容
+      const amountComplete = delivered_amount > 0 && (remaining_amount <= tolerance || delivered_amount >= ordered_amount - tolerance);
+      
+      if (hasQuantityDelivery) {
+        // 個数指定分納の場合: 金額と個数の両方をチェック
+        if (amountComplete && delivered_amount > 0) {
+          // ⚡ TODO: 将来的には在庫移動データから個数完了状況を確認
+          // 現在は金額完了+個数指定がある場合は納品完了とする
+          progress_status = '納品完了';
+        } else if (delivered_amount > 0) {
+          progress_status = '一部納品';
+        } else {
+          progress_status = '未納品';
+        }
       } else {
-        progress_status = '未納品';
+        // 金額のみの分納の場合: 従来通り
+        if (amountComplete) {
+          progress_status = '納品完了';
+        } else if (delivered_amount > 0) {
+          progress_status = '一部納品';
+        } else {
+          progress_status = '未納品';
+        }
+      }
+      
+      // デバッグログの追加（詳細化）
+      if (order.order_no === 'PO25091003' || order.order_no === 'PO250910002') {
+        console.log(`📊 ステータス判定デバッグ (${order.order_no}):`, {
+          ordered_amount,
+          delivered_amount,
+          remaining_amount,
+          progress_status,
+          tolerance_check: remaining_amount <= tolerance,
+          amount_complete: amountComplete,
+          has_quantity_delivery: hasQuantityDelivery,
+          deliveries_count: deliveries?.length || 0,
+          deliveries_detail: deliveries?.map(d => ({
+            id: d.id,
+            amount: d.total_amount,
+            sequence: d.delivery_sequence,
+            memo: d.memo,
+            created: d.created_at
+          })) || []
+        });
       }
       
       return {
         purchase_order_id: order.id,
         order_no: order.order_no,
+        partner_id: order.partner_id,
         partner_name: order.partners?.name || '取引先不明',
         order_date: order.created_at,
         delivery_deadline: order.delivery_deadline,
@@ -80,17 +128,23 @@ const fetchOrders = async () => {
 
 export default function Orders() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | '未納品' | '一部納品' | '納品完了'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | '未納品' | '一部納品' | '納品完了' | '要確認'>('all');
   const [sortBy, setSortBy] = useState<'created_at' | 'delivery_deadline' | 'partner_name'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   
   const { data: orders, isLoading, isError, error, refetch, isFetching } = useQuery<DeliveryProgress[], Error>({
     queryKey: ['orders'],
     queryFn: fetchOrders,
-    staleTime: 0,                // キャッシュを常に古い扱い
+    staleTime: 30000,            // 30秒間はキャッシュを有効とする
+    gcTime: 60000,               // 1分後にキャッシュを破棄
     refetchOnMount: 'always',    // マウント時は必ず再取得
     refetchOnWindowFocus: true,  // タブに戻るたびに再取得
     refetchOnReconnect: true,
+    refetchInterval: 10000,      // 10秒間隔に変更（重複を避ける）
+    refetchIntervalInBackground: false, // バックグラウンドでは停止
+    onSuccess: (data) => {
+      console.log('📊 Orders データ更新完了:', data?.length, '件');
+    },
     onError: (err) => {
       console.error('発注データ取得エラー:', err);
       toast.error(`データ取得に失敗しました: ${err?.message ?? '不明なエラー'}`);
@@ -170,6 +224,7 @@ export default function Orders() {
       case '未納品': return 'bg-red-100 text-red-800';
       case '一部納品': return 'bg-yellow-100 text-yellow-800';
       case '納品完了': return 'bg-green-100 text-green-800';
+      case '要確認': return 'bg-orange-100 text-orange-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -179,6 +234,90 @@ export default function Orders() {
   };
 
   const { isDark, toggle: toggleDarkMode } = useDarkMode();
+
+  // PDF生成処理
+  const handleGeneratePDF = async (order: DeliveryProgress) => {
+    try {
+      toast.loading('発注書PDF生成中...', { id: 'pdf-generation' });
+
+      // 発注詳細データを取得
+      const { data: orderDetail, error: orderError } = await supabase
+        .from('purchase_orders')
+        .select(`
+          *,
+          partners!purchase_orders_partner_id_fkey (
+            name,
+            partner_code
+          )
+        `)
+        .eq('id', order.purchase_order_id)
+        .single();
+
+      if (orderError) {
+        throw new Error(`発注詳細データの取得に失敗: ${orderError.message}`);
+      }
+
+      // OrderPDFData形式に変換（シンプルな明細の場合）
+      const pdfData: OrderPDFData = {
+        id: orderDetail.id,
+        order_no: orderDetail.order_no,
+        created_at: orderDetail.created_at,
+        partner_name: orderDetail.partners?.name || '仕入先未設定',
+        total_amount: orderDetail.total_amount || 0,
+        notes: orderDetail.notes || orderDetail.memo || '',
+        items: [
+          {
+            product_name: orderDetail.memo || '発注明細',
+            drawing_number: '',
+            quantity: 1,
+            unit_price: orderDetail.total_amount || 0
+          }
+        ]
+      };
+
+      // PDF生成（パフォーマンス監視付き・日本語対応）
+      const result = await PDFPerformanceMonitor.measureOperation(
+        () => JapanesePDFGenerator.generateOrderPDF(pdfData),
+        '日本語対応発注書PDF生成'
+      );
+
+      if (result.success && result.pdfBlob && result.filename) {
+        JapanesePDFGenerator.downloadPDF(result.pdfBlob, result.filename);
+        toast.success('発注書PDF生成完了！', { id: 'pdf-generation' });
+      } else {
+        throw new Error(result.error || 'PDF生成に失敗しました');
+      }
+
+    } catch (error) {
+      console.error('PDF生成エラー:', error);
+      toast.error(`PDF生成に失敗: ${error instanceof Error ? error.message : '不明なエラー'}`, { 
+        id: 'pdf-generation' 
+      });
+    }
+  };
+
+  // 一括PDF生成
+  const handleBatchPDFGeneration = async () => {
+    if (!filteredOrders.length) {
+      toast.error('PDF生成する発注がありません');
+      return;
+    }
+
+    try {
+      toast.loading(`${filteredOrders.length}件の発注書PDF生成中...`, { id: 'batch-pdf' });
+
+      for (const order of filteredOrders) {
+        await handleGeneratePDF(order);
+        // レート制限回避のため少し待機
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+
+      toast.success(`${filteredOrders.length}件の発注書PDF生成完了！`, { id: 'batch-pdf' });
+    } catch (error) {
+      console.error('一括PDF生成エラー:', error);
+      toast.error('一部のPDF生成に失敗しました', { id: 'batch-pdf' });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -217,9 +356,17 @@ export default function Orders() {
               <FileText className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                発注管理
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  発注管理
+                </h1>
+                {isFetching && (
+                  <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm">
+                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    更新中
+                  </div>
+                )}
+              </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">発注・分納・納期管理</p>
             </div>
           </div>
@@ -234,6 +381,22 @@ export default function Orders() {
               <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
               {isFetching ? '更新中…' : '最新表示に更新'}
             </motion.button>
+            
+            {filteredOrders.length > 0 && (
+              <motion.button
+                onClick={handleBatchPDFGeneration}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl font-medium text-sm"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                title={`${filteredOrders.length}件の発注書をまとめてPDF出力`}
+              >
+                <Printer className="w-4 h-4" />
+                一括PDF出力
+                <span className="px-2 py-1 bg-white/20 rounded-full text-xs">
+                  {filteredOrders.length}件
+                </span>
+              </motion.button>
+            )}
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -297,12 +460,13 @@ export default function Orders() {
               <select
                 className="px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as 'all' | '未納品' | '一部納品' | '納品完了')}
+                onChange={(e) => setStatusFilter(e.target.value as 'all' | '未納品' | '一部納品' | '納品完了' | '要確認')}
               >
                 <option value="all">すべて</option>
                 <option value="未納品">未納品</option>
                 <option value="一部納品">一部納品</option>
                 <option value="納品完了">納品完了</option>
+                <option value="要確認">要確認（個数未確認）</option>
               </select>
             </div>
 
@@ -470,22 +634,38 @@ export default function Orders() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      {order.remaining_amount > 0 ? (
-                        <button
+                      <div className="flex flex-wrap gap-2">
+                        {order.remaining_amount > 0 ? (
+                          <motion.button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openDeliveryModal(order.purchase_order_id)
+                            }}
+                            className="inline-flex items-center px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/40 hover:text-green-800 dark:hover:text-green-300 font-medium rounded-lg transition-all text-xs"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            分納入力
+                          </motion.button>
+                        ) : (
+                          <span className="inline-flex items-center px-3 py-1.5 bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 rounded-lg text-xs">
+                            完了済み
+                          </span>
+                        )}
+                        <motion.button 
                           onClick={(e) => {
-                            e.stopPropagation()
-                            openDeliveryModal(order.purchase_order_id)
+                            e.stopPropagation();
+                            handleGeneratePDF(order);
                           }}
-                          className="text-green-600 hover:text-green-800 font-medium mr-3"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:text-blue-800 dark:hover:text-blue-300 font-medium rounded-lg transition-all text-xs"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          title="発注書をPDF形式でダウンロード"
                         >
-                          分納入力
-                        </button>
-                      ) : (
-                        <span className="text-gray-400 mr-3">完了済み</span>
-                      )}
-                      <button className="text-blue-600 hover:text-blue-900">
-                        PDF出力
-                      </button>
+                          <FileDown className="w-3 h-3" />
+                          PDF出力
+                        </motion.button>
+                      </div>
                     </td>
                   </tr>
                 );
