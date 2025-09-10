@@ -4,6 +4,7 @@ import { Plus, Trash2, ArrowLeft, FileText, Lock, Unlock, DollarSign } from 'luc
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { useDarkMode } from '../hooks/useDarkMode';
+import SearchableSelect from '../components/SearchableSelect';
 import type { Partner, Product, OrderFormData, OrderItem } from '../types';
 
 export default function OrderNew() {
@@ -275,11 +276,11 @@ export default function OrderNew() {
           </button>
         </div>
 
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700 transition-colors duration-300">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
             <FileText className="h-6 w-6 text-blue-600 mr-2" />
-            <h2 className="text-lg font-semibold text-gray-900">発注書情報</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">発注書情報</h2>
           </div>
         </div>
 
@@ -287,48 +288,48 @@ export default function OrderNew() {
           {/* ヘッダー情報 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700">仕入先</label>
-              <select
-                required
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">仕入先</label>
+              <SearchableSelect
+                options={partners.map(partner => ({
+                  value: partner.id,
+                  label: partner.name,
+                  description: `コード: ${partner.partner_code} | ${partner.partner_type === 'supplier' ? '仕入先' : '仕入先・顧客'}`
+                }))}
                 value={formData.partner_id}
-                onChange={(e) => setFormData({ ...formData, partner_id: e.target.value })}
-              >
-                <option value="">仕入先を選択</option>
-                {partners.map((partner) => (
-                  <option key={partner.id} value={partner.id}>
-                    {partner.name} ({partner.partner_code})
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => setFormData({ ...formData, partner_id: value })}
+                placeholder="仕入先を選択"
+                required
+                darkMode={isDark}
+                className="mt-1"
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">発注日</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">発注日</label>
               <input
                 type="date"
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 value={formData.order_date}
                 onChange={(e) => setFormData({ ...formData, order_date: e.target.value })}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">希望納期</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">希望納期</label>
               <input
                 type="date"
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 value={formData.delivery_deadline}
                 onChange={(e) => setFormData({ ...formData, delivery_deadline: e.target.value })}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">備考</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">備考</label>
               <input
                 type="text"
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 value={formData.memo}
                 onChange={(e) => setFormData({ ...formData, memo: e.target.value })}
                 placeholder="備考を入力"
@@ -339,7 +340,7 @@ export default function OrderNew() {
           {/* 明細行 */}
           <div>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium text-gray-900">明細</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">明細</h3>
               <button
                 type="button"
                 onClick={addItem}
@@ -351,45 +352,45 @@ export default function OrderNew() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="min-w-full border border-gray-300 rounded-lg">
-                <thead className="bg-gray-50">
+              <table className="min-w-full border border-gray-300 dark:border-gray-600 rounded-lg">
+                <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <th className="border border-gray-300 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
                       商品
                     </th>
-                    <th className="border border-gray-300 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
                       数量
                     </th>
-                    <th className="border border-gray-300 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
                       単価
                     </th>
-                    <th className="border border-gray-300 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
                       小計
                     </th>
-                    <th className="border border-gray-300 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
                       操作
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white">
+                <tbody className="bg-white dark:bg-gray-800">
                   {items.map((item, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="border border-gray-300 px-4 py-3">
-                        <select
-                          required
-                          className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
+                        <SearchableSelect
+                          options={products.map(product => ({
+                            value: product.id,
+                            label: product.product_name,
+                            description: `コード: ${product.product_code} | 標準価格: ¥${Number(product.standard_price || 0).toLocaleString()}`
+                          }))}
                           value={item.product_id}
-                          onChange={(e) => handleProductChange(index, e.target.value)}
-                        >
-                          <option value="">商品を選択</option>
-                          {products.map((product) => (
-                            <option key={product.id} value={product.id}>
-                              {product.product_name} ({product.product_code}) - ¥{Number(product.standard_price || 0).toLocaleString()}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(value) => handleProductChange(index, value)}
+                          placeholder="商品を選択"
+                          required
+                          darkMode={isDark}
+                          className="text-sm"
+                        />
                       </td>
-                      <td className="border border-gray-300 px-4 py-3">
+                      <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
                         <div className="flex items-center space-x-1">
                           <input
                             type="number"
@@ -397,8 +398,8 @@ export default function OrderNew() {
                             step="1"
                             className={`flex-1 border rounded px-2 py-1 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
                               item.quantity_locked 
-                                ? 'bg-yellow-50 border-yellow-300' 
-                                : 'border-gray-300'
+                                ? 'bg-yellow-50 dark:bg-yellow-900 border-yellow-300 dark:border-yellow-600 text-gray-900 dark:text-white' 
+                                : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
                             }`}
                             value={isNaN(item.quantity) ? '' : item.quantity}
                             onChange={(e) => {
@@ -428,7 +429,7 @@ export default function OrderNew() {
                           </button>
                         </div>
                       </td>
-                      <td className="border border-gray-300 px-4 py-3">
+                      <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
                         <div className="flex items-center space-x-1">
                           <input
                             type="number"
@@ -436,8 +437,8 @@ export default function OrderNew() {
                             min="0"
                             className={`flex-1 border rounded px-2 py-1 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
                               item.unit_price_locked 
-                                ? 'bg-orange-50 border-orange-300' 
-                                : 'border-gray-300'
+                                ? 'bg-orange-50 dark:bg-orange-900 border-orange-300 dark:border-orange-600 text-gray-900 dark:text-white' 
+                                : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
                             }`}
                             value={isNaN(item.unit_price) ? '' : item.unit_price}
                             onChange={(e) => {
@@ -467,10 +468,10 @@ export default function OrderNew() {
                           </button>
                         </div>
                       </td>
-                      <td className="border border-gray-300 px-4 py-3 text-sm font-medium">
+                      <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
                         ¥{(isNaN(item.total_amount) ? 0 : item.total_amount).toLocaleString()}
                       </td>
-                      <td className="border border-gray-300 px-4 py-3">
+                      <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
                         <button
                           type="button"
                           onClick={() => removeItem(index)}
@@ -487,8 +488,8 @@ export default function OrderNew() {
             </div>
 
             {/* 合計計算 */}
-            <div className="mt-6 bg-gray-50 p-4 rounded-lg">
-              <div className="text-right space-y-2">
+            <div className="mt-6 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+              <div className="text-right space-y-2 text-gray-900 dark:text-white">
                 <div className="flex justify-between text-sm">
                   <span>小計:</span>
                   <span>¥{getTotalAmount().toLocaleString()}</span>
@@ -497,7 +498,7 @@ export default function OrderNew() {
                   <span>消費税 (10%):</span>
                   <span>¥{getTaxAmount().toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-lg font-bold border-t pt-2">
+                <div className="flex justify-between text-lg font-bold border-t border-gray-300 dark:border-gray-600 pt-2">
                   <span>合計:</span>
                   <span>¥{getGrandTotal().toLocaleString()}</span>
                 </div>
@@ -506,18 +507,18 @@ export default function OrderNew() {
           </div>
 
           {/* 送信ボタン */}
-          <div className="flex justify-end space-x-3 pt-6 border-t">
+          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
             <button
               type="button"
               onClick={() => navigate('/orders')}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+              className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               キャンセル
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {submitting ? '作成中...' : '発注書作成'}
             </button>
