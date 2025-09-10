@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { Plus, Edit, Building, Search, X, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { useDarkMode } from '../hooks/useDarkMode';
 
 interface Partner {
   id: string;
@@ -19,6 +20,7 @@ interface Partner {
 
 export default function Partners() {
   const queryClient = useQueryClient();
+  const { isDark, toggle: toggleDarkMode } = useDarkMode();
   const [partners, setPartners] = useState<Partner[]>([]);
   const [filteredPartners, setFilteredPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
@@ -235,85 +237,98 @@ export default function Partners() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600 dark:text-gray-400">取引先データを読み込み中...</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">取引先管理</h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          新規取引先
-        </button>
-      </div>
-
-      {/* 検索・フィルター機能 */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <div className="flex flex-col lg:flex-row gap-4 items-center">
-          {/* 検索バー */}
-          <div className="flex-1 relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="取引先名・コード・担当者・連絡先で検索..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          {/* 取引先種別フィルター */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">種別:</label>
-            <select
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={partnerTypeFilter}
-              onChange={(e) => setPartnerTypeFilter(e.target.value as 'all' | 'supplier' | 'customer' | 'both')}
-            >
-              <option value="all">すべて</option>
-              <option value="supplier">仕入先</option>
-              <option value="customer">販売先</option>
-              <option value="both">仕入先・販売先</option>
-            </select>
-          </div>
-
-          {/* ステータスフィルター */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">状態:</label>
-            <select
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-            >
-              <option value="all">すべて</option>
-              <option value="active">有効</option>
-              <option value="inactive">無効</option>
-            </select>
-          </div>
-
-          {/* クリアボタン */}
-          {(searchTerm || partnerTypeFilter !== 'all' || statusFilter !== 'all') && (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+      <div className="p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">取引先管理</h1>
+          <div className="flex items-center gap-3">
             <button
-              onClick={clearFilters}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+              onClick={() => setShowForm(true)}
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
-              <X className="w-4 h-4 mr-1" />
-              クリア
+              <Plus className="w-4 h-4 mr-2" />
+              新規取引先
             </button>
-          )}
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm hover:shadow-md"
+            >
+              {isDark ? '☀️' : '🌙'}
+            </button>
+          </div>
+        </div>
+
+        {/* 検索・フィルター機能 */}
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col lg:flex-row gap-4 items-center">
+            {/* 検索バー */}
+            <div className="flex-1 relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="取引先名・コード・担当者・連絡先で検索..."
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            {/* 取引先種別フィルター */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">種別:</label>
+              <select
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={partnerTypeFilter}
+                onChange={(e) => setPartnerTypeFilter(e.target.value as 'all' | 'supplier' | 'customer' | 'both')}
+              >
+                <option value="all">すべて</option>
+                <option value="supplier">仕入先</option>
+                <option value="customer">販売先</option>
+                <option value="both">仕入先・販売先</option>
+              </select>
+            </div>
+
+            {/* ステータスフィルター */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">状態:</label>
+              <select
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+              >
+                <option value="all">すべて</option>
+                <option value="active">有効</option>
+                <option value="inactive">無効</option>
+              </select>
+            </div>
+
+            {/* クリアボタン */}
+            {(searchTerm || partnerTypeFilter !== 'all' || statusFilter !== 'all') && (
+              <button
+                onClick={clearFilters}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              >
+                <X className="w-4 h-4 mr-1" />
+                クリア
+              </button>
+            )}
+          </div>
         </div>
 
         {/* 検索結果数表示 */}
-        <div className="mt-3 text-sm text-gray-600">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
           {searchTerm || partnerTypeFilter !== 'all' || statusFilter !== 'all' ? (
             <span>
               {filteredPartners.length}件の結果 (全{partners.length}件中)
@@ -322,38 +337,37 @@ export default function Partners() {
             <span>全{partners.length}件の取引先</span>
           )}
         </div>
-      </div>
 
-      {showForm && (
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">
-            {editingPartner ? '取引先編集' : '新規取引先作成'}
-          </h2>
+        {showForm && (
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              {editingPartner ? '取引先編集' : '新規取引先作成'}
+            </h2>
           <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">取引先名</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">取引先名</label>
               <input
                 type="text"
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">取引先コード</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">取引先コード</label>
               <input
                 type="text"
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={formData.partner_code}
                 onChange={(e) => setFormData({ ...formData, partner_code: e.target.value })}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">取引先種別</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">取引先種別</label>
               <select
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={formData.partner_type}
                 onChange={(e) => setFormData({ ...formData, partner_type: e.target.value as 'supplier' | 'customer' | 'both' })}
               >
@@ -363,36 +377,36 @@ export default function Partners() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">担当者名</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">担当者名</label>
               <input
                 type="text"
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={formData.contact_person}
                 onChange={(e) => setFormData({ ...formData, contact_person: e.target.value })}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">電話番号</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">電話番号</label>
               <input
                 type="text"
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">メールアドレス</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">メールアドレス</label>
               <input
                 type="email"
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700">住所</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">住所</label>
               <textarea
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows={3}
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
@@ -402,7 +416,7 @@ export default function Partners() {
               <button
                 type="button"
                 onClick={resetForm}
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
               >
                 キャンセル
               </button>
@@ -414,28 +428,29 @@ export default function Partners() {
               </button>
             </div>
           </form>
-        </div>
-      )}
+          </div>
+        )}
 
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                取引先情報
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                連絡先
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ステータス
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                操作
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+        {/* 取引先一覧テーブル */}
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  取引先情報
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  連絡先
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  ステータス
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  操作
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
             {filteredPartners.length === 0 ? (
               <tr>
                 <td colSpan={4} className="px-6 py-12 text-center">
@@ -458,14 +473,14 @@ export default function Partners() {
                   <div className="flex items-center">
                     <Building className="h-8 w-8 text-gray-400" />
                     <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">{partner.name}</div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">{partner.name}</div>
                       <div className="text-sm text-gray-500">{partner.partner_code}</div>
                       <div className="text-sm text-gray-500">{getPartnerTypeLabel(partner.partner_type)}</div>
                     </div>
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{partner.contact_person}</div>
+                  <div className="text-sm text-gray-900 dark:text-white">{partner.contact_person}</div>
                   <div className="text-sm text-gray-500">{partner.phone}</div>
                   <div className="text-sm text-gray-500">{partner.email}</div>
                 </td>
@@ -495,8 +510,9 @@ export default function Partners() {
               </tr>
               ))
             )}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

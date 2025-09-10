@@ -4,6 +4,7 @@ import { Plus, Edit, Trash2, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { UniversalFilters } from '../components/shared/UniversalFilters';
 import { safeYenFormat } from '../utils/safeFormatters';
+import { useDarkMode } from '../hooks/useDarkMode';
 
 interface Product {
   id: string;
@@ -18,6 +19,7 @@ interface Product {
 }
 
 export default function Products() {
+  const { isDark, toggle: toggleDarkMode } = useDarkMode();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -203,24 +205,36 @@ export default function Products() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600 dark:text-gray-400">商品データを読み込み中...</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">商品管理</h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          新規商品
-        </button>
-      </div>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+      <div className="p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">商品管理</h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              新規商品
+            </button>
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm hover:shadow-md"
+            >
+              {isDark ? '☀️' : '🌙'}
+            </button>
+          </div>
+        </div>
 
       {/* フィルターコンポーネント追加 */}
       <UniversalFilters
@@ -231,77 +245,77 @@ export default function Products() {
       />
 
       {showForm && (
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
             {editingProduct ? '商品編集' : '新規商品作成'}
           </h2>
           <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">商品名</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">商品名</label>
               <input
                 type="text"
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 value={formData.product_name}
                 onChange={(e) => setFormData({ ...formData, product_name: e.target.value })}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">商品コード</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">商品コード</label>
               <input
                 type="text"
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 value={formData.product_code}
                 onChange={(e) => setFormData({ ...formData, product_code: e.target.value })}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">カテゴリ</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">カテゴリ</label>
               <input
                 type="text"
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">標準単価</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">標準単価</label>
               <input
                 type="number"
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 value={formData.standard_price}
                 onChange={(e) => setFormData({ ...formData, standard_price: e.target.value })}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">販売単価</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">販売単価</label>
               <input
                 type="number"
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 value={formData.selling_price}
                 onChange={(e) => setFormData({ ...formData, selling_price: e.target.value })}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">現在在庫</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">現在在庫</label>
               <input
                 type="number"
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 value={formData.current_stock}
                 onChange={(e) => setFormData({ ...formData, current_stock: e.target.value })}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">最小在庫レベル</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">最小在庫レベル</label>
               <input
                 type="number"
                 required
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 value={formData.min_stock_level}
                 onChange={(e) => setFormData({ ...formData, min_stock_level: e.target.value })}
               />
@@ -310,13 +324,13 @@ export default function Products() {
               <button
                 type="button"
                 onClick={resetForm}
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors"
               >
                 キャンセル
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
               >
                 {editingProduct ? '更新' : '作成'}
               </button>
@@ -325,55 +339,55 @@ export default function Products() {
         </div>
       )}
 
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 商品情報
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 価格
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 在庫
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 操作
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
             {filteredProducts.map((product) => (
-              <tr key={product.id}>
+              <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    <Package className="h-8 w-8 text-gray-400" />
+                    <Package className="h-8 w-8 text-gray-400 dark:text-gray-500" />
                     <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">{product.product_name}</div>
-                      <div className="text-sm text-gray-500">{product.product_code}</div>
-                      <div className="text-sm text-gray-500">{product.category}</div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">{product.product_name}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">{product.product_code}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">{product.category}</div>
                     </div>
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">標準: {safeYenFormat(product.standard_price)}</div>
-                  <div className="text-sm text-gray-500">販売: {safeYenFormat(product.selling_price)}</div>
+                  <div className="text-sm text-gray-900 dark:text-white">標準: {safeYenFormat(product.standard_price)}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">販売: {safeYenFormat(product.selling_price)}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">現在: {product.current_stock}</div>
-                  <div className="text-sm text-gray-500">最小: {product.min_stock_level}</div>
+                  <div className="text-sm text-gray-900 dark:text-white">現在: {product.current_stock}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">最小: {product.min_stock_level}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button
                     onClick={() => handleEdit(product)}
-                    className="text-indigo-600 hover:text-indigo-900 mr-2"
+                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 mr-2 transition-colors"
                   >
                     <Edit className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(product.id)}
-                    className="text-red-600 hover:text-red-900"
+                    className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -382,6 +396,7 @@ export default function Products() {
             ))}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );

@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Trash2, ArrowLeft, FileText, Lock, Unlock, DollarSign } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
+import { useDarkMode } from '../hooks/useDarkMode';
 import type { Partner, Product, OrderFormData, OrderItem } from '../types';
 
 export default function OrderNew() {
   const navigate = useNavigate();
+  const { isDark, toggle: toggleDarkMode } = useDarkMode();
   const [partners, setPartners] = useState<Partner[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -242,26 +244,36 @@ export default function OrderNew() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600 dark:text-gray-400">データを読み込み中...</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => navigate('/orders')}
+              className="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              発注管理に戻る
+            </button>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">新規発注書作成</h1>
+          </div>
           <button
-            onClick={() => navigate('/orders')}
-            className="flex items-center text-gray-600 hover:text-gray-900"
+            onClick={toggleDarkMode}
+            className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm hover:shadow-md"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            発注管理に戻る
+            {isDark ? '☀️' : '🌙'}
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">新規発注書作成</h1>
         </div>
-      </div>
 
       <div className="bg-white shadow rounded-lg">
         <div className="px-6 py-4 border-b border-gray-200">
@@ -511,6 +523,7 @@ export default function OrderNew() {
             </button>
           </div>
         </form>
+      </div>
       </div>
     </div>
   );
