@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Plus, FileText, Calendar, TrendingUp, Package, AlertCircle, Search, X, Filter } from 'lucide-react';
+import { Plus, FileText, Calendar, TrendingUp, Package, AlertCircle, Search, X, Filter, RefreshCw } from 'lucide-react';
+import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
 import { useState, useMemo } from 'react';
@@ -8,6 +9,8 @@ import { useDarkMode } from '../hooks/useDarkMode';
 import type { DeliveryProgress } from '../types';
 import { useDeliveryModal } from '../stores/deliveryModal.store';
 import { DeliveryModal } from '../components/DeliveryModal';
+import { ModernStatsBar } from '../components/ModernStatsBar';
+import { ModernCard } from '../components/ui/ModernCard';
 
 
 
@@ -179,10 +182,14 @@ export default function Orders() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 transition-all duration-500">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600 dark:text-gray-400">発注データを読み込み中...</span>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent"
+          />
+          <span className="ml-3 text-gray-700 dark:text-gray-300 font-medium">発注データを読み込み中...</span>
         </div>
       </div>
     );
@@ -197,168 +204,170 @@ export default function Orders() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 transition-all duration-500">
       <div className="p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">発注管理</h1>
+        <motion.div 
+          className="flex justify-between items-center"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <div className="flex items-center gap-3">
-            <button 
+            <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl">
+              <FileText className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">
+                発注管理
+              </h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">発注・分納・納期管理</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <motion.button 
               onClick={() => refetch()} 
               disabled={isFetching} 
-              className="px-4 py-2 text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center px-4 py-2 text-sm bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-white dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
+              <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
               {isFetching ? '更新中…' : '最新表示に更新'}
-            </button>
-            <Link
-              to="/orders/new"
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            </motion.button>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <Plus className="w-4 h-4 mr-2" />
-              新規発注
-            </Link>
-            <button
+              <Link
+                to="/orders/new"
+                className="flex items-center px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl font-medium"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                新規発注
+              </Link>
+            </motion.div>
+            <motion.button
               onClick={toggleDarkMode}
-              className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm hover:shadow-md"
+              className="p-2 rounded-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-lg hover:shadow-xl"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              whileTap={{ scale: 0.9 }}
             >
               {isDark ? '☀️' : '🌙'}
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
+
+        {/* モダン統計バー */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <ModernStatsBar items={filteredOrders} />
+        </motion.div>
 
       {/* 検索・フィルター機能 */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-        <div className="flex flex-col sm:flex-row gap-4 items-center">
-          {/* 検索バー */}
-          <div className="flex-1 relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-400" />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <ModernCard className="p-6">
+          <div className="flex flex-col sm:flex-row gap-4 items-center">
+            {/* 検索バー */}
+            <div className="flex-1 relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+              </div>
+              <input
+                type="text"
+                placeholder="発注番号（PO250910004など）・仕入先名で検索..."
+                className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder-gray-500 dark:placeholder-gray-400"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-            <input
-              type="text"
-              placeholder="発注番号（PO250910004など）・仕入先名で検索..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+
+            {/* ステータスフィルター */}
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                <Filter className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              </div>
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">状態:</label>
+              <select
+                className="px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as 'all' | '未納品' | '一部納品' | '納品完了')}
+              >
+                <option value="all">すべて</option>
+                <option value="未納品">未納品</option>
+                <option value="一部納品">一部納品</option>
+                <option value="納品完了">納品完了</option>
+              </select>
+            </div>
+
+            {/* クリアボタン */}
+            {(searchTerm || statusFilter !== 'all' || sortBy !== 'created_at' || sortOrder !== 'desc') && (
+              <motion.button
+                onClick={clearFilters}
+                className="inline-flex items-center px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300 dark:hover:border-red-600 hover:text-red-600 dark:hover:text-red-400 transition-all"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <X className="w-4 h-4 mr-1" />
+                リセット
+              </motion.button>
+            )}
           </div>
 
-          {/* ステータスフィルター */}
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-gray-500" />
-            <label className="text-sm font-medium text-gray-700">状態:</label>
-            <select
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as 'all' | '未納品' | '一部納品' | '納品完了')}
-            >
-              <option value="all">すべて</option>
-              <option value="未納品">未納品</option>
-              <option value="一部納品">一部納品</option>
-              <option value="納品完了">納品完了</option>
-            </select>
-          </div>
-
-          {/* ソート表示 */}
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <span>並び順:</span>
-            <span className="font-medium">
-              {sortBy === 'created_at' && '発注日'}
-              {sortBy === 'delivery_deadline' && '納期'}
-              {sortBy === 'partner_name' && '仕入先'}
-              ({sortOrder === 'asc' ? '昇順' : '降順'})
-            </span>
-          </div>
-
-          {/* クリアボタン */}
-          {(searchTerm || statusFilter !== 'all' || sortBy !== 'created_at' || sortOrder !== 'desc') && (
-            <button
-              onClick={clearFilters}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-            >
-              <X className="w-4 h-4 mr-1" />
-              リセット
-            </button>
-          )}
-        </div>
-
-        {/* 検索結果数表示 */}
-        <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
-          {searchTerm || statusFilter !== 'all' ? (
-            <span>
-              {filteredOrders.length}件の結果 (全{orders?.length || 0}件中)
-              {searchTerm && (
-                <span className="ml-2 text-blue-600 dark:text-blue-400">
-                  「{searchTerm}」で検索中
-                </span>
+          {/* 検索結果数表示 */}
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              {searchTerm || statusFilter !== 'all' ? (
+                <>
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    {filteredOrders.length}件の結果
+                  </span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    (全{orders?.length || 0}件中)
+                  </span>
+                  {searchTerm && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
+                      「{searchTerm}」で検索中
+                    </span>
+                  )}
+                  {statusFilter !== 'all' && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200">
+                      {statusFilter}でフィルタ中
+                    </span>
+                  )}
+                </>
+              ) : (
+                <span className="font-medium text-gray-900 dark:text-white">全{orders?.length || 0}件の発注</span>
               )}
-            </span>
-          ) : (
-            <span>全{orders?.length || 0}件の発注</span>
-          )}
-          {searchTerm && (
-            <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-              💡 発注番号（PO250910004）、発注ID（UUID）、仕入先名で検索可能
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 統計サマリー */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center">
-            <FileText className="h-8 w-8 text-blue-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">総発注数</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{filteredOrders.length}</p>
+              {searchTerm && (
+                <div className="w-full mt-2 text-xs text-gray-500 dark:text-gray-500 bg-blue-50 dark:bg-blue-900/10 px-3 py-2 rounded-lg">
+                  💡 発注番号（PO250910004）、発注ID（UUID）、仕入先名で検索可能
+                </div>
+              )}
             </div>
           </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center">
-            <TrendingUp className="h-8 w-8 text-green-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">完了率</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                {filteredOrders.length > 0 
-                  ? Math.round((filteredOrders.filter(o => o.progress_status === '納品完了').length / filteredOrders.length) * 100)
-                  : 0}%
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center">
-            <AlertCircle className="h-8 w-8 text-yellow-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">未納品件数</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                {filteredOrders.filter(o => o.remaining_amount > 0).length}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center">
-            <Package className="h-8 w-8 text-purple-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">総発注額</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                ¥{filteredOrders.reduce((sum, o) => sum + o.ordered_amount, 0).toLocaleString()}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+        </ModernCard>
+      </motion.div>
 
       {/* 発注一覧テーブル */}
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">発注一覧</h2>
-        </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
+        <ModernCard className="overflow-hidden">
+          <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200/50 dark:border-gray-700/50">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              発注一覧
+            </h2>
+          </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-800">
@@ -510,7 +519,10 @@ export default function Orders() {
             </div>
           )}
         </div>
-      </div>
+        </ModernCard>
+      </motion.div>
+
+      <DeliveryModal />
       </div>
     </div>
   );

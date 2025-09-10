@@ -341,11 +341,11 @@ export const DeliveryModal = () => {
                             </span>
                           )}
                         </div>
-                        <div className="text-sm text-gray-500">
-                          {item.product_code} | 発注: {item.quantity} | 分納済み: {item.delivered_quantity || 0} | 残り: {item.remaining_quantity === 0 ? (
-                            <span className="text-green-600 font-medium">0 (完了)</span>
+                        <div className="text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded">
+                          <span className="font-medium">{item.product_code}</span> | 発注: <span className="font-semibold">{item.quantity}</span> | 分納済み: <span className="text-green-600 font-semibold">{item.delivered_quantity || 0}</span> | {item.remaining_quantity === 0 ? (
+                            <span className="text-green-600 font-bold bg-green-100 px-2 py-0.5 rounded-full text-xs">✅ 完了</span>
                           ) : (
-                            <span className="text-blue-600 font-medium">{item.remaining_quantity || item.quantity}</span>
+                            <span className="text-blue-600 font-bold bg-blue-100 px-2 py-0.5 rounded-full text-sm">🔢 残り: {item.remaining_quantity || item.quantity}個</span>
                           )}
                         </div>
                       </div>

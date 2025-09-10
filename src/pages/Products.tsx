@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
-import { Plus, Edit, Trash2, Package } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, Sparkles, RefreshCw, Search, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { UniversalFilters } from '../components/shared/UniversalFilters';
 import { safeYenFormat } from '../utils/safeFormatters';
 import { useDarkMode } from '../hooks/useDarkMode';
+import { motion } from 'framer-motion';
+import { ModernCard } from '../components/ui/ModernCard';
 
 interface Product {
   id: string;
@@ -205,199 +207,371 @@ export default function Products() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600 dark:text-gray-400">商品データを読み込み中...</span>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent"
+          />
+          <motion.span 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="ml-4 text-lg font-medium text-gray-700 dark:text-gray-300"
+          >
+            商品データを読み込み中...
+          </motion.span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      <div className="p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">商品管理</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="p-6 space-y-8"
+      >
+        {/* ヘッダー */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex justify-between items-center"
+        >
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowForm(true)}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            <motion.div
+              whileHover={{ rotate: 15 }}
+              className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl shadow-lg"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Package className="w-8 h-8 text-white" />
+            </motion.div>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                商品管理
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 font-medium">商品マスターの登録・管理</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <motion.button
+              onClick={fetchProducts}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl font-semibold"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <RefreshCw className="w-4 h-4" />
+              更新
+            </motion.button>
+            <motion.button
+              onClick={() => setShowForm(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl font-semibold"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Plus className="w-4 h-4" />
               新規商品
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={toggleDarkMode}
-              className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm hover:shadow-md"
+              className="p-3 rounded-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-lg hover:shadow-xl"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              whileTap={{ scale: 0.9 }}
             >
               {isDark ? '☀️' : '🌙'}
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
 
-      {/* フィルターコンポーネント追加 */}
-      <UniversalFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        onReset={handleFiltersReset}
-        filterType="products"
-      />
+        {/* フィルターセクション */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <ModernCard className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
+                <Filter className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">フィルター設定</h3>
+            </div>
+            <UniversalFilters
+              filters={filters}
+              onFiltersChange={setFilters}
+              onReset={handleFiltersReset}
+              filterType="products"
+            />
+          </ModernCard>
+        </motion.div>
 
-      {showForm && (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-            {editingProduct ? '商品編集' : '新規商品作成'}
-          </h2>
-          <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">商品名</label>
-              <input
-                type="text"
-                required
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                value={formData.product_name}
-                onChange={(e) => setFormData({ ...formData, product_name: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">商品コード</label>
-              <input
-                type="text"
-                required
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                value={formData.product_code}
-                onChange={(e) => setFormData({ ...formData, product_code: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">カテゴリ</label>
-              <input
-                type="text"
-                required
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">標準単価</label>
-              <input
-                type="number"
-                required
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                value={formData.standard_price}
-                onChange={(e) => setFormData({ ...formData, standard_price: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">販売単価</label>
-              <input
-                type="number"
-                required
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                value={formData.selling_price}
-                onChange={(e) => setFormData({ ...formData, selling_price: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">現在在庫</label>
-              <input
-                type="number"
-                required
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                value={formData.current_stock}
-                onChange={(e) => setFormData({ ...formData, current_stock: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">最小在庫レベル</label>
-              <input
-                type="number"
-                required
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                value={formData.min_stock_level}
-                onChange={(e) => setFormData({ ...formData, min_stock_level: e.target.value })}
-              />
-            </div>
-            <div className="col-span-2 flex justify-end space-x-2">
-              <button
-                type="button"
-                onClick={resetForm}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors"
-              >
-                キャンセル
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-              >
-                {editingProduct ? '更新' : '作成'}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-800">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                商品情報
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                価格
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                在庫
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                操作
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-            {filteredProducts.map((product) => (
-              <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <Package className="h-8 w-8 text-gray-400 dark:text-gray-500" />
-                    <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">{product.product_name}</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{product.product_code}</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{product.category}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900 dark:text-white">標準: {safeYenFormat(product.standard_price)}</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">販売: {safeYenFormat(product.selling_price)}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900 dark:text-white">現在: {product.current_stock}</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">最小: {product.min_stock_level}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => handleEdit(product)}
-                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 mr-2 transition-colors"
+        {/* 商品作成・編集フォーム */}
+        {showForm && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ModernCard className="p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <motion.div
+                  whileHover={{ rotate: 15 }}
+                  className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg"
+                >
+                  <Sparkles className="w-6 h-6 text-white" />
+                </motion.div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {editingProduct ? '商品編集' : '新規商品作成'}
+                </h2>
+              </div>
+              <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
+                >
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">商品名</label>
+                  <input
+                    type="text"
+                    required
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm hover:shadow-md"
+                    value={formData.product_name}
+                    onChange={(e) => setFormData({ ...formData, product_name: e.target.value })}
+                  />
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.15 }}
+                >
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">商品コード</label>
+                  <input
+                    type="text"
+                    required
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm hover:shadow-md"
+                    value={formData.product_code}
+                    onChange={(e) => setFormData({ ...formData, product_code: e.target.value })}
+                  />
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.2 }}
+                >
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">カテゴリ</label>
+                  <input
+                    type="text"
+                    required
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm hover:shadow-md"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  />
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.25 }}
+                >
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">標準単価</label>
+                  <input
+                    type="number"
+                    required
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm hover:shadow-md"
+                    value={formData.standard_price}
+                    onChange={(e) => setFormData({ ...formData, standard_price: e.target.value })}
+                  />
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.3 }}
+                >
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">販売単価</label>
+                  <input
+                    type="number"
+                    required
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm hover:shadow-md"
+                    value={formData.selling_price}
+                    onChange={(e) => setFormData({ ...formData, selling_price: e.target.value })}
+                  />
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.35 }}
+                >
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">現在在庫</label>
+                  <input
+                    type="number"
+                    required
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm hover:shadow-md"
+                    value={formData.current_stock}
+                    onChange={(e) => setFormData({ ...formData, current_stock: e.target.value })}
+                  />
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.4 }}
+                  className="lg:col-span-1"
+                >
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">最小在庫レベル</label>
+                  <input
+                    type="number"
+                    required
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm hover:shadow-md"
+                    value={formData.min_stock_level}
+                    onChange={(e) => setFormData({ ...formData, min_stock_level: e.target.value })}
+                  />
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.45 }}
+                  className="lg:col-span-2 flex justify-end gap-4 pt-6 border-t border-gray-200 dark:border-gray-700"
+                >
+                  <motion.button
+                    type="button"
+                    onClick={resetForm}
+                    className="px-6 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-semibold transition-all shadow-sm hover:shadow-md"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(product.id)}
-                    className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors"
+                    キャンセル
+                  </motion.button>
+                  <motion.button
+                    type="submit"
+                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 font-semibold shadow-lg hover:shadow-xl transition-all"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      </div>
+                    {editingProduct ? '更新' : '作成'}
+                  </motion.button>
+                </motion.div>
+              </form>
+            </ModernCard>
+          </motion.div>
+        )}
+
+        {/* 商品一覧テーブル */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <ModernCard className="overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                      商品情報
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                      価格
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                      在庫
+                    </th>
+                    <th className="px-6 py-4 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                      操作
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm divide-y divide-gray-200/50 dark:divide-gray-700/50">
+                  {filteredProducts.map((product, index) => (
+                    <motion.tr 
+                      key={product.id} 
+                      className="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-all duration-200"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      whileHover={{ scale: 1.005 }}
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          <motion.div
+                            whileHover={{ rotate: 10 }}
+                            className="p-2 bg-gradient-to-r from-blue-400 to-purple-500 rounded-lg shadow-md"
+                          >
+                            <Package className="h-6 w-6 text-white" />
+                          </motion.div>
+                          <div className="ml-4">
+                            <div className="text-sm font-bold text-gray-900 dark:text-white">{product.product_name}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">{product.product_code}</div>
+                            <div className="text-xs text-blue-600 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md mt-1 inline-block">{product.category}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="space-y-1">
+                          <div className="text-sm font-semibold text-gray-900 dark:text-white">標準: <span className="text-green-600 dark:text-green-400">{safeYenFormat(product.standard_price)}</span></div>
+                          <div className="text-sm font-medium text-purple-600 dark:text-purple-400">販売: {safeYenFormat(product.selling_price)}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">現在:</span>
+                            <span className={`text-sm font-bold px-2 py-1 rounded-lg ${
+                              product.current_stock <= product.min_stock_level
+                                ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400'
+                                : 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400'
+                            }`}>
+                              {product.current_stock}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                            最小: {product.min_stock_level}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <motion.button
+                            onClick={() => handleEdit(product)}
+                            className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </motion.button>
+                          <motion.button
+                            onClick={() => handleDelete(product.id)}
+                            className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </motion.button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {filteredProducts.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-12"
+              >
+                <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">
+                  商品が見つかりませんでした
+                </p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">
+                  フィルター条件を変更するか、新しい商品を追加してください
+                </p>
+              </motion.div>
+            )}
+          </ModernCard>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

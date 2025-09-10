@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Plus, Edit, Building, Search, X, Users } from 'lucide-react';
+import { Plus, Edit, Building, Search, X, Users, Sparkles, Handshake } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDarkMode } from '../hooks/useDarkMode';
+import { motion } from 'framer-motion';
+import { ModernCard } from '../components/ui/ModernCard';
 
 interface Partner {
   id: string;
@@ -237,49 +239,93 @@ export default function Partners() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600 dark:text-gray-400">取引先データを読み込み中...</span>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent"
+          />
+          <motion.span 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="ml-4 text-lg font-medium text-gray-700 dark:text-gray-300"
+          >
+            取引先データを読み込み中...
+          </motion.span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      <div className="p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">取引先管理</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500 font-inter">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="p-6 space-y-8"
+      >
+        {/* ヘッダー */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex justify-between items-center"
+        >
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowForm(true)}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            <motion.div
+              whileHover={{ rotate: 15 }}
+              className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl shadow-lg"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Handshake className="w-8 h-8 text-white" />
+            </motion.div>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-noto-sans-jp">
+                取引先管理
+              </h1>
+              <p className="text-gray-600 dark:text-gray-300 mt-1">パートナー企業との関係を管理</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowForm(true)}
+              className="flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <Plus className="w-5 h-5 mr-2" />
               新規取引先
-            </button>
-            <button
+              <Sparkles className="w-4 h-4 ml-2 opacity-75" />
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={toggleDarkMode}
-              className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm hover:shadow-md"
+              className="p-3 rounded-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl"
             >
               {isDark ? '☀️' : '🌙'}
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
 
         {/* 検索・フィルター機能 */}
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-          <div className="flex flex-col lg:flex-row gap-4 items-center">
+        <ModernCard className="p-6" glass>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="flex flex-col lg:flex-row gap-4 items-center"
+          >
             {/* 検索バー */}
             <div className="flex-1 relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-gray-400" />
+                <Search className="h-5 w-5 text-gray-400" />
               </div>
               <input
                 type="text"
                 placeholder="取引先名・コード・担当者・連絡先で検索..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-11 pr-4 py-3 border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -289,7 +335,7 @@ export default function Partners() {
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">種別:</label>
               <select
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="px-4 py-3 border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"
                 value={partnerTypeFilter}
                 onChange={(e) => setPartnerTypeFilter(e.target.value as 'all' | 'supplier' | 'customer' | 'both')}
               >
@@ -304,7 +350,7 @@ export default function Partners() {
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">状態:</label>
               <select
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="px-4 py-3 border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
               >
@@ -316,19 +362,26 @@ export default function Partners() {
 
             {/* クリアボタン */}
             {(searchTerm || partnerTypeFilter !== 'all' || statusFilter !== 'all') && (
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={clearFilters}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                className="inline-flex items-center px-4 py-3 border-0 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 transition-all duration-300 shadow-sm"
               >
                 <X className="w-4 h-4 mr-1" />
                 クリア
-              </button>
+              </motion.button>
             )}
-          </div>
-        </div>
+          </motion.div>
+        </ModernCard>
 
         {/* 検索結果数表示 */}
-        <div className="text-sm text-gray-600 dark:text-gray-400">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="text-sm text-gray-600 dark:text-gray-400 px-2"
+        >
           {searchTerm || partnerTypeFilter !== 'all' || statusFilter !== 'all' ? (
             <span>
               {filteredPartners.length}件の結果 (全{partners.length}件中)
@@ -336,184 +389,224 @@ export default function Partners() {
           ) : (
             <span>全{partners.length}件の取引先</span>
           )}
-        </div>
+        </motion.div>
 
         {showForm && (
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-              {editingPartner ? '取引先編集' : '新規取引先作成'}
-            </h2>
-          <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">取引先名</label>
-              <input
-                type="text"
-                required
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">取引先コード</label>
-              <input
-                type="text"
-                required
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={formData.partner_code}
-                onChange={(e) => setFormData({ ...formData, partner_code: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">取引先種別</label>
-              <select
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={formData.partner_type}
-                onChange={(e) => setFormData({ ...formData, partner_type: e.target.value as 'supplier' | 'customer' | 'both' })}
-              >
-                <option value="supplier">仕入先</option>
-                <option value="customer">販売先</option>
-                <option value="both">仕入先・販売先</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">担当者名</label>
-              <input
-                type="text"
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={formData.contact_person}
-                onChange={(e) => setFormData({ ...formData, contact_person: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">電話番号</label>
-              <input
-                type="text"
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">メールアドレス</label>
-              <input
-                type="email"
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">住所</label>
-              <textarea
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                rows={3}
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              />
-            </div>
-            <div className="col-span-2 flex justify-end space-x-2">
-              <button
-                type="button"
-                onClick={resetForm}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-              >
-                キャンセル
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                {editingPartner ? '更新' : '作成'}
-              </button>
-            </div>
-          </form>
-          </div>
+          <ModernCard className="p-6" glass>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-noto-sans-jp">
+                {editingPartner ? '取引先編集' : '新規取引先作成'}
+              </h2>
+              <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">取引先名</label>
+                  <input
+                    type="text"
+                    required
+                    className="block w-full border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">取引先コード</label>
+                  <input
+                    type="text"
+                    required
+                    className="block w-full border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"
+                    value={formData.partner_code}
+                    onChange={(e) => setFormData({ ...formData, partner_code: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">取引先種別</label>
+                  <select
+                    className="block w-full border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"
+                    value={formData.partner_type}
+                    onChange={(e) => setFormData({ ...formData, partner_type: e.target.value as 'supplier' | 'customer' | 'both' })}
+                  >
+                    <option value="supplier">仕入先</option>
+                    <option value="customer">販売先</option>
+                    <option value="both">仕入先・販売先</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">担当者名</label>
+                  <input
+                    type="text"
+                    className="block w-full border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"
+                    value={formData.contact_person}
+                    onChange={(e) => setFormData({ ...formData, contact_person: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">電話番号</label>
+                  <input
+                    type="text"
+                    className="block w-full border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">メールアドレス</label>
+                  <input
+                    type="email"
+                    className="block w-full border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">住所</label>
+                  <textarea
+                    className="block w-full border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm resize-none"
+                    rows={3}
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  />
+                </div>
+                <div className="col-span-2 flex justify-end space-x-4 pt-4">
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={resetForm}
+                    className="px-6 py-3 border-0 text-gray-700 dark:text-gray-300 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl hover:bg-white dark:hover:bg-gray-800 transition-all duration-300 shadow-sm font-medium"
+                  >
+                    キャンセル
+                  </motion.button>
+                  <motion.button
+                    type="submit"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
+                  >
+                    {editingPartner ? '更新' : '作成'}
+                  </motion.button>
+                </div>
+              </form>
+            </motion.div>
+          </ModernCard>
         )}
 
         {/* 取引先一覧テーブル */}
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-800">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  取引先情報
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  連絡先
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  ステータス
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-            {filteredPartners.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-6 py-12 text-center">
-                  <div className="text-gray-500">
-                    <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg font-medium mb-2">該当する取引先が見つかりません</p>
-                    <p className="text-sm">
-                      {searchTerm || partnerTypeFilter !== 'all' || statusFilter !== 'all'
-                        ? '検索条件を変更してお試しください'
-                        : '取引先がまだありません'
-                      }
-                    </p>
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              filteredPartners.map((partner) => (
-              <tr key={partner.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <Building className="h-8 w-8 text-gray-400" />
-                    <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">{partner.name}</div>
-                      <div className="text-sm text-gray-500">{partner.partner_code}</div>
-                      <div className="text-sm text-gray-500">{getPartnerTypeLabel(partner.partner_type)}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900 dark:text-white">{partner.contact_person}</div>
-                  <div className="text-sm text-gray-500">{partner.phone}</div>
-                  <div className="text-sm text-gray-500">{partner.email}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    partner.is_active 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {partner.is_active ? '有効' : '無効'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => handleEdit(partner)}
-                    className="text-indigo-600 hover:text-indigo-900 mr-2"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleToggleActive(partner.id, partner.is_active)}
-                    className={`${partner.is_active ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'}`}
-                  >
-                    {partner.is_active ? '無効化' : '有効化'}
-                  </button>
-                </td>
-              </tr>
-              ))
-            )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+        <ModernCard className="overflow-hidden" glass>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <table className="min-w-full divide-y divide-gray-200/20 dark:divide-gray-700/20">
+              <thead className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-900/20 dark:to-purple-900/20 backdrop-blur-sm">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                    取引先情報
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                    連絡先
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                    ステータス
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                    操作
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-sm divide-y divide-gray-200/20 dark:divide-gray-700/20">
+                {filteredPartners.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-16 text-center">
+                      <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-gray-500 dark:text-gray-400"
+                      >
+                        <Users className="w-16 h-16 mx-auto mb-6 opacity-50" />
+                        <p className="text-xl font-semibold mb-3">該当する取引先が見つかりません</p>
+                        <p className="text-sm">
+                          {searchTerm || partnerTypeFilter !== 'all' || statusFilter !== 'all'
+                            ? '検索条件を変更してお試しください'
+                            : '取引先がまだありません'
+                          }
+                        </p>
+                      </motion.div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredPartners.map((partner, index) => (
+                    <motion.tr 
+                      key={partner.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      className="hover:bg-white/50 dark:hover:bg-gray-800/50 transition-all duration-200"
+                    >
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-12 w-12">
+                            <div className="h-12 w-12 rounded-xl bg-gradient-to-r from-blue-400 to-purple-400 flex items-center justify-center">
+                              <Building className="h-6 w-6 text-white" />
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-base font-bold text-gray-900 dark:text-white">{partner.name}</div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400 font-mono">{partner.partner_code}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-500">{getPartnerTypeLabel(partner.partner_type)}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <div className="text-sm font-semibold text-gray-900 dark:text-white">{partner.contact_person}</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">{partner.phone}</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">{partner.email}</div>
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <span className={`px-3 py-1 inline-flex text-xs font-bold rounded-full ${
+                          partner.is_active 
+                            ? 'bg-gradient-to-r from-green-400 to-green-500 text-white shadow-lg' 
+                            : 'bg-gradient-to-r from-red-400 to-red-500 text-white shadow-lg'
+                        }`}>
+                          {partner.is_active ? '有効' : '無効'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end gap-3">
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => handleEdit(partner)}
+                            className="p-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all duration-200"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => handleToggleActive(partner.id, partner.is_active)}
+                            className={`px-3 py-1 text-xs font-bold rounded-lg transition-all duration-200 ${
+                              partner.is_active 
+                                ? 'text-red-600 bg-red-50 hover:bg-red-100 dark:text-red-400 dark:bg-red-900/20 dark:hover:bg-red-900/40' 
+                                : 'text-green-600 bg-green-50 hover:bg-green-100 dark:text-green-400 dark:bg-green-900/20 dark:hover:bg-green-900/40'
+                            }`}
+                          >
+                            {partner.is_active ? '無効化' : '有効化'}
+                          </motion.button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </motion.div>
+        </ModernCard>
+      </motion.div>
     </div>
   );
 }

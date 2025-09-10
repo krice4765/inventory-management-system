@@ -14,6 +14,9 @@ import { useDarkMode } from '../hooks/useDarkMode';
 import { AddInstallmentModal } from '../components/AddInstallmentModal';
 import { useAddInstallmentModal } from '../stores/addInstallmentModal.store';
 import SearchableSelect from '../components/SearchableSelect';
+import { motion } from 'framer-motion';
+import { ModernCard } from '../components/ui/ModernCard';
+import { ShoppingCart, Plus, RefreshCw, Search, Sparkles } from 'lucide-react';
 
 // 動的カラム表示のヘルパー関数
 const getDisplayValue = (transaction: Record<string, unknown>, possibleKeys: string[], formatter?: (value: unknown) => string) => {
@@ -188,164 +191,256 @@ const { data: partners, isLoading: partnersLoading, error: partnersError } = use
   
   if (hasError) {
     return (
-      <div className="p-6">
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">データ取得エラー</h3>
-              <div className="mt-2 text-sm text-red-700">
-                <p>{partnersError?.message || transactionsError?.message}</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500">
+        <div className="p-6">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl p-6 backdrop-blur-md"
+          >
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
               </div>
-              <div className="mt-4 flex space-x-3">
-                <button
-                  onClick={() => window.location.reload()}
-                  className="bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded text-sm font-medium transition-colors"
-                >
-                  ページを再読み込み
-                </button>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-200">データ取得エラー</h3>
+                <div className="mt-2 text-sm text-red-700 dark:text-red-300">
+                  <p>{partnersError?.message || transactionsError?.message}</p>
+                </div>
+                <div className="mt-4 flex space-x-3">
+                  <motion.button
+                    onClick={() => window.location.reload()}
+                    className="bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-800 dark:text-red-200 px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    ページを再読み込み
+                  </motion.button>
+                </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">仕入管理システム</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="p-6 space-y-8"
+      >
+        {/* ヘッダー */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex justify-between items-center"
+        >
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsNewOrderModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            <motion.div
+              whileHover={{ rotate: 15 }}
+              className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl shadow-lg"
             >
-              <span className="mr-2">➕</span>
+              <ShoppingCart className="w-8 h-8 text-white" />
+            </motion.div>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                仕入管理システム
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 font-medium">発注・仕入伝票の一元管理</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <motion.button
+              onClick={() => setIsNewOrderModalOpen(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl font-semibold"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Plus className="w-4 h-4" />
               新規発注作成
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={toggleDarkMode}
-              className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm hover:shadow-md"
+              className="p-3 rounded-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-lg hover:shadow-xl"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              whileTap={{ scale: 0.9 }}
             >
               {isDark ? '☀️' : '🌙'}
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
 
-      {/* フィルタセクション */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-        <div className="flex gap-4 items-center">
-          {/* 仕入先フィルター */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              仕入先でフィルター
-            </label>
-            <SearchableSelect
-              options={partners?.map(partner => ({
-                value: partner.id,
-                label: partner.name,
-                description: partner.id === 'all-partners' ? 'すべての仕入先を表示' : `仕入先ID: ${partner.id}`
-              })) || []}
-              value={selectedPartnerId}
-              onChange={setSelectedPartnerId}
-              placeholder={partnersLoading ? "ロード中..." : "仕入先を選択"}
-              darkMode={isDark}
-              className="w-64"
-            />
-          </div>
-          
-          {/* 検索フィールドの改善 */}
-          <div>
-            <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              検索
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                id="search"
-                placeholder="商品名、会社名、メモ、取引番号で検索..."
-                value={searchKeyword}
-                onChange={(e) => setSearchKeyword(e.target.value)}
-                className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md px-3 py-2 pl-10 focus:ring-blue-500 focus:border-blue-500"
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                </svg>
+        {/* フィルタセクション */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <ModernCard className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
+                <Search className="w-5 h-5 text-white" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">検索・フィルター</h2>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* 仕入先フィルター */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  仕入先でフィルター
+                </label>
+                <SearchableSelect
+                  options={partners?.map(partner => ({
+                    value: partner.id,
+                    label: partner.name,
+                    description: partner.id === 'all-partners' ? 'すべての仕入先を表示' : `仕入先ID: ${partner.id}`
+                  })) || []}
+                  value={selectedPartnerId}
+                  onChange={setSelectedPartnerId}
+                  placeholder={partnersLoading ? "ロード中..." : "仕入先を選択"}
+                  darkMode={isDark}
+                  className="w-full"
+                />
+              </div>
+              
+              {/* 検索フィールドの改善 */}
+              <div>
+                <label htmlFor="search" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  キーワード検索
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    id="search"
+                    placeholder="商品名、会社名、メモ、取引番号で検索..."
+                    value={searchKeyword}
+                    onChange={(e) => setSearchKeyword(e.target.value)}
+                    className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl px-4 py-3 pl-11 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md font-medium"
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                  </div>
+                </div>
+                {searchKeyword && (
+                  <motion.p 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-2 text-sm text-blue-600 dark:text-blue-400 font-medium"
+                  >
+                    「{searchKeyword}」で検索中...
+                    <button
+                      onClick={() => setSearchKeyword('')}
+                      className="ml-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline font-semibold"
+                    >
+                      クリア
+                    </button>
+                  </motion.p>
+                )}
               </div>
             </div>
-            {searchKeyword && (
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                「{searchKeyword}」で検索中...
-                <button
-                  onClick={() => setSearchKeyword('')}
-                  className="ml-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
-                >
-                  クリア
-                </button>
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
+          </ModernCard>
+        </motion.div>
 
-      {/* 新規高度フィルター */}
-      <ModernAdvancedFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        onReset={handleResetFilters}
-      />
+        {/* 新規高度フィルター */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <ModernAdvancedFilters
+            filters={filters}
+            onFiltersChange={setFilters}
+            onReset={handleResetFilters}
+          />
+        </motion.div>
 
-      {/* 検索結果情報の表示 */}
-      {searchKeyword && transactions && (
-        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-md">
-          <div className="text-sm text-blue-800 dark:text-blue-200">
-            🔍 「<strong>{searchKeyword}</strong>」の検索結果: <strong>{transactions.length}件</strong>
-            {selectedPartnerId !== 'all-partners' && (
-              <span className="ml-2 text-blue-600 dark:text-blue-400">
-                （{partners?.find(p => p.id === selectedPartnerId)?.name || '選択中の仕入先'}内）
-              </span>
-            )}
-          </div>
-        </div>
-      )}
+        {/* 検索結果情報の表示 */}
+        {searchKeyword && transactions && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ModernCard className="p-4">
+              <div className="text-sm text-blue-800 dark:text-blue-200 font-medium">
+                🔍 「<strong className="text-blue-900 dark:text-blue-100">{searchKeyword}</strong>」の検索結果: <strong className="text-blue-900 dark:text-blue-100">{transactions.length}件</strong>
+                {selectedPartnerId !== 'all-partners' && (
+                  <span className="ml-2 text-blue-600 dark:text-blue-400">
+                    （{partners?.find(p => p.id === selectedPartnerId)?.name || '選択中の仕入先'}内）
+                  </span>
+                )}
+              </div>
+            </ModernCard>
+          </motion.div>
+        )}
 
-      {/* 統計バー */}
-      {!transactionsLoading && transactions.length > 0 && (
-        <ModernStatsBar items={transactions} />
-      )}
+        {/* 統計バー */}
+        {!transactionsLoading && transactions.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <ModernStatsBar items={transactions} />
+          </motion.div>
+        )}
 
-      {/* データ表示セクション */}
-      {transactionsLoading ? (
-        <div className="flex justify-center items-center p-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">取引データを読み込み中...</span>
-        </div>
-      ) : transactions.length > 0 ? (
-        <div className="bg-white dark:bg-gray-900 shadow rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-800">
-  <tr>
-    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">会社名</th>
-    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">商品/内容</th>
-    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">担当者</th>
-    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">数量</th>
-    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">金額</th>
-    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">ステータス</th>
-    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">作成日</th>
-    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">操作</th>
-  </tr>
+        {/* データ表示セクション */}
+        {transactionsLoading ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col items-center justify-center p-16"
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              className="rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mb-4"
+            />
+            <motion.span 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-lg font-medium text-gray-700 dark:text-gray-300"
+            >
+              取引データを読み込み中...
+            </motion.span>
+          </motion.div>
+        ) : transactions.length > 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <ModernCard className="overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">会社名</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">商品/内容</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">担当者</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">数量</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">金額</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">ステータス</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">作成日</th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">操作</th>
+                    </tr>
 </thead>
-              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-  {transactions.map((transaction) => (
-    <tr key={transaction.transaction_id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                    {transactions.map((transaction, index) => (
+                      <motion.tr 
+                        key={transaction.transaction_id} 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                        className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/20 dark:hover:to-purple-900/20 transition-all duration-300"
+                      >
       <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
         {transaction.partner_name || 'N/A'}
       </td>
@@ -445,68 +540,129 @@ const { data: partners, isLoading: partnersLoading, error: partnersError } = use
           )}
         </div>
       </td>
-    </tr>
-  ))}
-</tbody>
-            </table>
-          </div>
-        </div>
-      ) : (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-          <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">取引データがありません</h3>
-        </div>
-      )}
+    </motion.tr>
+                  ))}
+                </tbody>
+                </table>
+              </div>
+            </ModernCard>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <ModernCard className="text-center py-16">
+              <div className="flex flex-col items-center">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.5, type: "spring" }}
+                  className="p-6 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full mb-6"
+                >
+                  <ShoppingCart className="w-16 h-16 text-gray-400 dark:text-gray-500" />
+                </motion.div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">取引データがありません</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">新規発注を作成して取引を開始しましょう</p>
+                <motion.button
+                  onClick={() => setIsNewOrderModalOpen(true)}
+                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl font-semibold"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Plus className="w-4 h-4" />
+                  新規発注作成
+                </motion.button>
+              </div>
+            </ModernCard>
+          </motion.div>
+        )}
 
-      {/* モーダル */}
-      {isModalOpen && selectedTransaction && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
-            <PurchaseTransactionForm
-              parentOrderId={String(selectedTransaction.parent_order_id)}
-              transactionId={String(selectedTransaction.transaction_id)}
-              initialData={{
-                total_amount: Number(selectedTransaction.total_amount) || 0,
-                memo: String(selectedTransaction.memo || selectedTransaction.order_memo || ''),
-                transaction_date: String(selectedTransaction.transaction_date || '').split('T')[0],
-                status: String(selectedTransaction.status || 'draft'),
-                order_no: String(selectedTransaction.transaction_no || '')
-              }}
-              onSuccess={handleFormSuccess}
-              onCancel={() => setIsModalOpen(false)}
-            />
-          </div>
-        </div>
-      )}
+        {/* モーダル */}
+        {isModalOpen && selectedTransaction && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg border border-gray-200 dark:border-gray-700"
+            >
+              <PurchaseTransactionForm
+                parentOrderId={String(selectedTransaction.parent_order_id)}
+                transactionId={String(selectedTransaction.transaction_id)}
+                initialData={{
+                  total_amount: Number(selectedTransaction.total_amount) || 0,
+                  memo: String(selectedTransaction.memo || selectedTransaction.order_memo || ''),
+                  transaction_date: String(selectedTransaction.transaction_date || '').split('T')[0],
+                  status: String(selectedTransaction.status || 'draft'),
+                  order_no: String(selectedTransaction.transaction_no || '')
+                }}
+                onSuccess={handleFormSuccess}
+                onCancel={() => setIsModalOpen(false)}
+              />
+            </motion.div>
+          </motion.div>
+        )}
 
-      {/* 🆕 新規発注作成モーダル */}
-      {isNewOrderModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-50" 
-            onClick={() => setIsNewOrderModalOpen(false)} 
-          />
-          <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">新規発注作成</h2>
-              <button
-                onClick={() => setIsNewOrderModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-xl font-semibold"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <PurchaseOrderForm
-              onSuccess={handleNewOrderSuccess}
-              onCancel={() => setIsNewOrderModalOpen(false)}
+        {/* 🆕 新規発注作成モーダル */}
+        {isNewOrderModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm" 
+              onClick={() => setIsNewOrderModalOpen(false)} 
             />
-          </div>
-        </div>
-      )}
-      
-      {/* 🆕 分納追加モーダル */}
-      <AddInstallmentModal />
-      </div>
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full p-8 max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700"
+            >
+              <div className="flex justify-between items-center mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl">
+                    <Plus className="w-6 h-6 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    新規発注作成
+                  </h2>
+                </div>
+                <motion.button
+                  onClick={() => setIsNewOrderModalOpen(false)}
+                  className="p-2 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 hover:text-gray-700 dark:hover:text-gray-200 transition-all"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </motion.button>
+              </div>
+              
+              <PurchaseOrderForm
+                onSuccess={handleNewOrderSuccess}
+                onCancel={() => setIsNewOrderModalOpen(false)}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+        
+        {/* 🆕 分納追加モーダル */}
+        <AddInstallmentModal />
+      </motion.div>
     </div>
   );
 }

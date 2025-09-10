@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
-import { Plus, Minus, Package, Calendar, Search, X, Eye } from 'lucide-react';
+import { Plus, Minus, Package, Calendar, Search, X, Eye, Warehouse, TrendingUp, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { recordInventoryTransaction } from '../utils/inventoryIntegration';
+import { ModernCard } from '../components/ui/ModernCard';
+import { ModernStatsBar } from '../components/ModernStatsBar';
 
 interface Product {
   id: string;
@@ -251,40 +254,77 @@ export default function Inventory() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-green-900/20 dark:to-blue-900/20 transition-all duration-500">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600 dark:text-gray-400">在庫データを読み込み中...</span>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="rounded-full h-16 w-16 border-4 border-green-500 border-t-transparent"
+          />
+          <span className="ml-3 text-gray-700 dark:text-gray-300 font-medium">在庫データを読み込み中...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-green-900/20 dark:to-blue-900/20 transition-all duration-500">
       <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">在庫管理システム</h1>
+        <motion.div 
+          className="flex items-center justify-between"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <div className="flex items-center gap-3">
-            <button
+            <div className="p-2 bg-gradient-to-r from-green-500 to-blue-500 rounded-xl">
+              <Warehouse className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">
+                在庫管理システム
+              </h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">入出庫履歴の確認・Quick操作</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <motion.button
               onClick={() => setShowQuickForm(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+              className="flex items-center px-6 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-xl hover:from-green-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl font-medium"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               <Package className="w-4 h-4 mr-2" />
               Quick入出庫
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={toggleDarkMode}
-              className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm hover:shadow-md"
+              className="p-2 rounded-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-lg hover:shadow-xl"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              whileTap={{ scale: 0.9 }}
             >
               {isDark ? '☀️' : '🌙'}
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
+
+        {/* モダン統計バー */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <ModernStatsBar items={filteredMovements} />
+        </motion.div>
 
         {/* 検索・フィルター機能 */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-          <div className="p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <ModernCard className="p-6">
+            <div className="p-0">
             {/* 検索バー（上段） */}
             <div className="mb-4">
               <div className="relative">
@@ -441,8 +481,9 @@ export default function Inventory() {
                 </div>
               )}
             </div>
-          </div>
-        </div>
+            </div>
+          </ModernCard>
+        </motion.div>
 
       {showQuickForm && (
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
@@ -452,14 +493,14 @@ export default function Inventory() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">商品</label>
               <select
                 required
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm font-medium"
                 value={quickFormData.product_id}
                 onChange={(e) => setQuickFormData({ ...quickFormData, product_id: e.target.value })}
               >
                 <option value="">商品を選択</option>
                 {products.map((product) => (
                   <option key={product.id} value={product.id}>
-                    {product.product_name} ({product.product_code}) - 在庫: {product.current_stock}
+                    {product.product_name} ({product.product_code}) - 🔢 残り：{product.current_stock}個
                   </option>
                 ))}
               </select>
@@ -524,10 +565,18 @@ export default function Inventory() {
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">入出庫履歴</h2>
-        </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
+        <ModernCard className="overflow-hidden">
+          <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200/50 dark:border-gray-700/50">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <Warehouse className="w-6 h-6 text-green-600 dark:text-green-400" />
+              入出庫履歴
+            </h2>
+          </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-800">
@@ -694,7 +743,8 @@ export default function Inventory() {
             </tbody>
           </table>
         </div>
-      </div>
+        </ModernCard>
+      </motion.div>
 
       {/* 在庫履歴詳細モーダル */}
       {showDetailModal && selectedMovement && (

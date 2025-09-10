@@ -7,6 +7,11 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        'sans': ['Inter', 'Noto Sans JP', 'system-ui', 'sans-serif'],
+        'display': ['Inter', 'Noto Sans JP', 'system-ui', 'sans-serif'],
+        'body': ['Inter', 'Noto Sans JP', 'system-ui', 'sans-serif'],
+      },
       colors: {
         primary: {
           50: '#eff6ff',
