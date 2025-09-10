@@ -49,7 +49,7 @@ export default function Sidebar() {
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 animate-pulse"></div>
         <div className="relative flex items-center gap-2">
           <Sparkles className="w-6 h-6 text-white animate-pulse" />
-          <h1 className="text-white text-lg font-bold tracking-wide">在庫管理システム</h1>
+          <h1 className="text-white text-lg font-bold tracking-wide">統合業務管理システム</h1>
         </div>
       </motion.div>
 

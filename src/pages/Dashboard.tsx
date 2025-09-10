@@ -466,7 +466,7 @@ export default function Dashboard() {
             </div>
             <div className="prose prose-lg text-gray-600 dark:text-gray-400 max-w-none">
               <p className="text-lg leading-relaxed mb-6">
-                在庫管理システムへようこそ。このダッシュボードでは、商品在庫の概要をリアルタイムで確認できます。
+                統合業務管理システムへようこそ。このダッシュボードでは、商品管理・在庫管理・発注管理・取引先管理の各機能を統合的に確認できます。
               </p>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-4">
