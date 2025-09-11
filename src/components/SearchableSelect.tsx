@@ -5,6 +5,7 @@ interface Option {
   value: string;
   label: string;
   description?: string;
+  disabled?: boolean;
 }
 
 interface SearchableSelectProps {
@@ -81,19 +82,25 @@ export default function SearchableSelect({
         break;
       case 'ArrowDown':
         e.preventDefault();
-        setHighlightedIndex(prev => 
-          prev < filteredOptions.length - 1 ? prev + 1 : 0
-        );
+        let nextDown = prev < filteredOptions.length - 1 ? prev + 1 : 0;
+        // disabled項目をスキップ
+        while (filteredOptions[nextDown]?.disabled && nextDown !== prev) {
+          nextDown = nextDown < filteredOptions.length - 1 ? nextDown + 1 : 0;
+        }
+        setHighlightedIndex(nextDown);
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setHighlightedIndex(prev => 
-          prev > 0 ? prev - 1 : filteredOptions.length - 1
-        );
+        let nextUp = prev > 0 ? prev - 1 : filteredOptions.length - 1;
+        // disabled項目をスキップ
+        while (filteredOptions[nextUp]?.disabled && nextUp !== prev) {
+          nextUp = nextUp > 0 ? nextUp - 1 : filteredOptions.length - 1;
+        }
+        setHighlightedIndex(nextUp);
         break;
       case 'Enter':
         e.preventDefault();
-        if (highlightedIndex >= 0 && filteredOptions[highlightedIndex]) {
+        if (highlightedIndex >= 0 && filteredOptions[highlightedIndex] && !filteredOptions[highlightedIndex].disabled) {
           handleSelect(filteredOptions[highlightedIndex].value);
         }
         break;
@@ -233,10 +240,20 @@ export default function SearchableSelect({
               filteredOptions.map((option, index) => (
                 <div
                   key={option.value}
-                  onClick={() => handleSelect(option.value)}
+                  onClick={() => {
+                    if (option.disabled) {
+                      alert('⚠️ この商品は既に他の明細行で選択されています。\n\n同じ商品を複数回選択することはできません。');
+                      return;
+                    }
+                    handleSelect(option.value);
+                  }}
                   className={`
-                    px-3 py-2 cursor-pointer transition-colors duration-150 border-b border-transparent
-                    ${index === highlightedIndex 
+                    px-3 py-2 transition-colors duration-150 border-b border-transparent
+                    ${option.disabled 
+                      ? 'cursor-not-allowed opacity-50' 
+                      : 'cursor-pointer'
+                    }
+                    ${!option.disabled && index === highlightedIndex 
                       ? darkMode ? 'bg-blue-600 text-white border-blue-500' : 'bg-blue-50 text-blue-900 border-blue-200'
                       : darkMode 
                         ? 'text-white hover:bg-gray-700 border-gray-700' 

@@ -127,6 +127,14 @@ export default function OrderDetail() {
       setOrder(orderInfo);
       
       // 🚨 明細データを安全に整形
+      console.log('📋 発注明細データ確認:', {
+        order_id: orderDetailData.id,
+        order_no: orderDetailData.order_no,
+        has_items: !!orderDetailData.purchase_order_items,
+        items_count: orderDetailData.purchase_order_items?.length || 0,
+        raw_items: orderDetailData.purchase_order_items
+      });
+
       const formattedItems: OrderItem[] = Array.isArray(orderDetailData.purchase_order_items) && orderDetailData.purchase_order_items.length > 0
         ? orderDetailData.purchase_order_items.map((item: any) => ({
             product_name: item.products?.product_name || '商品名未設定',
@@ -136,6 +144,8 @@ export default function OrderDetail() {
             total_amount: item.total_amount || 0,
           }))
         : []; // 明細がない場合は空配列
+      
+      console.log('📦 整形後の明細データ:', formattedItems);
       
       setItems(formattedItems);
     } catch (error) {
@@ -337,32 +347,49 @@ export default function OrderDetail() {
                 </tr>
               </thead>
               <tbody className={`${isDark ? 'bg-gray-800' : 'bg-white'} divide-y divide-gray-200 dark:divide-gray-700`}>
-                {items.map((item, index) => (
-                  <tr key={index} className={`${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} transition-colors`}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <Package className="h-8 w-8 text-gray-400 mr-3" />
-                        <div>
-                          <div className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            {item.product_name}
-                          </div>
-                          <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                            {item.product_code}
-                          </div>
-                        </div>
+                {items.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-12 text-center">
+                      <div className={`text-gray-500 ${isDark ? 'dark:text-gray-400' : ''}`}>
+                        <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p className="text-lg font-medium mb-2">発注明細が見つかりません</p>
+                        <p className="text-sm">
+                          この発注の明細データが存在しないか、読み込みに失敗しました。
+                        </p>
+                        <p className="text-xs mt-2 text-red-500">
+                          デバッグ: Order ID = {order?.purchase_order_id}
+                        </p>
                       </div>
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {item.quantity}
-                    </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      ¥{item.unit_price.toLocaleString()}
-                    </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      ¥{item.total_amount.toLocaleString()}
-                    </td>
                   </tr>
-                ))}
+                ) : (
+                  items.map((item, index) => (
+                    <tr key={index} className={`${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} transition-colors`}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <Package className="h-8 w-8 text-gray-400 mr-3" />
+                          <div>
+                            <div className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                              {item.product_name}
+                            </div>
+                            <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                              {item.product_code}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {item.quantity}
+                      </td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        ¥{item.unit_price.toLocaleString()}
+                      </td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        ¥{item.total_amount.toLocaleString()}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

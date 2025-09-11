@@ -15,6 +15,16 @@ interface DashboardStats {
   totalCustomers: number;
   pendingOrders: number;
   monthlyProfit: number;
+  // 分納関連KPI
+  activeOrders: number;
+  deliveryProgress: {
+    completed: number;
+    partial: number;
+    pending: number;
+    completionRate: number;
+  };
+  monthlyDeliveryAmount: number;
+  averageDeliveryTime: number;
 }
 
 export default function Dashboard() {
@@ -28,6 +38,15 @@ export default function Dashboard() {
     totalCustomers: 0,
     pendingOrders: 0,
     monthlyProfit: 0,
+    activeOrders: 0,
+    deliveryProgress: {
+      completed: 0,
+      partial: 0,
+      pending: 0,
+      completionRate: 0,
+    },
+    monthlyDeliveryAmount: 0,
+    averageDeliveryTime: 0,
   });
   const [loading, setLoading] = useState(true);
   const [weeklyActivity, setWeeklyActivity] = useState({
@@ -138,12 +157,87 @@ export default function Dashboard() {
         sum + ((product.current_stock || 0) * (product.selling_price || 0)), 0
       ) || 0;
 
-      // モック売上データ（将来的には実際のデータベースから取得）
-      const currentMonth = new Date().getMonth();
-      const mockMonthlySales = Math.floor(Math.random() * 5000000) + 2000000; // 200万〜700万
-      const mockTotalCustomers = Math.floor(Math.random() * 200) + 50; // 50〜250顧客
-      const mockPendingOrders = Math.floor(Math.random() * 15) + 5; // 5〜20件
-      const mockMonthlyProfit = Math.floor(mockMonthlySales * 0.15); // 売上の15%を利益と仮定
+      // 分納進捗データを取得（purchase_ordersテーブルが存在しない場合のデフォルト）
+      let purchaseOrders: any[] = [];
+      try {
+        const { data: orderData } = await supabase
+          .from('purchase_orders')
+          .select('id, total_amount, status, created_at');
+        purchaseOrders = orderData || [];
+      } catch (error) {
+        console.warn('purchase_ordersテーブルが見つかりません。デフォルトデータを使用:', error);
+        purchaseOrders = [];
+      }
+
+      // 取引データを取得（transactionsテーブルが存在しない場合のデフォルト）
+      let transactions: any[] = [];
+      try {
+        const { data: transactionData } = await supabase
+          .from('transactions')
+          .select('total_amount, created_at, parent_order_id')
+          .eq('transaction_type', 'purchase')
+          .eq('status', 'confirmed');
+        transactions = transactionData || [];
+      } catch (error) {
+        console.warn('transactionsテーブルが見つかりません。デフォルトデータを使用:', error);
+        transactions = [];
+      }
+
+      // アクティブ発注（未完了）
+      const activeOrders = purchaseOrders?.filter(order => 
+        order.status === 'pending' || order.status === 'confirmed'
+      ).length || 0;
+
+      // 分納進捗計算 - purchase_ordersテーブルの基本情報のみ使用
+      const completed = purchaseOrders?.filter(order => 
+        order.status === 'completed'
+      ).length || 0;
+      
+      const partial = purchaseOrders?.filter(order => 
+        order.status === 'partial'
+      ).length || 0;
+      
+      const pending = purchaseOrders?.filter(order => 
+        order.status === 'pending'
+      ).length || 0;
+      
+      const totalOrders = purchaseOrders?.length || 1;
+      const completionRate = (completed / totalOrders) * 100;
+
+      // 今月の分納金額
+      const currentMonth = new Date();
+      const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+      const monthlyDeliveryAmount = transactions?.filter(t => 
+        new Date(t.created_at) >= monthStart
+      ).reduce((sum, t) => sum + t.total_amount, 0) || 0;
+
+      // 平均分納時間（発注から初回分納まで）の計算
+      const ordersWithDeliveries = purchaseOrders?.filter(order => 
+        (order.delivery_amount || 0) > 0
+      ) || [];
+      
+      let totalDeliveryTime = 0;
+      let deliveryCount = 0;
+      
+      for (const order of ordersWithDeliveries) {
+        const firstDelivery = transactions?.find(t => t.parent_order_id === order.id);
+        if (firstDelivery) {
+          const orderDate = new Date(order.created_at);
+          const deliveryDate = new Date(firstDelivery.created_at);
+          const timeDiff = deliveryDate.getTime() - orderDate.getTime();
+          totalDeliveryTime += timeDiff / (1000 * 60 * 60 * 24); // 日数に変換
+          deliveryCount++;
+        }
+      }
+      
+      const averageDeliveryTime = deliveryCount > 0 ? Math.round(totalDeliveryTime / deliveryCount) : 0;
+
+      // モック売上データ（固定値でユーザーが混乱しないように）
+      // 実際のデータベースと連携するまでの仮のデータ
+      const mockMonthlySales = 5974515; // 固定値
+      const mockTotalCustomers = 58; // 固定値
+      const mockPendingOrders = 15; // 固定値
+      const mockMonthlyProfit = 896177; // 固定値
 
       setStats({
         totalProducts,
@@ -154,6 +248,15 @@ export default function Dashboard() {
         totalCustomers: mockTotalCustomers,
         pendingOrders: mockPendingOrders,
         monthlyProfit: mockMonthlyProfit,
+        activeOrders,
+        deliveryProgress: {
+          completed,
+          partial,
+          pending,
+          completionRate,
+        },
+        monthlyDeliveryAmount,
+        averageDeliveryTime,
       });
     } catch (error) {
       console.error('Dashboard stats fetch error:', error);
@@ -302,8 +405,11 @@ export default function Dashboard() {
             <ModernCard className="p-6 hover:shadow-xl transition-shadow duration-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">
+                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-1">
                     在庫評価額
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    現在の在庫数×販売価格の合計
                   </p>
                   <p className="text-3xl font-bold text-gray-900 dark:text-white">
                     ¥{stats.totalValue.toLocaleString()}
@@ -316,6 +422,55 @@ export default function Dashboard() {
             </ModernCard>
           </motion.div>
         </div>
+
+        {/* システム概要セクション - 位置を上部に移動 */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+        >
+          <ModernCard className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">システム概要</h2>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              統合業務管理システムへようこそ。商品管理・在庫管理・発注管理・取引先管理の各機能を統合的に確認できます。
+            </p>
+            <div className="grid md:grid-cols-4 gap-3">
+              <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/10 rounded-lg">
+                <Package className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <div className="text-sm">
+                  <strong className="text-blue-900 dark:text-blue-100">商品管理</strong>
+                  <p className="text-xs text-blue-700 dark:text-blue-300">商品マスター登録</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/10 rounded-lg">
+                <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400" />
+                <div className="text-sm">
+                  <strong className="text-green-900 dark:text-green-100">在庫管理</strong>
+                  <p className="text-xs text-green-700 dark:text-green-300">入出庫履歴確認</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 p-3 bg-purple-50 dark:bg-purple-900/10 rounded-lg">
+                <AlertTriangle className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                <div className="text-sm">
+                  <strong className="text-purple-900 dark:text-purple-100">取引先管理</strong>
+                  <p className="text-xs text-purple-700 dark:text-purple-300">仕入先・販売先管理</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-lg">
+                <DollarSign className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <div className="text-sm">
+                  <strong className="text-amber-900 dark:text-amber-100">発注管理</strong>
+                  <p className="text-xs text-amber-700 dark:text-amber-300">発注・仕入伝票管理</p>
+                </div>
+              </div>
+            </div>
+          </ModernCard>
+        </motion.div>
 
         {/* 売上統計セクション */}
         <motion.div
@@ -388,8 +543,11 @@ export default function Dashboard() {
               <ModernCard className="p-6 hover:shadow-xl transition-shadow duration-300">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">
+                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-1">
                       保留中注文
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                      処理待ちの注文件数
                     </p>
                     <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.pendingOrders}</p>
                   </div>
@@ -422,6 +580,187 @@ export default function Dashboard() {
                 </div>
               </ModernCard>
             </motion.div>
+          </div>
+        </motion.div>
+
+        {/* 分納進捗KPIセクション */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 1.1 }}
+          className="mb-8"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg">
+              <Package className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">分納進捗KPI</h2>
+            <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-full font-medium">
+              リアルタイム更新
+            </span>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* アクティブ発注数 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 1.2 }}
+            >
+              <ModernCard className="p-6 hover:shadow-xl transition-shadow duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      アクティブ発注
+                    </p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.activeOrders}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">進行中の発注</p>
+                  </div>
+                  <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl">
+                    <Package className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                </div>
+              </ModernCard>
+            </motion.div>
+
+            {/* 完了率 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 1.3 }}
+            >
+              <ModernCard className="p-6 hover:shadow-xl transition-shadow duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      完了率
+                    </p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                      {Math.round(stats.deliveryProgress.completionRate)}%
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {stats.deliveryProgress.completed}件完了
+                    </p>
+                  </div>
+                  <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                    <TrendingUp className="h-8 w-8 text-green-600 dark:text-green-400" />
+                  </div>
+                </div>
+                {/* 進捗バー */}
+                <div className="mt-3">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(stats.deliveryProgress.completionRate, 100)}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </ModernCard>
+            </motion.div>
+
+            {/* 月間分納金額 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 1.4 }}
+            >
+              <ModernCard className="p-6 hover:shadow-xl transition-shadow duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      月間分納金額
+                    </p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                      ¥{stats.monthlyDeliveryAmount.toLocaleString()}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">今月の実績</p>
+                  </div>
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                    <DollarSign className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                  </div>
+                </div>
+              </ModernCard>
+            </motion.div>
+
+            {/* 平均分納日数 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 1.5 }}
+            >
+              <ModernCard className="p-6 hover:shadow-xl transition-shadow duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      平均分納日数
+                    </p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                      {stats.averageDeliveryTime}日
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">発注〜初回分納</p>
+                  </div>
+                  <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl">
+                    <Calendar className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+                  </div>
+                </div>
+              </ModernCard>
+            </motion.div>
+          </div>
+
+          {/* 分納状況詳細 */}
+          <div className="mt-6">
+            <ModernCard className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">分納状況詳細</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* 完了 */}
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span className="font-medium text-green-900 dark:text-green-100">完了</span>
+                    </div>
+                    <span className="text-2xl font-bold text-green-600 dark:text-green-400">
+                      {stats.deliveryProgress.completed}
+                    </span>
+                  </div>
+                  <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                    全数量の分納が完了した発注
+                  </p>
+                </div>
+
+                {/* 部分完了 */}
+                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+                      <span className="font-medium text-amber-900 dark:text-amber-100">部分完了</span>
+                    </div>
+                    <span className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                      {stats.deliveryProgress.partial}
+                    </span>
+                  </div>
+                  <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                    一部分納済みで残数量がある発注
+                  </p>
+                </div>
+
+                {/* 未着手 */}
+                <div className="bg-gray-50 dark:bg-gray-900/20 rounded-xl p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                      <span className="font-medium text-gray-900 dark:text-gray-100">未着手</span>
+                    </div>
+                    <span className="text-2xl font-bold text-gray-600 dark:text-gray-400">
+                      {stats.deliveryProgress.pending}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
+                    まだ分納が開始されていない発注
+                  </p>
+                </div>
+              </div>
+            </ModernCard>
           </div>
         </motion.div>
 
@@ -578,67 +917,6 @@ export default function Dashboard() {
           </ModernCard>
         </motion.div>
 
-        {/* システム概要セクション */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-        >
-          <ModernCard className="p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">システム概要</h2>
-            </div>
-            <div className="prose prose-lg text-gray-600 dark:text-gray-400 max-w-none">
-              <p className="text-lg leading-relaxed mb-6">
-                統合業務管理システムへようこそ。このダッシュボードでは、商品管理・在庫管理・発注管理・取引先管理の各機能を統合的に確認できます。
-              </p>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl">
-                    <Package className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    <div>
-                      <strong className="text-blue-900 dark:text-blue-100">商品管理</strong>
-                      <p className="text-sm text-blue-700 dark:text-blue-300">商品マスターの登録・編集</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/10 rounded-xl">
-                    <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
-                    <div>
-                      <strong className="text-green-900 dark:text-green-100">在庫管理</strong>
-                      <p className="text-sm text-green-700 dark:text-green-300">入出庫履歴の確認・Quick操作</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 p-4 bg-purple-50 dark:bg-purple-900/10 rounded-xl">
-                    <AlertTriangle className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                    <div>
-                      <strong className="text-purple-900 dark:text-purple-100">取引先管理</strong>
-                      <p className="text-sm text-purple-700 dark:text-purple-300">仕入先・販売先の管理</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/10 rounded-xl">
-                    <DollarSign className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                    <div>
-                      <strong className="text-amber-900 dark:text-amber-100">発注管理</strong>
-                      <p className="text-sm text-amber-700 dark:text-amber-300">発注・仕入伝票の管理</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-4 bg-indigo-50 dark:bg-indigo-900/10 rounded-xl">
-                    <Package className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                    <div>
-                      <strong className="text-indigo-900 dark:text-indigo-100">仕入伝票管理</strong>
-                      <p className="text-sm text-indigo-700 dark:text-indigo-300">仕入実績・入荷処理の管理</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </ModernCard>
-        </motion.div>
       </div>
     </div>
   );

@@ -55,6 +55,25 @@ export interface OrderPDFData {
   }>;
 }
 
+export interface DeliveryNotePDFData {
+  id: string;
+  delivery_no: string;
+  delivery_date: string;
+  order_no: string;
+  partner_name: string;
+  delivery_sequence: number;
+  total_amount: number;
+  notes?: string;
+  items: Array<{
+    product_name: string;
+    product_code: string;
+    drawing_number?: string;
+    delivered_quantity: number;
+    unit_price: number;
+    total_amount: number;
+  }>;
+}
+
 export interface PDFOperationResult {
   success: boolean;
   pdfBlob?: Blob;

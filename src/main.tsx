@@ -6,17 +6,31 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import App from './App.tsx';
 import './index.css';
 
-// 富士精工様向けシステム用QueryClient - 本番環境最適化設定
+// 富士精工様向けシステム用QueryClient - パフォーマンス最適化設定
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5分間キャッシュ
-      retry: 3, // エラー時3回リトライ
+      gcTime: 1000 * 60 * 10, // 10分間メモリ保持
+      retry: (failureCount, error) => {
+        // 404エラーはリトライしない
+        if (error?.status === 404) return false;
+        // ネットワークエラー以外は最大2回
+        if (error?.message?.includes('NetworkError')) return failureCount < 3;
+        return failureCount < 2;
+      },
       refetchOnWindowFocus: false, // 本番環境での不要な再取得を防止
       refetchOnMount: true, // マウント時のデータ更新
+      refetchInterval: false, // デフォルトでは自動更新しない
+      networkMode: 'online', // オンライン時のみクエリ実行
     },
     mutations: {
-      retry: 1, // 変更処理は1回のリトライのみ
+      retry: (failureCount, error) => {
+        // 重複エラー（409）やバリデーションエラー（400）はリトライしない
+        if (error?.status === 409 || error?.status === 400) return false;
+        return failureCount < 1; // 変更処理は1回のリトライのみ
+      },
+      networkMode: 'online',
     },
   },
 })

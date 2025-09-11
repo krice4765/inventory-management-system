@@ -8,8 +8,8 @@ export const useOrderForDelivery = (orderId: string | null) => {
     queryFn: async () => {
       if (!orderId) return null;
       
-      // 発注データ、発注明細、分納実績、在庫移動履歴を並列取得
-      const [orderResult, itemsResult, deliveryResult, movementsResult] = await Promise.all([
+      // 発注データ、発注明細、分納実績、在庫移動履歴、現在の在庫残高を並列取得
+      const [orderResult, itemsResult, deliveryResult, movementsResult, stockResult] = await Promise.all([
         supabase
           .from('purchase_orders')
           .select('id, order_no, total_amount, partner_id, status, delivery_deadline')
@@ -36,18 +36,24 @@ export const useOrderForDelivery = (orderId: string | null) => {
         supabase
           .from('inventory_movements')
           .select('product_id, quantity, transaction_id')
-          .eq('movement_type', 'in')
+          .eq('movement_type', 'in'),
+        // 現在の在庫残高を取得（整合性チェック用）
+        supabase
+          .from('products')
+          .select('id, product_name, current_stock')
       ]);
         
       if (orderResult.error) throw orderResult.error;
       if (itemsResult.error) throw itemsResult.error;
       if (deliveryResult.error) throw deliveryResult.error;
       if (movementsResult.error) throw movementsResult.error;
+      if (stockResult.error) throw stockResult.error;
       
       const data = orderResult.data;
       const items = itemsResult.data || [];
       const deliveries = deliveryResult.data || [];
       const movements = movementsResult.data || [];
+      const currentStocks = stockResult.data || [];
       
       // 分納実績を合計
       const delivered_amount = deliveries.reduce((sum, delivery) => sum + (delivery.total_amount || 0), 0);
@@ -80,6 +86,14 @@ export const useOrderForDelivery = (orderId: string | null) => {
       
       console.log('📊 商品別分納数量:', deliveredQuantitiesByProduct);
       
+      // 現在在庫との整合性チェック
+      const stockMap = currentStocks.reduce((acc: { [key: string]: number }, stock) => {
+        acc[stock.id] = stock.current_stock || 0;
+        return acc;
+      }, {});
+      
+      console.log('📦 現在在庫状況:', stockMap);
+      
       // 仕入先名を取得
       let partnerName = '仕入先未設定';
       if (data.partner_id) {
@@ -110,6 +124,11 @@ export const useOrderForDelivery = (orderId: string | null) => {
         items: items.map((item: any) => {
           const deliveredQuantity = deliveredQuantitiesByProduct[item.product_id] || 0;
           const remainingQuantity = Math.max(0, item.quantity - deliveredQuantity);
+          const currentStock = stockMap[item.product_id] || 0;
+          
+          // 🎯 在庫整合性チェック
+          const hasStockForDelivery = currentStock >= remainingQuantity;
+          const stockShortage = remainingQuantity > currentStock ? remainingQuantity - currentStock : 0;
           
           return {
             id: item.id,
@@ -120,7 +139,12 @@ export const useOrderForDelivery = (orderId: string | null) => {
             delivered_quantity: deliveredQuantity,
             remaining_quantity: remainingQuantity,
             unit_price: item.unit_price,
-            total_price: item.quantity * item.unit_price
+            total_price: item.quantity * item.unit_price,
+            // 在庫整合性情報
+            current_stock: currentStock,
+            has_stock_for_delivery: hasStockForDelivery,
+            stock_shortage: stockShortage,
+            stock_status: hasStockForDelivery ? 'sufficient' : (currentStock > 0 ? 'insufficient' : 'out_of_stock')
           };
         })
       };

@@ -198,27 +198,48 @@ export default function Partners() {
   // パートナー担当者を発注担当者テーブルに同期する関数
   const syncPartnerToOrderManager = async (partnerId: string, partnerData: any) => {
     try {
-      // 既存の発注担当者をチェック（名前のみで重複チェック）
-      const { data: existingManager } = await supabase
-        .from('order_managers')
-        .select('id')
-        .eq('name', partnerData.contact_person)
-        .maybeSingle();
+      // 既存の発注担当者をチェック（メールアドレスがある場合は優先、無い場合は名前）
+      let existingManager;
+      
+      if (partnerData.email && partnerData.email.trim()) {
+        // メールアドレスがある場合、メールアドレスで重複チェック
+        const { data } = await supabase
+          .from('order_managers')
+          .select('id, name, email')
+          .eq('email', partnerData.email.trim())
+          .maybeSingle();
+        existingManager = data;
+      } else {
+        // メールアドレスがない場合、名前で重複チェック
+        const { data } = await supabase
+          .from('order_managers')
+          .select('id, name, email')
+          .eq('name', partnerData.contact_person)
+          .maybeSingle();
+        existingManager = data;
+      }
 
       if (!existingManager) {
         // 新規発注担当者として追加
+        const insertData: any = {
+          name: partnerData.contact_person,
+          department: `${partnerData.name}担当`,
+          is_active: true,
+          partner_id: partnerId // パートナーとの関連を保持
+        };
+
+        // メールアドレスがある場合のみ追加（重複制約を避けるため）
+        if (partnerData.email && partnerData.email.trim()) {
+          insertData.email = partnerData.email.trim();
+        }
+
         const { error } = await supabase
           .from('order_managers')
-          .insert([{
-            name: partnerData.contact_person,
-            department: `${partnerData.name}担当`,
-            email: partnerData.email || null,
-            is_active: true,
-            partner_id: partnerId // パートナーとの関連を保持
-          }]);
+          .insert([insertData]);
 
         if (error) {
           console.warn('発注担当者の同期に失敗:', error);
+          throw error;
         } else {
           console.log('発注担当者を同期しました:', partnerData.contact_person);
           // 発注担当者キャッシュを無効化して最新データを反映

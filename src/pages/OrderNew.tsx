@@ -186,12 +186,38 @@ export default function OrderNew() {
       return;
     }
 
+    if (!formData.delivery_deadline) {
+      toast.error('納期を設定してください');
+      return;
+    }
+
     const sanitized = items.map(sanitizeRow);
     setItems(sanitized);
     const validItems = sanitized.filter(r => r.product_id && r.quantity > 0);
 
     if (validItems.length === 0) {
       toast.error('有効な明細行を追加してください');
+      return;
+    }
+
+    // 🛡️ 重複商品チェック（OrderNew.tsx）
+    const selectedProductIds = validItems.map(item => item.product_id);
+    const uniqueSelectedIds = [...new Set(selectedProductIds)];
+    
+    if (selectedProductIds.length !== uniqueSelectedIds.length) {
+      const duplicateIds = selectedProductIds.filter((id, index) => selectedProductIds.indexOf(id) !== index);
+      const duplicateProducts = products.filter(p => duplicateIds.includes(p.id));
+      const duplicateNames = duplicateProducts.map(p => p.product_name).join(', ');
+      
+      toast.error(`🚫 重複商品があります\n\n同じ商品が複数の明細行で選択されています:\n${duplicateNames}\n\n各商品は1つの明細行でのみ選択してください。`, {
+        duration: 4000,
+        style: {
+          background: '#FEF2F2',
+          border: '2px solid #F87171',
+          color: '#DC2626',
+          fontSize: '14px'
+        }
+      });
       return;
     }
 
