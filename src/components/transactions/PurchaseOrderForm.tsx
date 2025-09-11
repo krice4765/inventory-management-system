@@ -197,8 +197,33 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
       toast.error('発注担当者を選択してください');
       return;
     }
+    if (!expectedDate) {
+      toast.error('納期を設定してください');
+      return;
+    }
     if (items.some(item => !item.product_id || toNumber(item.quantity) <= 0)) {
       toast.error('すべての明細行で商品を選択し、数量を正しく入力してください');
+      return;
+    }
+    
+    // 🛡️ 事前重複チェック（送信前）
+    const selectedProductIds = items.map(item => item.product_id);
+    const uniqueSelectedIds = [...new Set(selectedProductIds)];
+    
+    if (selectedProductIds.length !== uniqueSelectedIds.length) {
+      const duplicateIds = selectedProductIds.filter((id, index) => selectedProductIds.indexOf(id) !== index);
+      const duplicateProducts = products.filter(p => duplicateIds.includes(p.id));
+      const duplicateNames = duplicateProducts.map(p => p.product_name).join(', ');
+      
+      toast.error(`🚫 重複商品があります\n\n同じ商品が複数の明細行で選択されています:\n${duplicateNames}\n\n各商品は1つの明細行でのみ選択してください。`, {
+        duration: 4000,
+        style: {
+          background: '#FEF2F2',
+          border: '2px solid #F87171',
+          color: '#DC2626',
+          fontSize: '14px'
+        }
+      });
       return;
     }
 
@@ -257,11 +282,26 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
 
       console.log('🚀 [OrderItems] 明細保存データ:', orderItemsData);
 
-      // 🛡️ 重複商品検証
+      // 🛡️ 重複商品検証の強化
       const productIds = orderItemsData.map(item => item.product_id);
       const uniqueProductIds = [...new Set(productIds)];
       if (productIds.length !== uniqueProductIds.length) {
-        throw new Error('同一商品を複数回追加することはできません');
+        // どの商品が重複しているかを特定
+        const duplicateProductIds = productIds.filter((id, index) => productIds.indexOf(id) !== index);
+        const duplicateProducts = products.filter(p => duplicateProductIds.includes(p.id));
+        const duplicateNames = duplicateProducts.map(p => p.product_name).join(', ');
+        
+        // ユーザーフレンドリーなエラーメッセージ
+        toast.error(`🚫 重複商品エラー\n\n同じ商品を複数の明細行で選択することはできません。\n\n重複商品: ${duplicateNames}\n\n各商品は1つの明細行でのみ選択してください。`, {
+          duration: 6000,
+          style: {
+            background: '#FEF2F2',
+            border: '2px solid #F87171',
+            color: '#DC2626'
+          }
+        });
+        
+        throw new Error(`重複商品: ${duplicateNames}`);
       }
 
       const { error: itemsError } = await supabase
@@ -270,11 +310,22 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
 
       if (itemsError) {
         console.error('❌ [OrderItems] 明細保存エラー:', itemsError);
-        // 発注は作成済みなので、明細エラーは警告レベル
-        toast.error(`発注は作成されましたが、明細保存でエラーが発生しました: ${extractSupabaseError(itemsError)}`);
-      } else {
-        console.log('✅ [OrderItems] 明細保存成功');
+        
+        // 明細保存失敗時は発注をロールバック
+        try {
+          await supabase.from('purchase_orders').delete().eq('id', newOrder.id);
+          console.log('🔄 発注ロールバック完了');
+        } catch (rollbackError) {
+          console.error('❌ 発注ロールバックエラー:', rollbackError);
+        }
+        
+        throw new Error(`明細保存でエラーが発生しました: ${extractSupabaseError(itemsError)}`);
       }
+      
+      console.log('✅ [OrderItems] 明細保存成功:', {
+        saved_items: orderItemsData.length,
+        order_id: newOrder.id
+      });
 
       // **🚨 データベーストリガーを使用するため、以下の処理を削除**
       // transactions への直接INSERT処理は不要（トリガーが自動実行）
@@ -288,7 +339,10 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
           queryClient.invalidateQueries({ queryKey: ['transactionsByPartner'] }),
           queryClient.invalidateQueries({ queryKey: ['transactionsWithPartners'] }),
           queryClient.invalidateQueries({ queryKey: ['purchase-orders'] }),
-          queryClient.invalidateQueries({ queryKey: ['v_unified_purchase_display'] })
+          queryClient.invalidateQueries({ queryKey: ['v_unified_purchase_display'] }),
+          queryClient.invalidateQueries({ queryKey: ['orders'] }),
+          queryClient.invalidateQueries({ queryKey: ['orders-page'] }),
+          queryClient.invalidateQueries({ queryKey: ['order-stats'] })
         ]);
 
         await queryClient.invalidateQueries({
@@ -379,6 +433,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
             type="date"
             value={expectedDate}
             onChange={(e) => setExpectedDate(e.target.value)}
+            required
             className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           />
         </div>
@@ -404,17 +459,45 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
             ➕ 行追加
           </button>
         </div>
+        
+
+        {/* 重複防止の注意メッセージ（明細行が複数ある場合のみ表示） */}
+        {items.length > 1 && (
+          <div className="p-4 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/30 dark:to-red-900/30 border-2 border-orange-200 dark:border-orange-700 rounded-lg shadow-md">
+            <div className="flex items-center mb-2">
+              <span className="text-2xl mr-2">🚫</span>
+              <h4 className="text-lg font-bold text-orange-800 dark:text-orange-200">重複商品選択防止</h4>
+            </div>
+            <p className="text-sm text-orange-700 dark:text-orange-300 mb-2">
+              <strong>重要:</strong> 同じ商品を複数の明細行で選択することはできません。
+            </p>
+            <p className="text-xs text-orange-600 dark:text-orange-400">
+              💡 既に選択された商品は「🚫(既に選択済み)」と表示され、選択できません。
+            </p>
+          </div>
+        )}
 
         <div className="space-y-3">
           {calculations.itemsWithSubtotal.map((item, index) => (
             <div key={index} className="grid grid-cols-12 gap-3 items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <div className="col-span-4">
                 <SearchableSelect
-                  options={products.map(product => ({
-                    value: product.id,
-                    label: product.product_name,
-                    description: `標準価格: ¥${Number(product.standard_price || 0).toLocaleString()}`
-                  }))}
+                  options={products.map(product => {
+                    // 他の行で既に選択されている商品をチェック
+                    const isAlreadySelected = items.some((otherItem, otherIndex) => 
+                      otherIndex !== index && otherItem.product_id === product.id
+                    );
+                    
+                    
+                    return {
+                      value: product.id,
+                      label: product.product_name + (isAlreadySelected ? ' 🚫(既に選択済み)' : ''),
+                      description: isAlreadySelected 
+                        ? `⚠️ この商品は他の明細行で選択されています` 
+                        : `標準価格: ¥${Number(product.standard_price || 0).toLocaleString()}`,
+                      disabled: isAlreadySelected
+                    };
+                  })}
                   value={item.product_id}
                   onChange={(value) => updateItem(index, 'product_id', value)}
                   placeholder="商品を選択"
