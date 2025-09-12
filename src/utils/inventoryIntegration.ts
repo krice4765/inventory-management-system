@@ -1,6 +1,5 @@
 // 🔄 純粋な在庫管理システム (物理的な商品移動のみ)
 import { supabase } from '../lib/supabase';
-import toast from 'react-hot-toast';
 
 export interface PureInventoryMovement {
   id: string;
@@ -188,7 +187,7 @@ export async function processInventoryFromOrder(
       });
 
       // 📋 純粋な在庫履歴を記録（実際の商品価値で記録）
-      const inventoryValue = deliveryQuantity * actualUnitPrice;
+      const _inventoryValue = deliveryQuantity * actualUnitPrice;
       
       inventoryTransactions.push({
         id: crypto.randomUUID(),

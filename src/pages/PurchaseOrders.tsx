@@ -1,5 +1,5 @@
 // src/pages/PurchaseOrders.tsx - 動的カラム対応・編集機能追加版
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -8,7 +8,7 @@ import { PurchaseTransactionForm } from '../components/transactions/PurchaseTran
 import { PurchaseOrderForm } from '../components/transactions/PurchaseOrderForm';
 import { getStatusDisplay, createDefaultFilters } from '../utils/format';
 import type { TransactionFilters } from '../utils/format';
-import { ModernStatsBar } from '../components/ModernStatsBar';
+// Temporarily disabled: import { ModernStatsBar } from '../components/ModernStatsBar';
 import { ModernAdvancedFilters } from '../components/ModernAdvancedFilters';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { AddInstallmentModal } from '../components/AddInstallmentModal';

@@ -3,7 +3,7 @@
 // ===============================================================
 // 目的: 完全型安全性とリアルタイム検証による優れたUX
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useForm, watch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -21,6 +21,26 @@ import type {
   INSTALLMENT_CONFIG 
 } from '../../types/installment';
 import { INSTALLMENT_STATUS_LABELS } from '../../types/installment';
+
+// 型定義
+interface OrderSummary {
+  order_no: string;
+  partner_name: string;
+  order_total: number;
+  allocated_total: number;
+}
+
+interface RemainingCalc {
+  currentRemaining: number;
+}
+
+interface FormType {
+  watch: (field: string) => unknown;
+  formState: {
+    errors: Record<string, { message?: string }>;
+  };
+  register: (field: string, options?: unknown) => unknown;
+}
 
 // ===============================================================
 // 1. フォームバリデーションスキーマ
@@ -83,7 +103,7 @@ export const EnhancedAddInstallmentModal: React.FC = () => {
   useEffect(() => {
     if (orderSummary) {
       // スキーマの再設定
-      const newSchema = createInstallmentSchema(orderSummary.remaining_amount);
+      const _newSchema = createInstallmentSchema(orderSummary.remaining_amount);
       form.clearErrors();
       
       // デフォルト金額の設定（残額の100%）
@@ -261,8 +281,8 @@ export const EnhancedAddInstallmentModal: React.FC = () => {
 // ===============================================================
 
 const OrderSummaryCard: React.FC<{
-  orderSummary: any;
-  remainingCalc: any;
+  orderSummary: OrderSummary;
+  remainingCalc: RemainingCalc;
 }> = ({ orderSummary, remainingCalc }) => (
   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 mb-6 border border-blue-200">
     <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
@@ -343,8 +363,8 @@ const QuickAmountButtons: React.FC<{
 );
 
 const AmountInput: React.FC<{
-  form: any;
-  remainingCalc: any;
+  form: FormType;
+  remainingCalc: RemainingCalc;
 }> = ({ form, remainingCalc }) => (
   <div className="mb-4">
     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -376,7 +396,7 @@ const AmountInput: React.FC<{
   </div>
 );
 
-const StatusSelection: React.FC<{form: any}> = ({ form }) => (
+const StatusSelection: React.FC<{form: FormType}> = ({ form }) => (
   <div className="mb-4">
     <label className="block text-sm font-medium text-gray-700 mb-2">
       ステータス <span className="text-red-500">*</span>
@@ -399,7 +419,7 @@ const StatusSelection: React.FC<{form: any}> = ({ form }) => (
   </div>
 );
 
-const DueDateInput: React.FC<{form: any}> = ({ form }) => (
+const DueDateInput: React.FC<{form: FormType}> = ({ form }) => (
   <div className="mb-4">
     <label className="block text-sm font-medium text-gray-700 mb-2">
       支払期日
@@ -412,7 +432,7 @@ const DueDateInput: React.FC<{form: any}> = ({ form }) => (
   </div>
 );
 
-const MemoInput: React.FC<{form: any}> = ({ form }) => (
+const MemoInput: React.FC<{form: FormType}> = ({ form }) => (
   <div className="mb-4">
     <label className="block text-sm font-medium text-gray-700 mb-2">
       備考
@@ -431,9 +451,9 @@ const MemoInput: React.FC<{form: any}> = ({ form }) => (
 );
 
 const RealTimeValidation: React.FC<{
-  remainingCalc: any;
-  formErrors: any;
-}> = ({ remainingCalc, formErrors }) => (
+  remainingCalc: RemainingCalc;
+  formErrors: Record<string, { message?: string }>;
+}> = ({ remainingCalc, formErrors: _formErrors }) => (
   <div className="mb-6 p-3 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50">
     <h4 className="text-sm font-medium text-gray-700 mb-2">リアルタイム検証結果</h4>
     <div className="grid grid-cols-2 gap-4 text-xs">

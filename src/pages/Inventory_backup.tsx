@@ -43,7 +43,7 @@ export default function Inventory() {
   useEffect(() => {
     if (!movements.length) return;
 
-    let filtered = movements.filter(movement => {
+    const filtered = movements.filter(movement => {
       const matchesSearch = !searchTerm || (
         movement.products.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         movement.products.product_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -102,7 +102,7 @@ export default function Inventory() {
     });
 
     setFilteredMovements(filtered);
-  }, [movements, searchTerm, movementTypeFilter, deliveryFilter, sortBy, sortOrder, startDate, endDate]);
+  });  // 依存配列を削除し、毎回実行
 
   // フィルターリセット関数
   const resetFilters = () => {

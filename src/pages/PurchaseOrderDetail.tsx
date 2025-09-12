@@ -42,17 +42,7 @@ export default function PurchaseOrderDetail() {
   const [transactions, setTransactions] = useState<PurchaseTransaction[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    console.log('🚀 PurchaseOrderDetail useEffect:', { id });
-    if (id) {
-      console.log('📋 fetchPurchaseOrderDetail開始:', id);
-      fetchPurchaseOrderDetail(id);
-    } else {
-      console.warn('⚠️ IDが取得できません');
-    }
-  }, [id]);
-
-  const fetchPurchaseOrderDetail = async (orderId: string) => {
+  const fetchPurchaseOrderDetail = useCallback(async (orderId: string) => {
     console.log('🔄 fetchPurchaseOrderDetail実行開始:', orderId);
     try {
       setLoading(true);
@@ -136,7 +126,21 @@ export default function PurchaseOrderDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  const fetchOrderDetail = useCallback(async (orderId: string) => {
+    await fetchPurchaseOrderDetail(orderId);
+  }, [fetchPurchaseOrderDetail]);
+
+  useEffect(() => {
+    console.log('🚀 PurchaseOrderDetail useEffect:', { id });
+    if (id) {
+      console.log('📋 fetchPurchaseOrderDetail開始:', id);
+      fetchOrderDetail(id);
+    } else {
+      console.warn('⚠️ IDが取得できません');
+    }
+  }, [id, fetchOrderDetail]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -400,7 +404,7 @@ export default function PurchaseOrderDetail() {
                           transactionId={transaction.id}
                           currentStatus={transaction.status}
                           orderNo={transaction.transaction_no}
-                          onConfirmed={() => fetchPurchaseOrderDetail(id!)}
+                          onConfirmed={() => fetchOrderDetail(id!)}
                           className="text-xs px-2 py-1"
                         />
                       )}

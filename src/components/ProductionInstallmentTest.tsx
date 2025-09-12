@@ -36,7 +36,7 @@ interface TestScenario {
   executed: boolean;
   success: boolean | null;
   error?: string;
-  resultData?: any;
+  resultData?: Record<string, unknown>;
 }
 
 export const ProductionInstallmentTest: React.FC = () => {
@@ -44,7 +44,7 @@ export const ProductionInstallmentTest: React.FC = () => {
   const [scenarios, setScenarios] = useState<TestScenario[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<UserFriendlyError | null>(null);
-  const [selectedOrderId, setSelectedOrderId] = useState<string>('');
+  const [_selectedOrderId, _setSelectedOrderId] = useState<string>('');
   const { handleError } = useErrorHandler();
 
   // 実運用データの取得
@@ -103,7 +103,7 @@ export const ProductionInstallmentTest: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [handleError]);
+  }, [handleError, generateTestScenarios]);
 
   // テストシナリオの自動生成
   const generateTestScenarios = useCallback((orders: PurchaseOrder[]) => {

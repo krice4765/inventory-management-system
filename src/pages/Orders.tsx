@@ -1,13 +1,13 @@
 import { Link } from 'react-router-dom';
-import { Plus, FileText, Calendar, TrendingUp, Package, AlertCircle, Search, X, Filter, RefreshCw, FileDown, Printer } from 'lucide-react';
+import { Plus, FileText, Calendar, Search, X, Filter } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useDeliveryModal } from '../stores/deliveryModal.store';
 import { DeliveryModal } from '../components/DeliveryModal';
-import { ModernStatsBar } from '../components/ModernStatsBar';
+// Temporarily disabled: import { ModernStatsBar } from '../components/ModernStatsBar';
 import { ModernCard } from '../components/ui/ModernCard';
-import { useOrders, usePartners, useOrderStats, type OrderFilters, type PurchaseOrder } from '../hooks/useOptimizedOrders';
+import { useOrders, usePartners, type OrderFilters, type PurchaseOrder } from '../hooks/useOptimizedOrders';
 import SearchableSelect from '../components/SearchableSelect';
 
 export default function Orders() {
@@ -38,7 +38,7 @@ export default function Orders() {
     if (!allOrders.length) return [];
 
     try {
-      let filtered = allOrders.filter(order => {
+      const filtered = allOrders.filter(order => {
         // 検索条件（発注番号、仕入先名、コードで検索）
         const matchesSearch = !searchTerm || (
           (order.order_no?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
@@ -90,18 +90,21 @@ export default function Orders() {
           const deliveryDate = new Date(order.delivery_deadline);
           
           switch (dateRangeFilter) {
-            case 'today':
+            case 'today': {
               const today = now.toISOString().split('T')[0];
               matchesDateRange = orderDate.toISOString().split('T')[0] === today;
               break;
-            case 'week':
+            }
+            case 'week': {
               const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
               matchesDateRange = orderDate >= weekAgo;
               break;
-            case 'month':
+            }
+            case 'month': {
               const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
               matchesDateRange = orderDate >= monthAgo;
               break;
+            }
             case 'overdue':
               matchesDateRange = deliveryDate < now && order.delivery_progress < 100;
               break;

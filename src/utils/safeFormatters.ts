@@ -3,7 +3,7 @@
  * 全ての「N/A」「-」「undefined」表示問題を解決
  */
 
-export const safeStringFormat = (value: any): string => {
+export const safeStringFormat = (value: unknown): string => {
   // null, undefined, 空文字, 'null', 'undefined' の完全処理
   if (value === null || value === undefined || value === '' || 
       value === 'null' || value === 'undefined' || 
@@ -35,7 +35,7 @@ export const safeStringFormat = (value: any): string => {
   }
 };
 
-export const safeYenFormat = (value: any): string => {
+export const safeYenFormat = (value: unknown): string => {
   // null, undefined, 空値の処理
   if (value === null || value === undefined || value === '' || 
       value === 'null' || value === 'undefined' || 
@@ -69,7 +69,7 @@ export const safeYenFormat = (value: any): string => {
   }
 };
 
-export const safeDateFormat = (value: any): string => {
+export const safeDateFormat = (value: unknown): string => {
   if (!value || value === 'null' || value === 'undefined' || 
       value === 'N/A' || value === '-') {
     return '未設定';
@@ -95,7 +95,7 @@ export const safeDateFormat = (value: any): string => {
   }
 };
 
-export const safeNumberFormat = (value: any): string => {
+export const safeNumberFormat = (value: unknown): string => {
   if (value === null || value === undefined || value === '' || 
       value === 'null' || value === 'undefined' || 
       value === 'N/A' || value === '-') {
@@ -114,7 +114,7 @@ export const safeNumberFormat = (value: any): string => {
   }
 };
 
-export const safeStatusFormat = (status: any): string => {
+export const safeStatusFormat = (status: unknown): string => {
   const statusMap: Record<string, string> = {
     'pending': '承認待ち',
     'approved': '承認済み',
@@ -168,8 +168,22 @@ export const getCurrentDatetimeLocal = (): string => {
   return toDatetimeLocalValue(new Date());
 };
 
+// Product interface
+interface Product {
+  id?: string
+  product_name?: string
+  product_code?: string
+  standard_price?: number
+  selling_price?: number
+  drawing_no?: string
+  material?: string
+  current_stock?: number
+  category?: string
+  is_active?: boolean
+}
+
 // 商品表示用統合フォーマッタ
-export const formatProductDisplay = (product: any) => {
+export const formatProductDisplay = (product: Product | null | undefined) => {
   if (!product) return null;
   
   return {
@@ -186,8 +200,19 @@ export const formatProductDisplay = (product: any) => {
   };
 };
 
+// Partner interface
+interface Partner {
+  id?: string
+  name?: string
+  partner_code?: string
+  quality_grade?: string
+  payment_terms?: string
+  specialties?: string
+  is_active?: boolean
+}
+
 // 仕入先表示用統合フォーマッタ
-export const formatPartnerDisplay = (partner: any) => {
+export const formatPartnerDisplay = (partner: Partner | null | undefined) => {
   if (!partner) return null;
   
   return {
@@ -201,8 +226,24 @@ export const formatPartnerDisplay = (partner: any) => {
   };
 };
 
+// Order interface
+interface Order {
+  id?: string
+  order_no?: string
+  created_at?: string
+  order_date?: string
+  delivery_date?: string
+  total_amount?: number
+  status?: string
+  notes?: string
+  partners?: {
+    name?: string
+    quality_grade?: string
+  }
+}
+
 // 発注表示用統合フォーマッタ
-export const formatOrderDisplay = (order: any) => {
+export const formatOrderDisplay = (order: Order | null | undefined) => {
   if (!order) return null;
   
   return {
@@ -220,12 +261,13 @@ export const formatOrderDisplay = (order: any) => {
 };
 
 // 🚨 UI問題解決専用フォーマッタ
-export const validateAmountInput = (input: string): { isValid: boolean; amount: number; error?: string } => {
-  if (!input || input.trim() === '') {
+export const validateAmountInput = (input: string | number | null | undefined): { isValid: boolean; amount: number; error?: string } => {
+  const inputStr = String(input || '');
+  if (!inputStr || inputStr.trim() === '') {
     return { isValid: false, amount: 0, error: '金額を入力してください' };
   }
   
-  const cleanInput = input.replace(/[^\d.-]/g, '');
+  const cleanInput = inputStr.replace(/[^\d.-]/g, '');
   const amount = parseFloat(cleanInput);
   
   if (isNaN(amount) || !isFinite(amount)) {
@@ -243,7 +285,7 @@ export const validateAmountInput = (input: string): { isValid: boolean; amount: 
   return { isValid: true, amount: Math.round(amount) };
 };
 
-export const safeUUIDFormat = (uuid: any): string => {
+export const safeUUIDFormat = (uuid: unknown): string => {
   if (!uuid || uuid === 'null' || uuid === 'undefined') {
     return '';
   }
@@ -254,7 +296,7 @@ export const safeUUIDFormat = (uuid: any): string => {
   return uuidRegex.test(uuidStr) ? uuidStr : '';
 };
 
-export const safeOrderDateFormat = (date: any): string => {
+export const safeOrderDateFormat = (date: unknown): string => {
   if (!date || date === 'null' || date === 'undefined' || date === 'N/A' || date === '-') {
     return getCurrentDatetimeLocal();
   }
@@ -270,7 +312,7 @@ export const safeOrderDateFormat = (date: any): string => {
   }
 };
 
-export const safeProductCodeFormat = (code: any): string => {
+export const safeProductCodeFormat = (code: unknown): string => {
   if (!code || code === 'null' || code === 'undefined' || code === 'N/A' || code === '-') {
     return `AUTO-${Date.now().toString(36).toUpperCase()}`;
   }
@@ -279,7 +321,7 @@ export const safeProductCodeFormat = (code: any): string => {
   return cleanCode || `AUTO-${Date.now().toString(36).toUpperCase()}`;
 };
 
-export const safeQuantityFormat = (quantity: any): number => {
+export const safeQuantityFormat = (quantity: unknown): number => {
   if (quantity === null || quantity === undefined || quantity === '' || 
       quantity === 'null' || quantity === 'undefined' || quantity === 'N/A' || quantity === '-') {
     return 1;
@@ -294,8 +336,9 @@ export const safeQuantityFormat = (quantity: any): number => {
 };
 
 // UI表示問題の一括解決フォーマッタ
-export const resolveUIDisplayIssues = (data: any): any => {
+export const resolveUIDisplayIssues = (data: Record<string, unknown> | null | undefined): Record<string, unknown> | null => {
   if (!data || typeof data !== 'object') return data;
+  if (Array.isArray(data)) return data;
   
   const resolved = { ...data };
   
@@ -335,7 +378,7 @@ export const resolveUIDisplayIssues = (data: any): any => {
 };
 
 // フォーム入力値の事前検証
-export const validateFormInput = (fieldName: string, value: any): { isValid: boolean; cleanValue: any; error?: string } => {
+export const validateFormInput = (fieldName: string, value: unknown): { isValid: boolean; cleanValue: unknown; error?: string } => {
   switch (fieldName) {
     case 'amount':
     case 'price':
@@ -345,23 +388,27 @@ export const validateFormInput = (fieldName: string, value: any): { isValid: boo
       return validateAmountInput(String(value || ''));
       
     case 'quantity':
-    case 'stock':
+    case 'stock': {
       const qty = safeQuantityFormat(value);
       return { isValid: qty > 0, cleanValue: qty, error: qty <= 0 ? '数量は1以上を入力してください' : undefined };
+    }
       
-    case 'product_code':
+    case 'product_code': {
       const code = safeProductCodeFormat(value);
       return { isValid: code !== '', cleanValue: code };
+    }
       
     case 'id':
     case 'product_id':
     case 'partner_id':
-    case 'order_id':
+    case 'order_id': {
       const uuid = safeUUIDFormat(value);
       return { isValid: uuid !== '', cleanValue: uuid, error: uuid === '' ? '有効なIDを入力してください' : undefined };
+    }
       
-    default:
+    default: {
       const str = safeStringFormat(value);
       return { isValid: str !== '未設定', cleanValue: str };
+    }
   }
 };

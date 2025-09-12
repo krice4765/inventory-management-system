@@ -51,7 +51,7 @@ export default function Partners() {
     if (!partners.length) return;
 
     try {
-      let filtered = partners.filter(partner => {
+      const filtered = partners.filter(partner => {
       const matchesSearch = !searchTerm || (
         (partner.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (partner.partner_code?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||

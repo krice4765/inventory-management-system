@@ -90,7 +90,7 @@ export class InstallmentApiTester {
 
     try {
       // 完全支払済み発注を探す
-      let { data: paidOrders } = await supabase
+      const { data: paidOrders } = await supabase
         .from('v_order_payment_summary')
         .select('order_id, remaining_amount')
         .eq('remaining_amount', 0)
@@ -120,7 +120,7 @@ export class InstallmentApiTester {
       }
 
       // 超過額での分納作成を試行
-      const { data, error } = await supabase.rpc('add_purchase_installment_secure', {
+      const { data: _data, error } = await supabase.rpc('add_purchase_installment_secure', {
         p_order_id: testOrderId,
         p_amount: testAmount,
         p_transaction_no: `TEST-P0001-${Date.now()}`
@@ -336,6 +336,6 @@ export class InstallmentApiTester {
 
 // 開発時のクイックテスト実行
 if (import.meta.env.DEV) {
-  // @ts-ignore
+  // @ts-expect-error
   window.runApiTests = () => InstallmentApiTester.quickTest();
 }

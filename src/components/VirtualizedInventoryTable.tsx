@@ -1,6 +1,7 @@
 import React, { memo, useMemo } from 'react';
-import { List } from 'react-window';
-import InfiniteLoader from 'react-window-infinite-loader';
+// Temporarily disabled virtualization due to rendering issues
+// import { List } from 'react-window';
+// import InfiniteLoader from 'react-window-infinite-loader';
 import { Plus, Minus, Package, Calendar, Eye } from 'lucide-react';
 import { InventoryMovement } from '../hooks/useOptimizedInventory';
 
@@ -13,7 +14,8 @@ interface VirtualizedInventoryTableProps {
   isDark: boolean;
 }
 
-const ITEM_HEIGHT = 120; // 各行の高さ
+// Temporarily disabled for standard scrolling implementation
+// const ITEM_HEIGHT = 120; // 各行の高さ
 
 interface MovementRowProps {
   index: number;

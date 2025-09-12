@@ -36,7 +36,7 @@ export function useOrderInstallmentSummary(orderId: string | null): InstallmentH
     staleTime: 30 * 1000,       // 30秒
     gcTime: 2 * 60 * 1000,      // 2分
     refetchOnWindowFocus: false,
-    retry: (failureCount, error) => {
+    retry: (failureCount, _error) => {
       // リトライ可能エラーの場合のみリトライ
       return failureCount < 2;
     },
@@ -120,7 +120,7 @@ export function useCreateInstallment(): CreateInstallmentHookState {
         }
       }
     },
-    onError: (error) => {
+    onError: (_error) => {
       const installmentError = new InstallmentError(
         'NETWORK_ERROR',
         'ネットワークエラーが発生しました',
@@ -162,7 +162,7 @@ export function useConfirmInstallment() {
     Error,
     ConfirmInstallmentRequest & { orderId: string }
   >({
-    mutationFn: async ({ orderId, ...request }) => {
+    mutationFn: async ({ orderId: _orderId, ...request }) => {
       return installmentService.confirmInstallment(request);
     },
     onSuccess: (result, variables) => {
@@ -183,7 +183,7 @@ export function useConfirmInstallment() {
         toast.error(`確定に失敗しました: ${result.error.message}`);
       }
     },
-    onError: (error) => {
+    onError: (_error) => {
       toast.error('通信エラーが発生しました。再度お試しください。');
     },
   });
@@ -204,7 +204,7 @@ export function useDeleteInstallment() {
     Error,
     DeleteInstallmentRequest & { orderId: string }
   >({
-    mutationFn: async ({ orderId, ...request }) => {
+    mutationFn: async ({ orderId: _orderId, ...request }) => {
       return installmentService.deleteInstallment(request);
     },
     onSuccess: (result, variables) => {
@@ -225,7 +225,7 @@ export function useDeleteInstallment() {
         toast.error(`削除に失敗しました: ${result.error.message}`);
       }
     },
-    onError: (error) => {
+    onError: (_error) => {
       toast.error('通信エラーが発生しました。再度お試しください。');
     },
   });

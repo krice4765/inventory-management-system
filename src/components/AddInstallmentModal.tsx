@@ -40,7 +40,14 @@ export const AddInstallmentModal = () => {
   const { isOpen, selectedOrderId, close } = useAddInstallmentModal()
   const addInstallmentMutation = useAddInstallment()
   
-  const { data: orderData, isLoading, isError, error } = useOrderForInstallment(selectedOrderId)
+  const { data: orderData, isLoading, isError, error, refetch } = useOrderForInstallment(selectedOrderId)
+  
+  // モーダルが開いたときに最新のデータを取得
+  React.useEffect(() => {
+    if (isOpen && selectedOrderId) {
+      refetch()
+    }
+  }, [isOpen, selectedOrderId, refetch])
   
   // デフォルト期日（30日後）
   const defaultDueDate = new Date()
@@ -62,8 +69,22 @@ export const AddInstallmentModal = () => {
   React.useEffect(() => {
     if (orderData && orderData.remaining_amount > 0) {
       form.setValue('amount', orderData.remaining_amount, { shouldValidate: true })
+    } else if (orderData && orderData.remaining_amount === 0) {
+      form.setValue('amount', 0, { shouldValidate: true })
     }
   }, [orderData, form])
+  
+  // モーダルが閉じるときにフォームをリセット
+  React.useEffect(() => {
+    if (!isOpen) {
+      form.reset({
+        amount: 0,
+        status: 'draft',
+        dueDate: defaultDueDateString,
+        memo: ''
+      })
+    }
+  }, [isOpen, form, defaultDueDateString])
 
   // クイック金額設定
   const setQuickAmount = (percentage: number) => {

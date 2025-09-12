@@ -19,7 +19,7 @@ import { DeliveryModal } from './components/DeliveryModal';
 
 function App() {
   const { user, setUser, loading, setLoading } = useAuthStore();
-  const { isDark } = useDarkMode();
+  const { isDark: _isDark } = useDarkMode();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {

@@ -4,8 +4,8 @@
  * PostgRESTの厳格な構文要件に準拠した安全なクエリ生成ユーティリティ
  */
 
-// 安全な検索クエリ生成
-export const createSafeSearchQuery = (
+// 安全な検索クエリ生成 (将来の実装用)
+export const _createSafeSearchQuery = (
   searchTerm: string,
   textColumns: string[],
   numericColumns: string[] = [],
@@ -41,15 +41,15 @@ export const createSafeSearchQuery = (
   return conditions.length > 0 ? conditions.join(',') : ''; // スペースなしのカンマ区切り
 };
 
-// UUID形式の検証
-export const isValidUUID = (str: string): boolean => {
+// UUID形式の検証 (将来の実装用)
+export const _isValidUUID = (str: string): boolean => {
   if (!str || typeof str !== 'string') return false;
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(str);
 };
 
-// 安全なSupabaseクエリ実行
-export const executeSafeQuery = async <T>(
+// 安全なSupabaseクエリ実行 (将来の実装用)
+export const _executeSafeQuery = async <T>(
   queryBuilder: any,
   fallbackData: T[] = []
 ): Promise<T[]> => {
@@ -80,15 +80,15 @@ export const createIdSearchCondition = (searchTerm: string): string => {
   const conditions: string[] = [];
   
   // UUID形式の場合のみID検索を追加
-  if (isValidUUID(trimmed)) {
+  if (_isValidUUID(trimmed)) {
     conditions.push(`id.eq.${trimmed}`);
   }
   
   return conditions.join(',');
 };
 
-// 安全な日付範囲検索
-export const createDateRangeCondition = (
+// 安全な日付範囲検索 (将来の実装用)
+export const _createDateRangeCondition = (
   column: string,
   startDate?: string,
   endDate?: string
@@ -110,8 +110,8 @@ export const createDateRangeCondition = (
   return conditions.join(',');
 };
 
-// 複合検索条件の結合
-export const combineSearchConditions = (...conditions: string[]): string => {
+// 複合検索条件の結合 (将来の実装用)
+export const _combineSearchConditions = (...conditions: string[]): string => {
   const validConditions = conditions.filter(cond => cond && cond.trim());
   return validConditions.length > 0 ? validConditions.join(',') : '';
 };

@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react';
 export default function Sidebar() {
   const location = useLocation();
   const { user, setUser } = useAuthStore();
-  const { isDark } = useDarkMode();
+  const { isDark: _isDark } = useDarkMode();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // モバイルメニューを閉じる（リンククリック時）

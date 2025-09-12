@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
-import { Plus, Edit, Trash2, Package, Sparkles, RefreshCw, Search, Filter } from 'lucide-react';
+import { Plus, Edit, Trash2, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { UniversalFilters } from '../components/shared/UniversalFilters';
 import { safeYenFormat } from '../utils/safeFormatters';

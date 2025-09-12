@@ -1,5 +1,5 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
-import { supabase } from '../lib/supabase'
+// Temporarily disabled: import { supabase } from '../lib/supabase'
 
 export interface Product {
   id: string;

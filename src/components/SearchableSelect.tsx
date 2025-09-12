@@ -80,7 +80,7 @@ export default function SearchableSelect({
         setSearchTerm('');
         setHighlightedIndex(-1);
         break;
-      case 'ArrowDown':
+      case 'ArrowDown': {
         e.preventDefault();
         let nextDown = prev < filteredOptions.length - 1 ? prev + 1 : 0;
         // disabled項目をスキップ
@@ -89,7 +89,8 @@ export default function SearchableSelect({
         }
         setHighlightedIndex(nextDown);
         break;
-      case 'ArrowUp':
+      }
+      case 'ArrowUp': {
         e.preventDefault();
         let nextUp = prev > 0 ? prev - 1 : filteredOptions.length - 1;
         // disabled項目をスキップ
@@ -98,6 +99,7 @@ export default function SearchableSelect({
         }
         setHighlightedIndex(nextUp);
         break;
+      }
       case 'Enter':
         e.preventDefault();
         if (highlightedIndex >= 0 && filteredOptions[highlightedIndex] && !filteredOptions[highlightedIndex].disabled) {

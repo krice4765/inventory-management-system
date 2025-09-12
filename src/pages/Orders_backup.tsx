@@ -156,7 +156,7 @@ export default function Orders() {
   const filteredOrders = useMemo(() => {
     if (!orders) return [];
 
-    let filtered = orders.filter(order => {
+    const filtered = orders.filter(order => {
       const matchesSearch = !searchTerm || (
         order.order_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.partner_name.toLowerCase().includes(searchTerm.toLowerCase()) ||

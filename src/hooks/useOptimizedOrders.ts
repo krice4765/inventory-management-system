@@ -85,18 +85,21 @@ const getOrdersWithDeliveryProgress = async (
   if (filters.dateRange) {
     const now = new Date();
     switch (filters.dateRange) {
-      case 'today':
+      case 'today': {
         const today = now.toISOString().split('T')[0];
         query = query.gte('created_at', today);
         break;
-      case 'week':
+      }
+      case 'week': {
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         query = query.gte('created_at', weekAgo.toISOString());
         break;
-      case 'month':
+      }
+      case 'month': {
         const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         query = query.gte('created_at', monthAgo.toISOString());
         break;
+      }
       case 'overdue':
         query = query.lt('delivery_deadline', now.toISOString().split('T')[0]);
         break;

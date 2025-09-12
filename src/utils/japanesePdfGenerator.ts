@@ -310,10 +310,10 @@ export class JapanesePDFGenerator {
 
       // 明細行
       pdf.setFont('helvetica', 'normal');
-      let totalAmount = 0;
+      let _totalAmount = 0;
 
       deliveryData.items.forEach((item, index) => {
-        totalAmount += item.total_amount;
+        _totalAmount += item.total_amount;
         
         // 行の枠線
         pdf.rect(tableStartX, currentY, tableWidth, rowHeight);

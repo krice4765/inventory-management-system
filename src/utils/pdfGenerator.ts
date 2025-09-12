@@ -22,7 +22,7 @@ export class OrderPDFGenerator {
       pdf.setFont('helvetica');
       
       // 日本語文字の処理用ヘルパー関数
-      const safeText = (text: string): string => {
+      const _safeText = (text: string): string => {
         if (!text) return '';
         // 日本語文字を含む場合の処理（簡易的なエスケープ）
         return text.toString();

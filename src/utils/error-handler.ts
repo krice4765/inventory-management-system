@@ -76,33 +76,34 @@ export interface UserFriendlyError {
   action: string;
   severity: ErrorSeverity;
   userFixable: boolean;
-  originalError?: any;
-  context?: Record<string, any>;
+  originalError?: unknown;
+  context?: Record<string, unknown>;
   timestamp: Date;
 }
 
 /**
  * PostgreSQLエラーからエラーコードを抽出
  */
-function extractPostgresErrorCode(error: any): string | null {
-  if (!error) return null;
+function extractPostgresErrorCode(error: unknown): string | null {
+  if (!error || typeof error !== 'object') return null;
   
+  const errorObj = error as Record<string, unknown>;
   // PostgreSQLエラーコードの取得
-  if (error.code) {
-    return error.code;
+  if (typeof errorObj.code === 'string') {
+    return errorObj.code;
   }
   
   // メッセージからエラーコードを抽出
-  if (error.message && typeof error.message === 'string') {
-    const match = error.message.match(/\b(P\d{4})\b/);
+  if (typeof errorObj.message === 'string') {
+    const match = errorObj.message.match(/\b(P\d{4})\b/);
     if (match) {
       return match[1];
     }
   }
   
   // Supabaseのエラーレスポンスからの抽出
-  if (error.details && typeof error.details === 'string') {
-    const match = error.details.match(/\b(P\d{4})\b/);
+  if (typeof errorObj.details === 'string') {
+    const match = errorObj.details.match(/\b(P\d{4})\b/);
     if (match) {
       return match[1];
     }
@@ -114,11 +115,15 @@ function extractPostgresErrorCode(error: any): string | null {
 /**
  * 標準API レスポンスからエラー情報を抽出
  */
-function extractStandardApiError(response: any): { code: string; context?: any } | null {
-  if (response && !response.success && response.error) {
+function extractStandardApiError(response: unknown): { code: string; context?: unknown } | null {
+  if (!response || typeof response !== 'object') return null;
+  
+  const responseObj = response as Record<string, unknown>;
+  if (responseObj && !responseObj.success && responseObj.error) {
+    const errorObj = responseObj.error as Record<string, unknown>;
     return {
-      code: response.error.code || 'UNKNOWN_ERROR',
-      context: response.error.context
+      code: (typeof errorObj.code === 'string' ? errorObj.code : 'UNKNOWN_ERROR'),
+      context: errorObj.context
     };
   }
   return null;
@@ -127,20 +132,25 @@ function extractStandardApiError(response: any): { code: string; context?: any }
 /**
  * ネットワークエラーの判定
  */
-function isNetworkError(error: any): boolean {
+function isNetworkError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  
+  const errorObj = error as Record<string, unknown>;
   return !!(
-    error.name === 'NetworkError' ||
-    error.code === 'NETWORK_ERROR' ||
-    error.message?.includes('fetch') ||
-    error.message?.includes('network') ||
-    error.message?.includes('NetworkError')
+    errorObj.name === 'NetworkError' ||
+    errorObj.code === 'NETWORK_ERROR' ||
+    (typeof errorObj.message === 'string' && (
+      errorObj.message.includes('fetch') ||
+      errorObj.message.includes('network') ||
+      errorObj.message.includes('NetworkError')
+    ))
   );
 }
 
 /**
  * エラーをユーザーフレンドリーな形式に変換
  */
-export function convertToUserFriendlyError(error: any): UserFriendlyError {
+export function convertToUserFriendlyError(error: unknown): UserFriendlyError {
   const timestamp = new Date();
   
   // ネットワークエラーのチェック
@@ -180,7 +190,8 @@ export function convertToUserFriendlyError(error: any): UserFriendlyError {
   }
   
   // 認証エラーのチェック
-  if (error.message?.includes('unauthorized') || error.status === 401) {
+  const errorObj = error as Record<string, unknown>;
+  if ((typeof errorObj.message === 'string' && errorObj.message.includes('unauthorized')) || errorObj.status === 401) {
     const errorInfo = ERROR_MESSAGES.UNAUTHORIZED;
     return {
       code: 'UNAUTHORIZED',
@@ -204,7 +215,7 @@ export function convertToUserFriendlyError(error: any): UserFriendlyError {
  * React Hook用のエラーハンドラー
  */
 export function useErrorHandler() {
-  const handleError = (error: any): UserFriendlyError => {
+  const handleError = (error: unknown): UserFriendlyError => {
     const userError = convertToUserFriendlyError(error);
     
     // 開発環境では元のエラーもコンソールに出力
@@ -237,24 +248,24 @@ export interface ErrorDisplayProps {
 /**
  * P0001エラー専用のコンテキスト情報フォーマッター
  */
-export function formatP0001Context(context?: Record<string, any>): string {
+export function formatP0001Context(context?: Record<string, unknown>): string {
   if (!context) return '';
   
   const parts: string[] = [];
   
-  if (context.remaining_amount !== undefined) {
+  if (typeof context.remaining_amount === 'number') {
     parts.push(`残り金額: ¥${context.remaining_amount.toLocaleString()}`);
   }
   
-  if (context.attempted_amount !== undefined) {
+  if (typeof context.attempted_amount === 'number') {
     parts.push(`入力金額: ¥${context.attempted_amount.toLocaleString()}`);
   }
   
-  if (context.excess_amount !== undefined) {
+  if (typeof context.excess_amount === 'number') {
     parts.push(`超過金額: ¥${context.excess_amount.toLocaleString()}`);
   }
   
-  if (context.existing_installments !== undefined) {
+  if (typeof context.existing_installments === 'number') {
     parts.push(`既存分納: ${context.existing_installments}件`);
   }
   
@@ -266,7 +277,7 @@ export function formatP0001Context(context?: Record<string, any>): string {
  */
 export function createErrorReport(userError: UserFriendlyError): {
   errorId: string;
-  reportData: Record<string, any>;
+  reportData: Record<string, unknown>;
 } {
   const errorId = `ERR_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
   
@@ -281,9 +292,9 @@ export function createErrorReport(userError: UserFriendlyError): {
     url: window.location.href,
     // 個人情報を除いた元のエラー情報
     originalError: {
-      name: userError.originalError?.name,
-      message: userError.originalError?.message,
-      code: userError.originalError?.code
+      name: (userError.originalError as Record<string, unknown>)?.name,
+      message: (userError.originalError as Record<string, unknown>)?.message,
+      code: (userError.originalError as Record<string, unknown>)?.code
     }
   };
   
@@ -292,12 +303,12 @@ export function createErrorReport(userError: UserFriendlyError): {
 
 // 開発時のテスト用関数
 if (import.meta.env.DEV) {
-  // @ts-ignore
+  // @ts-expect-error
   window.testErrorHandler = () => {
     console.group('🧪 エラーハンドラーテスト');
     
     // P0001エラーのテスト
-    const p0001Error = {
+    const p0001Error: Record<string, unknown> = {
       code: 'P0001',
       message: 'Check constraint "check_installment_total" failed',
       details: 'P0001: 分納合計が発注金額を超過しています'

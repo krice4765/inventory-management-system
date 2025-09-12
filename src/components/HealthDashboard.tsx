@@ -17,6 +17,23 @@ interface HealthMetric {
   trend?: 'up' | 'down' | 'stable';
 }
 
+interface OperationalDataItem {
+  status: string;
+  count: number;
+}
+
+interface PerformanceDataItem {
+  function_name: string;
+  avg_duration_ms: number;
+  call_count: number;
+}
+
+interface ErrorTrendItem {
+  error_type: string;
+  count: number;
+  severity: string;
+}
+
 interface HealthScore {
   integrity_score: number;
   performance_score: number;
@@ -58,7 +75,7 @@ export const HealthDashboard: React.FC = () => {
       if (opError) throw opError;
 
       // 運用メトリクス取得
-      const { data: metricsData, error: metricsError } = await supabase
+      const { data: _metricsData, error: metricsError } = await supabase
         .from('operational_metrics')
         .select('*')
         .order('measurement_time', { ascending: false })
@@ -83,7 +100,7 @@ export const HealthDashboard: React.FC = () => {
 
       // システムメトリクス
       if (operationalData && Array.isArray(operationalData)) {
-        operationalData.forEach((item: any) => {
+        operationalData.forEach((item: OperationalDataItem) => {
           if (item.metric_name && typeof item.metric_value === 'number') {
             healthMetrics.push({
               name: item.metric_name,
@@ -99,7 +116,7 @@ export const HealthDashboard: React.FC = () => {
 
       // パフォーマンスメトリクス
       if (performanceData && Array.isArray(performanceData)) {
-        performanceData.forEach((item: any) => {
+        performanceData.forEach((item: PerformanceDataItem) => {
           if (item.function_name && item.avg_duration_ms) {
             healthMetrics.push({
               name: `API応答時間: ${item.function_name}`,
@@ -120,7 +137,7 @@ export const HealthDashboard: React.FC = () => {
 
       // エラーが多い場合のアラート
       if (errorTrends && Array.isArray(errorTrends)) {
-        errorTrends.forEach((trend: any) => {
+        errorTrends.forEach((trend: ErrorTrendItem) => {
           if (trend.error_count > 10) {
             systemAlerts.push({
               id: `error-${trend.error_code}`,
@@ -143,7 +160,7 @@ export const HealthDashboard: React.FC = () => {
 
       // パフォーマンス問題のアラート
       if (performanceData && Array.isArray(performanceData)) {
-        const slowFunctions = performanceData.filter((item: any) => item.avg_duration_ms > 1000);
+        const slowFunctions = performanceData.filter((item: PerformanceDataItem) => item.avg_duration_ms > 1000);
         if (slowFunctions.length > 0) {
           systemAlerts.push({
             id: 'performance-slow',

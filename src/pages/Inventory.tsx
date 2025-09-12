@@ -1,13 +1,13 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Minus, Package, Calendar, Search, X, Eye, Warehouse, TrendingUp, RefreshCw, Filter } from 'lucide-react';
+import { Plus, Minus, Warehouse, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { recordInventoryTransaction } from '../utils/inventoryIntegration';
 import { ModernCard } from '../components/ui/ModernCard';
-import { ModernStatsBar } from '../components/ModernStatsBar';
-import { useProducts, useInfiniteMovements, useInventoryStats, type MovementFilters } from '../hooks/useOptimizedInventory';
-import { VirtualizedInventoryTable } from '../components/VirtualizedInventoryTable';
+// Temporarily disabled: import { ModernStatsBar } from '../components/ModernStatsBar';
+import { type MovementFilters } from '../hooks/useOptimizedInventory';
+// Temporarily disabled: import { VirtualizedInventoryTable } from '../components/VirtualizedInventoryTable';
 
 export default function Inventory() {
   const { isDark, toggle: toggleDarkMode } = useDarkMode();

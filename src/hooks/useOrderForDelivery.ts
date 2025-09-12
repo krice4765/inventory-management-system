@@ -121,7 +121,16 @@ export const useOrderForDelivery = (orderId: string | null) => {
         remaining_amount,
         partner_id: data.partner_id,
         delivery_deadline: data.delivery_deadline,
-        items: items.map((item: any) => {
+        items: items.map((item: {
+          id: string;
+          product_id: string;
+          quantity: number;
+          unit_price: number;
+          products?: {
+            product_name?: string;
+            product_code?: string;
+          };
+        }) => {
           const deliveredQuantity = deliveredQuantitiesByProduct[item.product_id] || 0;
           const remainingQuantity = Math.max(0, item.quantity - deliveredQuantity);
           const currentStock = stockMap[item.product_id] || 0;

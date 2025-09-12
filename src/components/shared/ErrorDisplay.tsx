@@ -82,7 +82,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
   // エラーレポート送信
   const handleSendReport = async () => {
     try {
-      const { errorId, reportData } = createErrorReport(error);
+      const { errorId: _errorId, reportData } = createErrorReport(error);
       
       // 実際の実装では、ここでエラーレポートをサーバーに送信
       console.log('Error Report:', reportData);
@@ -201,9 +201,9 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
                   <strong>元のエラー:</strong>
                   <pre className="mt-1 overflow-x-auto">
                     {JSON.stringify({
-                      name: error.originalError.name,
-                      message: error.originalError.message,
-                      code: error.originalError.code
+                      name: (error.originalError as Record<string, unknown>)?.name,
+                      message: (error.originalError as Record<string, unknown>)?.message,
+                      code: (error.originalError as Record<string, unknown>)?.code
                     }, null, 2)}
                   </pre>
                 </div>
@@ -265,7 +265,10 @@ export class ErrorBoundary extends React.Component<
   }>,
   ErrorBoundaryState
 > {
-  constructor(props: any) {
+  constructor(props: React.PropsWithChildren<{
+    fallback?: (error: UserFriendlyError) => React.ReactNode;
+    onError?: (error: UserFriendlyError) => void;
+  }>) {
     super(props);
     this.state = { hasError: false, error: null };
   }
