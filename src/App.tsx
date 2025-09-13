@@ -31,6 +31,7 @@ function App() {
       setUser(session?.user ?? null);
     });
 
+
     return () => subscription.unsubscribe();
   }, [setUser, setLoading]);
 

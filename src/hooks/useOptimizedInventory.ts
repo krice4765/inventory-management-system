@@ -23,11 +23,33 @@ export interface InventoryMovement {
   cumulative_stock_at_time?: number; // その時点での累積在庫数量
   transaction_details?: {
     order_no?: string;
+    purchase_order_id?: string;
+    delivery_sequence?: number;
     delivery_type?: 'full' | 'partial';
     delivery_amount?: number;
     order_total_amount?: number;
     transaction_type?: string;
   };
+}
+
+// 統合在庫レコードインターフェース（将来のアーキテクチャ進化を考慮）
+export interface UnifiedInventoryRecord extends InventoryMovement {
+  record_type: 'inventory_movement' | 'amount_only_transaction';
+  unified_timestamp: number;
+
+  // 在庫移動固有フィールド
+  physical_quantity?: number;
+  stock_after?: number;
+
+  // 分納記録固有フィールド
+  accounting_amount?: number;
+  installment_no?: number;
+  transaction_no?: string;
+
+  // データ整合性管理
+  data_integrity_status?: 'consistent' | 'minor_discrepancy' | 'major_conflict';
+  source_system: 'inventory' | 'accounting';
+  correlation_id?: string;
 }
 
 export interface MovementFilters {
@@ -38,6 +60,11 @@ export interface MovementFilters {
   sortOrder?: 'asc' | 'desc';
   startDate?: string;
   endDate?: string;
+
+  // 統合表示用の追加フィルタ
+  recordType?: 'all' | 'inventory_movement' | 'amount_only_transaction';
+  installmentNo?: string; // フォームからは文字列として渡される
+  orderNo?: string;
 }
 
 const PAGE_SIZE = 20;
@@ -157,6 +184,7 @@ export function useAllMovements(filters: MovementFilters = {}) {
                 parent_order_id,
                 total_amount,
                 transaction_type,
+                delivery_sequence,
                 created_at
               `)
               .in('id', transactionIds);
@@ -194,6 +222,7 @@ export function useAllMovements(filters: MovementFilters = {}) {
                 return {
                   ...trans,
                   order_no: orderInfo?.order_no,
+                  purchase_order_id: orderInfo?.order_no, // 発注書IDとして使用
                   order_total_amount: orderInfo?.total_amount,
                   delivery_type: delivery_type
                 };
@@ -223,6 +252,8 @@ export function useAllMovements(filters: MovementFilters = {}) {
             } : null,
             transaction_details: transaction ? {
               order_no: transaction.order_no,
+              purchase_order_id: transaction.purchase_order_id,
+              delivery_sequence: transaction.delivery_sequence,
               delivery_type: transaction.delivery_type,
               delivery_amount: transaction.total_amount,
               order_total_amount: transaction.order_total_amount,

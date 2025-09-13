@@ -28,7 +28,7 @@ export const DeliveryHistoryList: React.FC<DeliveryHistoryListProps> = ({ orderI
         .eq('parent_order_id', orderId)
         .eq('transaction_type', 'purchase')
         .eq('status', 'confirmed')
-        .order('delivery_sequence', { ascending: false })
+        .order('created_at', { ascending: true })
       
       if (error) throw error
       return data as DeliveryHistoryItem[]
@@ -55,7 +55,7 @@ export const DeliveryHistoryList: React.FC<DeliveryHistoryListProps> = ({ orderI
 
   return (
     <div className="space-y-2 max-h-32 overflow-y-auto">
-      {deliveryHistory.map((delivery) => (
+      {deliveryHistory.map((delivery, index) => (
         <div
           key={delivery.id}
           className="flex items-center justify-between p-3 bg-white rounded border border-gray-200 hover:bg-gray-50 transition-colors"
@@ -63,7 +63,7 @@ export const DeliveryHistoryList: React.FC<DeliveryHistoryListProps> = ({ orderI
           <div className="flex-1">
             <div className="flex items-center space-x-2">
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                第{delivery.delivery_sequence}回
+                第{index + 1}回
               </span>
               <div className="flex flex-col text-xs">
                 <div className="flex items-center space-x-2">

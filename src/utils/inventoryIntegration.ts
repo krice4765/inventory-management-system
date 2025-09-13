@@ -252,9 +252,8 @@ export async function processInventoryFromOrder(
         total_amount: tx.quantity * tx.actual_unit_price, // 在庫価値
         memo: tx.memo,
         transaction_id: tx.source_transaction_id,
-        created_at: tx.transaction_date
-        // delivery_sequenceはinventory_movementsテーブルに存在しないため除外
-        // 分納回数情報はmemoに含める
+        created_at: tx.transaction_date,
+        installment_no: deliverySequence || null  // 分納回数を追加
       }));
 
       console.log('📝 在庫履歴記録開始:', movementRecords);

@@ -221,18 +221,16 @@ export const DeliveryModal = () => {
         }
       }
       
-      // 次のシーケンス番号を取得
-      const { data: seqData, error: seqError } = await supabase
+      // 次の分納回数を計算（同じ発注書の分納件数 + 1）
+      const { count: existingDeliveryCount, error: countError } = await supabase
         .from('transactions')
-        .select('delivery_sequence')
+        .select('id', { count: 'exact', head: true })
         .eq('parent_order_id', orderData.purchase_order_id)
         .eq('transaction_type', 'purchase')
-        .order('delivery_sequence', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-      
-      if (seqError) throw seqError
-      const nextSequence = (seqData?.delivery_sequence ?? 0) + 1
+        .eq('status', 'confirmed')
+
+      if (countError) throw countError
+      const nextSequence = (existingDeliveryCount ?? 0) + 1
 
       // 重複チェック: 同じタイミングでの分納登録を防止
       const now = new Date().toISOString();
@@ -620,33 +618,33 @@ export const DeliveryModal = () => {
                         return inputQuantity > 0;
                       });
                       
-                      // 入力されたすべての商品が満了の場合のみ、金額も満額要求
-                      const allInputItemsAreFull = inputItems.length > 0 && inputItems.every((item: OrderItem) => {
+                      // この分納で全商品の残り数量が0になる場合のみ金額満額を要求
+                      const allRemainingQuantitiesWillBeZero = orderData.items.every((item: OrderItem) => {
                         const inputQuantity = quantities[item.product_id] || 0;
                         const remainingQuantity = item.remaining_quantity || item.quantity;
-                        return inputQuantity >= remainingQuantity;
+                        return remainingQuantity === 0 || inputQuantity >= remainingQuantity;
                       });
 
-                      // 金額と個数の整合性チェック（双方向）
+                      // 金額と個数の整合性チェック
                       const tolerance = 10; // 10円の許容誤差
                       const isAmountFull = Math.abs(value - orderData.remaining_amount) <= tolerance;
-                      
-                      // ケース1: すべての入力商品が満了なのに金額が未満了
-                      if (allInputItemsAreFull && !isAmountFull) {
-                        return `すべての入力商品が満了のため、金額も残額満了（¥${orderData.remaining_amount.toLocaleString()}）である必要があります`;
+
+                      // ケース1: 全商品の残り数量が0になるのに金額が残額未満
+                      if (allRemainingQuantitiesWillBeZero && !isAmountFull) {
+                        return `全商品の残り数量が0になるため、金額は残額満了（¥${orderData.remaining_amount.toLocaleString()}）である必要があります`;
                       }
                       
-                      // ケース2: 金額が満額なのに個数が未満了（重要なバリデーション）
-                      if (isAmountFull && !allInputItemsAreFull && inputItems.length > 0) {
-                        const incompleteitems = inputItems.filter((item: OrderItem) => {
+                      // ケース2: 金額が満額なのに全商品の残り数量が0にならない（重要なバリデーション）
+                      if (isAmountFull && !allRemainingQuantitiesWillBeZero) {
+                        const incompleteItems = orderData.items.filter((item: OrderItem) => {
                           const inputQuantity = quantities[item.product_id] || 0;
                           const remainingQuantity = item.remaining_quantity || item.quantity;
-                          return inputQuantity < remainingQuantity;
+                          return remainingQuantity > 0 && inputQuantity < remainingQuantity;
                         });
-                        
-                        if (incompleteitems.length > 0) {
-                          const incompleteNames = incompleteitems.map(item => item.product_name).join('、');
-                          return `金額が残額満了の場合は、入力された商品もすべて満了である必要があります（未満了商品: ${incompleteNames}）`;
+
+                        if (incompleteItems.length > 0) {
+                          const incompleteNames = incompleteItems.map(item => item.product_name).join('、');
+                          return `金額が残額満了の場合は、全商品の残り数量が0になる必要があります（未完了商品: ${incompleteNames}）`;
                         }
                       }
                     }
@@ -666,12 +664,12 @@ export const DeliveryModal = () => {
                   const deliveryTypeValue = form.watch('deliveryType');
                   if (deliveryTypeValue === 'amount_and_quantity' && orderData?.items) {
                     const quantities = form.watch('quantities') || {};
-                    const isDisabled = orderData.items.every((item: OrderItem) => {
+                    const allWillBeZero = orderData.items.every((item: OrderItem) => {
                       const inputQuantity = quantities[item.product_id] || 0;
                       const remainingQuantity = item.remaining_quantity || item.quantity;
                       return remainingQuantity === 0 || inputQuantity >= remainingQuantity;
                     });
-                    return isDisabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '';
+                    return allWillBeZero ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '';
                   }
                   return '';
                 })()}`}
@@ -696,17 +694,65 @@ export const DeliveryModal = () => {
                 const deliveryTypeValue = form.watch('deliveryType');
                 if (deliveryTypeValue === 'amount_and_quantity' && orderData?.items) {
                   const quantities = form.watch('quantities') || {};
-                  const isDisabled = orderData.items.every((item: OrderItem) => {
+                  const allWillBeZero = orderData.items.every((item: OrderItem) => {
                     const inputQuantity = quantities[item.product_id] || 0;
                     const remainingQuantity = item.remaining_quantity || item.quantity;
                     return remainingQuantity === 0 || inputQuantity >= remainingQuantity;
                   });
-                  if (isDisabled) {
+                  if (allWillBeZero) {
                     return (
                       <p className="mt-1 text-sm text-green-600 bg-green-50 p-2 rounded">
-                        ✅ すべての入力商品が満了のため、金額は残額満了（¥{orderData.remaining_amount.toLocaleString()}）に自動設定されました
+                        ✅ 全商品の残り数量が0になるため、金額は残額満了（¥{orderData.remaining_amount.toLocaleString()}）に自動設定されました
                       </p>
                     );
+                  }
+                }
+                return null;
+              })()}
+
+              {/* 金額満了時の整合性エラーの強調表示 */}
+              {(() => {
+                const enteredAmount = form.watch('amount') || 0;
+                const remainingAmount = orderData?.remaining_amount || 0;
+                const tolerance = 10;
+                const isAmountFull = Math.abs(enteredAmount - remainingAmount) <= tolerance;
+
+                if (enteredAmount > 0 && isAmountFull && orderData?.items) {
+                  const quantities = form.watch('quantities') || {};
+                  const allRemainingQuantitiesWillBeZero = orderData.items.every((item: OrderItem) => {
+                    const inputQuantity = quantities[item.product_id] || 0;
+                    const remainingQuantity = item.remaining_quantity || item.quantity;
+                    return remainingQuantity === 0 || inputQuantity >= remainingQuantity;
+                  });
+
+                  if (!allRemainingQuantitiesWillBeZero) {
+                    const incompleteItems = orderData.items.filter((item: OrderItem) => {
+                      const inputQuantity = quantities[item.product_id] || 0;
+                      const remainingQuantity = item.remaining_quantity || item.quantity;
+                      return remainingQuantity > 0 && inputQuantity < remainingQuantity;
+                    });
+
+                    if (incompleteItems.length > 0) {
+                      const incompleteNames = incompleteItems.map(item => item.product_name).join('、');
+                      return (
+                        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <div className="flex items-start space-x-2">
+                            <div className="text-red-500 mt-0.5">⚠️</div>
+                            <div>
+                              <p className="text-sm font-medium text-red-800">
+                                金額満了時の整合性エラー
+                              </p>
+                              <p className="text-sm text-red-700 mt-1">
+                                金額が残額満了の場合は、全商品の残り数量が0になる必要があります
+                              </p>
+                              <p className="text-xs text-red-600 mt-1">
+                                未完了商品: {incompleteNames}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
                   }
                 }
                 return null;
@@ -867,37 +913,19 @@ export const DeliveryModal = () => {
                                   return `在庫不足: 現在在庫${currentStock}個（不足${value - currentStock}個）`;
                                 }
 
-                                // 金額と個数の整合性チェック（緩和版）
-                                const enteredAmount = form.watch('amount') || 0;
-                                const remainingAmount = orderData?.remaining_amount || 0;
-                                const tolerance = 10; // 10円の許容誤差
-                                const quantities = form.watch('quantities') || {};
-
-                                // 金額が満了で、かつ入力されたすべての商品が満了の場合のみチェック
-                                if (remainingAmount - enteredAmount <= tolerance && enteredAmount > 0) {
-                                  const inputItems = orderData?.items?.filter((item: OrderItem) => {
-                                    const inputQuantity = quantities[item.product_id] || 0;
-                                    return inputQuantity > 0;
-                                  }) || [];
-                                  
-                                  const allOtherItemsAreFull = inputItems.filter((otherItem: OrderItem) => 
-                                    otherItem.product_id !== item.product_id
-                                  ).every((otherItem: OrderItem) => {
-                                    const otherInputQuantity = quantities[otherItem.product_id] || 0;
-                                    const otherRemainingQuantity = otherItem.remaining_quantity || otherItem.quantity;
-                                    return otherInputQuantity >= otherRemainingQuantity;
-                                  });
-                                  
-                                  // 他のすべての商品が満了で、この商品も満了でない場合のみエラー
-                                  if (allOtherItemsAreFull && inputItems.length > 1 && value < maxQuantity) {
-                                    return `金額が残額満了で他商品も満了のため、この商品も満了（${maxQuantity}）である必要があります`;
-                                  }
-                                }
+                                // 個数入力の基本チェックのみ（上限と在庫のチェック）
+                                // 金額との整合性チェックは amount フィールドで一元管理
 
                                 return true;
                               }
                             })}
                             />
+                            {/* バリデーションエラーメッセージ */}
+                            {form.formState.errors.quantities?.[item.product_id] && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {form.formState.errors.quantities[item.product_id]?.message}
+                              </p>
+                            )}
                           </div>
                           {/* リアルタイム在庫警告（分納時のみ） */}
                           {(() => {

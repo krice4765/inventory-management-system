@@ -10,6 +10,7 @@ import { ModernCard } from '../components/ui/ModernCard';
 import { type MovementFilters, useProducts, useAllMovements, useInventoryStats } from '../hooks/useOptimizedInventory';
 import { VirtualizedInventoryTable } from '../components/VirtualizedInventoryTable';
 import SearchableSelect from '../components/SearchableSelect';
+import { UnifiedInventoryDisplay } from '../components/UnifiedInventoryDisplay';
 
 export default function Inventory() {
   const { isDark, toggle: toggleDarkMode } = useDarkMode();
@@ -17,6 +18,7 @@ export default function Inventory() {
   const [showQuickForm, setShowQuickForm] = useState(false);
   const [selectedMovement, setSelectedMovement] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showUnifiedDisplay, setShowUnifiedDisplay] = useState(false);
   
   // フィルタ状態（検索ボタン方式）
   const [searchInput, setSearchInput] = useState(''); // 入力フィールド用
@@ -254,6 +256,21 @@ export default function Inventory() {
           </div>
 
           <div className="flex items-center space-x-3">
+            {/* 統合表示切り替えボタン */}
+            <button
+              onClick={() => setShowUnifiedDisplay(!showUnifiedDisplay)}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                showUnifiedDisplay
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
+                  : isDark
+                  ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-600'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 shadow-md'
+              }`}
+            >
+              <Package className="h-4 w-4" />
+              <span>{showUnifiedDisplay ? '在庫履歴' : '分析表示'}</span>
+            </button>
+
             <button
               onClick={() => setShowQuickForm(!showQuickForm)}
               className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -515,8 +532,19 @@ export default function Inventory() {
           </ModernCard>
         )}
 
-        {/* 仮想化テーブル */}
-        <ModernCard className="p-6">
+        {/* 統合表示 または 標準在庫履歴 */}
+        {showUnifiedDisplay ? (
+          <UnifiedInventoryDisplay
+            initialFilters={{
+              searchTerm: appliedSearchTerm,
+              sortBy: 'created_at',
+              sortOrder: 'desc',
+              recordType: 'all'
+            }}
+            showTitle={true}
+          />
+        ) : (
+          <ModernCard className="p-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -680,6 +708,9 @@ export default function Inventory() {
                         <thead className={`${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
                           <tr>
                             <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
+                              発注書ID
+                            </th>
+                            <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
                               製品
                             </th>
                             <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
@@ -707,6 +738,24 @@ export default function Inventory() {
                                 isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
                               }`}
                             >
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="space-y-1">
+                                  {movement.transaction_details?.purchase_order_id ? (
+                                    <div className={`text-sm font-mono ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                                      {movement.transaction_details.purchase_order_id}
+                                    </div>
+                                  ) : (
+                                    <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                      -
+                                    </div>
+                                  )}
+                                  {movement.transaction_details?.delivery_sequence && (
+                                    <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                      第{movement.transaction_details.delivery_sequence}回
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center space-x-3">
                                   <div className="flex-shrink-0">
@@ -839,7 +888,7 @@ export default function Inventory() {
             </div>
           </div>
         </ModernCard>
-
+        )}
 
         {/* 詳細モーダル */}
         {showDetailModal && selectedMovement && (
