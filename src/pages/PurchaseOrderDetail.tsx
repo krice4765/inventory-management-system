@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, User, Package, DollarSign, FileText, Clock, CheckCircle, Plus } from 'lucide-react';
+import { ArrowLeft, Calendar, User, DollarSign, FileText, Clock, CheckCircle, Plus } from 'lucide-react';
 import { supabase, db } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { useDarkMode } from '../hooks/useDarkMode';

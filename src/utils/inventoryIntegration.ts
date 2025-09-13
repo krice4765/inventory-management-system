@@ -161,16 +161,13 @@ export async function processInventoryFromOrder(
           処理方式: '全納入庫（残り数量100%）'
         });
       } else {
-        // 金額のみ分納: 発注数量の100%を入庫 (物理的入庫は完全実行)
-        deliveryQuantity = item.quantity;
-        
-        console.log(`📦 標準入庫: ${item.products.product_name}`, {
+        // 金額のみ分納: 在庫変動なし（会計のみの処理）
+        console.log(`💰 金額のみ分納: ${item.products.product_name}`, {
           発注数量: item.quantity,
-          入庫数量: deliveryQuantity,
-          実際単価: actualUnitPrice,
-          在庫価値: deliveryQuantity * actualUnitPrice,
-          処理方式: '標準入庫（発注数量=入庫数量）'
+          入庫数量: '在庫変動なし',
+          処理方式: '金額のみ分納（在庫変動なし）'
         });
+        continue; // 在庫処理をスキップ
       }
       
       if (deliveryQuantity <= 0) {

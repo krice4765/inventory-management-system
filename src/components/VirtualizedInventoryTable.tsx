@@ -91,6 +91,11 @@ const MovementRow = memo<MovementRowProps>(({ index, style, data }) => {
   const deliverySequence = parseDeliverySequence(movement.memo);
   const isDeliveryRelated = !!movement.transaction_id;
   const stockChange = movement.movement_type === 'in' ? movement.quantity : -movement.quantity;
+  
+  // 在庫変化の詳細計算
+  const currentStock = movement.products?.current_stock || 0;
+  const previousStock = currentStock - stockChange;
+  const afterStock = currentStock;
 
   return (
     <div style={safeStyle} className="px-4 py-2">

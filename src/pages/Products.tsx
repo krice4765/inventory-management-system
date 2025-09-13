@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
-import { Plus, Edit, Trash2, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, RefreshCw, Filter, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { UniversalFilters } from '../components/shared/UniversalFilters';
 import { safeYenFormat } from '../utils/safeFormatters';
@@ -427,7 +427,7 @@ export default function Products() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: 0.25 }}
                 >
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">標準単価</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">仕入単価</label>
                   <input
                     type="number"
                     required
@@ -560,7 +560,7 @@ export default function Products() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="space-y-1">
-                          <div className="text-sm font-semibold text-gray-900 dark:text-white">標準: <span className="text-green-600 dark:text-green-400">{safeYenFormat(product.standard_price)}</span></div>
+                          <div className="text-sm font-semibold text-gray-900 dark:text-white">仕入価格: <span className="text-green-600 dark:text-green-400">{safeYenFormat(product.standard_price)}</span></div>
                           <div className="text-sm font-medium text-purple-600 dark:text-purple-400">販売: {safeYenFormat(product.selling_price)}</div>
                         </div>
                       </td>

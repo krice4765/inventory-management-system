@@ -36,17 +36,6 @@ interface OrderItem {
   drawing_number?: string
 }
 
-interface OrderData {
-  purchase_order_id: string
-  partner_id: string
-  partner_name: string
-  order_no: string
-  ordered_amount: number
-  delivered_amount: number
-  remaining_amount: number
-  delivery_deadline?: string
-  items: OrderItem[]
-}
 
 // Yup schemaを削除し、React Hook Formのネイティブバリデーションを使用
 
@@ -359,15 +348,17 @@ export const DeliveryModal = () => {
         }
 
         // キャッシュを強制的にクリアし、即座に最新データを取得
+        console.log('🔄 分納完了後キャッシュ無効化開始');
+        await queryClient.invalidateQueries(); // 全キャッシュクリア
+        
+        // 特定のキーを強制再フェッチ
         await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ['orders'] }),
-          queryClient.invalidateQueries({ queryKey: ['delivery-order', selectedOrderId] }),
-          queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] }),
-          queryClient.invalidateQueries({ queryKey: ['delivery-progress'] }),
+          queryClient.refetchQueries({ queryKey: ['orders'] }),
+          queryClient.refetchQueries({ queryKey: ['orders-page'] }),
+          queryClient.refetchQueries({ queryKey: ['order-stats'] }),
         ]);
         
-        // 強制的にOrdersクエリを再実行
-        await queryClient.refetchQueries({ queryKey: ['orders'] });
+        console.log('✅ 分納完了後キャッシュ無効化完了');
         
         // 分納完了情報を保存（PDF生成用）
         setLastDeliveryResult({
@@ -617,6 +608,12 @@ export const DeliveryModal = () => {
                     if (deliveryType === 'amount_and_quantity' && orderData.items) {
                       const quantities = form.watch('quantities') || {};
                       
+                      // 個数指定モードでは少なくとも1つの商品に個数入力が必要
+                      const hasAnyQuantityInput = Object.values(quantities).some(qty => (qty || 0) > 0);
+                      if (!hasAnyQuantityInput) {
+                        return '個数指定分納では、少なくとも1つの商品に個数を入力してください';
+                      }
+                      
                       // 入力された商品と、すべてが満了かチェック
                       const inputItems = orderData.items.filter((item: OrderItem) => {
                         const inputQuantity = quantities[item.product_id] || 0;
@@ -630,11 +627,26 @@ export const DeliveryModal = () => {
                         return inputQuantity >= remainingQuantity;
                       });
 
-                      // すべての入力商品が満了なのに金額が未満了の場合のみエラー
-                      if (allInputItemsAreFull && value < orderData.remaining_amount) {
-                        const tolerance = 10; // 10円の許容誤差
-                        if (orderData.remaining_amount - value > tolerance) {
-                          return `すべての入力商品が満了のため、金額も残額満了（¥${orderData.remaining_amount.toLocaleString()}）である必要があります`;
+                      // 金額と個数の整合性チェック（双方向）
+                      const tolerance = 10; // 10円の許容誤差
+                      const isAmountFull = Math.abs(value - orderData.remaining_amount) <= tolerance;
+                      
+                      // ケース1: すべての入力商品が満了なのに金額が未満了
+                      if (allInputItemsAreFull && !isAmountFull) {
+                        return `すべての入力商品が満了のため、金額も残額満了（¥${orderData.remaining_amount.toLocaleString()}）である必要があります`;
+                      }
+                      
+                      // ケース2: 金額が満額なのに個数が未満了（重要なバリデーション）
+                      if (isAmountFull && !allInputItemsAreFull && inputItems.length > 0) {
+                        const incompleteitems = inputItems.filter((item: OrderItem) => {
+                          const inputQuantity = quantities[item.product_id] || 0;
+                          const remainingQuantity = item.remaining_quantity || item.quantity;
+                          return inputQuantity < remainingQuantity;
+                        });
+                        
+                        if (incompleteitems.length > 0) {
+                          const incompleteNames = incompleteitems.map(item => item.product_name).join('、');
+                          return `金額が残額満了の場合は、入力された商品もすべて満了である必要があります（未満了商品: ${incompleteNames}）`;
                         }
                       }
                     }
@@ -716,7 +728,7 @@ export const DeliveryModal = () => {
                     className="form-radio h-4 w-4 text-blue-600"
                   />
                   <span className="ml-2 text-sm text-gray-700">
-                    金額のみで分納（発注数量の100%を自動入庫）
+                    金額のみで分納（在庫変動なし）
                   </span>
                 </label>
                 <label className="inline-flex items-center">

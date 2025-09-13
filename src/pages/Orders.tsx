@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Plus, FileText, Calendar, Search, X, Filter } from 'lucide-react';
+import { Plus, FileText, Calendar, Search, X, Filter, Package, AlertCircle, TrendingUp, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState, useMemo, useCallback } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode';
@@ -7,7 +7,7 @@ import { useDeliveryModal } from '../stores/deliveryModal.store';
 import { DeliveryModal } from '../components/DeliveryModal';
 // Temporarily disabled: import { ModernStatsBar } from '../components/ModernStatsBar';
 import { ModernCard } from '../components/ui/ModernCard';
-import { useOrders, usePartners, type OrderFilters, type PurchaseOrder } from '../hooks/useOptimizedOrders';
+import { useOrders, useAllOrders, useInfiniteOrders, usePartners, type OrderFilters, type PurchaseOrder } from '../hooks/useOptimizedOrders';
 import SearchableSelect from '../components/SearchableSelect';
 
 export default function Orders() {
@@ -26,12 +26,15 @@ export default function Orders() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(20);
 
-  // データフック（フィルタなしで全データ取得）
-  const { data: ordersData, isLoading, error, refetch, isFetching } = useOrders({});
+  // 全件データを使用（クライアントサイドページネーション）
+  const { data: allOrdersData, isLoading, error, refetch, isFetching } = useAllOrders({});
   const { data: partners = [] } = usePartners();
   
-  const allOrders = ordersData?.data || [];
+  // 全件データ
+  const allOrders = allOrdersData?.data || [];
   
   // クライアントサイドフィルタリング（Partnersパターン）
   const orders = useMemo(() => {
@@ -148,20 +151,60 @@ export default function Orders() {
     }
   }, [allOrders, searchTerm, statusFilter, partnerIdFilter, dateRangeFilter, startDate, endDate, dateField, sortBy, sortOrder]);
 
-  // 統計情報も filtered orders から計算
+  // 統計情報は全件データから計算（フィルタ・ページネーション制限なし）
   const stats = useMemo(() => {
+    const allOrdersForStats = allOrders; // 同じデータソースを使用
     const now = new Date();
     return {
-      totalOrders: orders.length,
-      totalAmount: orders.reduce((sum, o) => sum + o.total_amount, 0),
-      confirmedOrders: orders.filter(o => o.status === 'confirmed').length,
-      completedOrders: orders.filter(o => o.status === 'completed').length,
-      overdueOrders: orders.filter(o => 
+      totalOrders: allOrdersForStats.length, // 全件数を使用（52件）
+      totalAmount: allOrdersForStats.reduce((sum, o) => sum + o.total_amount, 0),
+      // delivery_progress >= 100 が納品完了の条件
+      deliveredOrders: allOrdersForStats.filter(o => o.delivery_progress >= 100).length,
+      overdueOrders: allOrdersForStats.filter(o => 
         new Date(o.delivery_deadline) < now && o.delivery_progress < 100
       ).length,
-      draftOrders: orders.filter(o => o.status === 'draft').length,
+      draftOrders: allOrdersForStats.filter(o => o.status === 'draft').length,
+      
+      // フィルタリング後の納品状況別統計
+      completed: orders.filter(order => order.delivery_progress >= 100).length,
+      partial: orders.filter(order => order.delivery_progress > 0 && order.delivery_progress < 100).length,
+      undelivered: orders.filter(order => order.delivery_progress === 0).length,
     };
-  }, [orders]);
+  }, [allOrders, orders]); // ordersも依存に追加
+
+  // ページネーション計算（フィルタリング結果に基づく）
+  const filteredTotalCount = orders.length; // フィルタリング後の件数
+  const totalPages = Math.ceil(filteredTotalCount / pageSize);
+  
+  // 現在ページがフィルタリング後の総ページ数を超えている場合、1ページ目に戻す
+  if (currentPage > totalPages && totalPages > 0) {
+    setCurrentPage(1);
+  }
+
+  // ページネーション適用済みの表示データ
+  const paginatedOrders = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return orders.slice(startIndex, endIndex);
+  }, [orders, currentPage, pageSize]);
+
+  // ページネーション関数（totalPages定義後）
+  const goToPage = useCallback((page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+  
+  const goToNextPage = useCallback(() => {
+    if (currentPage < totalPages) {
+      goToPage(currentPage + 1);
+    }
+  }, [currentPage, totalPages, goToPage]);
+  
+  const goToPrevPage = useCallback(() => {
+    if (currentPage > 1) {
+      goToPage(currentPage - 1);
+    }
+  }, [currentPage, goToPage]);
 
   // クイック日付フィルター関数
   const setQuickDateFilter = useCallback((days: number) => {
@@ -196,8 +239,8 @@ export default function Orders() {
       color: 'blue',
     },
     {
-      title: '確定済',
-      value: stats?.confirmedOrders.toLocaleString() || '0',
+      title: '納品完了',
+      value: stats?.deliveredOrders.toLocaleString() || '0',
       icon: <Package className="h-5 w-5" />,
       color: 'green',
     },
@@ -628,23 +671,151 @@ export default function Orders() {
         {/* 発注一覧 */}
         <ModernCard className="p-6">
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                発注一覧
-              </h3>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <FileText className="h-4 w-4" />
-                <span>{orders.length}件表示</span>
-                {isFetching && (
-                  <>
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                    <span>更新中...</span>
-                  </>
-                )}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    発注一覧
+                  </h3>
+                  {/* 検索結果件数表示 */}
+                  {(searchTerm || statusFilter !== 'all' || dateRangeFilter !== 'all' || partnerIdFilter || startDate || endDate) && (
+                    <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      filteredTotalCount === 0
+                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                        : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                    }`}>
+                      {filteredTotalCount === 0 
+                        ? '🔍 検索結果: 該当なし' 
+                        : `🔍 検索結果: ${filteredTotalCount}件`
+                      }
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center space-x-2 text-sm text-gray-500">
+                  <FileText className="h-4 w-4" />
+                  <span>ページ{currentPage} (20件表示)</span>
+                  {isFetching && (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      <span>更新中...</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              
+              {/* ページネーションコントロール（上部） */}
+              {(totalPages > 1 || filteredTotalCount > pageSize) && (
+                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+                  <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                    ページ {currentPage} / {totalPages} (全{filteredTotalCount}件)
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={goToPrevPage}
+                      disabled={currentPage <= 1}
+                      className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm transition-colors ${
+                        currentPage <= 1
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                          : isDark
+                          ? 'bg-gray-700 text-white hover:bg-gray-600'
+                          : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                      }`}
+                    >
+                      <span>← 前へ</span>
+                    </button>
+                    
+                    {/* ページ番号ボタン */}
+                    <div className="flex items-center space-x-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        const pageNum = currentPage <= 3 
+                          ? i + 1 
+                          : currentPage >= totalPages - 2
+                          ? totalPages - 4 + i
+                          : currentPage - 2 + i;
+                        
+                        if (pageNum < 1 || pageNum > totalPages) return null;
+                        
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => goToPage(pageNum)}
+                            className={`w-8 h-8 rounded-md text-sm transition-colors ${
+                              currentPage === pageNum
+                                ? 'bg-blue-600 text-white'
+                                : isDark
+                                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    
+                    <button
+                      onClick={goToNextPage}
+                      disabled={currentPage >= totalPages}
+                      className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm transition-colors ${
+                        currentPage >= totalPages
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                          : isDark
+                          ? 'bg-gray-700 text-white hover:bg-gray-600'
+                          : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                      }`}
+                    >
+                      <span>次へ →</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* 納品状況別統計（改善されたレイアウト） */}
+              <div className={`grid grid-cols-3 gap-4 p-4 rounded-lg border ${
+                isDark 
+                  ? 'bg-gray-800/30 border-gray-700' 
+                  : 'bg-white border-gray-200 shadow-sm'
+              }`}>
+                <div className="flex items-center justify-center space-x-3 p-3 rounded-lg bg-red-50 dark:bg-red-900/20">
+                  <div className="w-4 h-4 bg-red-500 rounded-full shadow-sm"></div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                      {stats?.undelivered || 0}
+                    </div>
+                    <div className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                      未納品
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-center space-x-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                  <div className="w-4 h-4 bg-blue-500 rounded-full shadow-sm"></div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      {stats?.partial || 0}
+                    </div>
+                    <div className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                      一部納品
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-center space-x-3 p-3 rounded-lg bg-green-50 dark:bg-green-900/20">
+                  <div className="w-4 h-4 bg-green-500 rounded-full shadow-sm"></div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                      {stats?.completed || 0}
+                    </div>
+                    <div className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                      納品完了
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {orders.length === 0 ? (
+            {filteredTotalCount === 0 ? (
               <div className="text-center py-12">
                 <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                 <h3 className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -662,7 +833,7 @@ export default function Orders() {
               </div>
             ) : (
               <div className="space-y-4">
-                {orders.map((order) => (
+                {paginatedOrders.map((order) => (
                   <motion.div
                     key={order.id}
                     initial={{ opacity: 0, y: 20 }}

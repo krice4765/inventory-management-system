@@ -1,31 +1,71 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Minus, Warehouse, X } from 'lucide-react';
+import { Plus, Minus, Warehouse, X, Package, TrendingUp, Filter, Search, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useQueryClient } from '@tanstack/react-query';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { recordInventoryTransaction } from '../utils/inventoryIntegration';
 import { ModernCard } from '../components/ui/ModernCard';
 // Temporarily disabled: import { ModernStatsBar } from '../components/ModernStatsBar';
-import { type MovementFilters } from '../hooks/useOptimizedInventory';
-// Temporarily disabled: import { VirtualizedInventoryTable } from '../components/VirtualizedInventoryTable';
+import { type MovementFilters, useProducts, useAllMovements, useInventoryStats } from '../hooks/useOptimizedInventory';
+import { VirtualizedInventoryTable } from '../components/VirtualizedInventoryTable';
+import SearchableSelect from '../components/SearchableSelect';
 
 export default function Inventory() {
   const { isDark, toggle: toggleDarkMode } = useDarkMode();
+  const queryClient = useQueryClient();
   const [showQuickForm, setShowQuickForm] = useState(false);
   const [selectedMovement, setSelectedMovement] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   
-  // フィルタ状態
-  const [filters, setFilters] = useState<MovementFilters>({
-    searchTerm: '',
-    movementType: 'all',
-    deliveryFilter: 'all',
-    sortBy: 'created_at',
-    sortOrder: 'desc',
+  // フィルタ状態（検索ボタン方式）
+  const [searchInput, setSearchInput] = useState(''); // 入力フィールド用
+  const [appliedSearchTerm, setAppliedSearchTerm] = useState(''); // 実際の検索用
+  const [otherFilters, setOtherFilters] = useState({
+    status: 'all',
     startDate: '',
     endDate: '',
   });
+  // 適用されたフィルター（検索ボタンクリック時のみ更新）
+  const [appliedOtherFilters, setAppliedOtherFilters] = useState({
+    status: 'all',
+    startDate: '',
+    endDate: '',
+  });
+
+  // ページネーション状態
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(20);
+
+  // 検索やフィルタ変更時にページをリセット
+  const handleSearch = useCallback(() => {
+    setAppliedSearchTerm(searchInput.trim());
+    setAppliedOtherFilters({ ...otherFilters });
+    setCurrentPage(1);
+  }, [searchInput, otherFilters]);
+
+  // Enterキーで検索実行
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  }, [handleSearch]);
+
+  // 検索状態の管理（適用された検索キーワードを使用）
+  const hasSearchTerm = appliedSearchTerm.length > 0;
+
+  // MovementFilters に変換（検索ボタン実行後の値を使用）
+  const filters: MovementFilters = useMemo(() => ({
+    searchTerm: appliedSearchTerm,
+    movementType: appliedOtherFilters.status === 'all' ? 'all' :
+                  appliedOtherFilters.status === 'in' ? 'in' :
+                  appliedOtherFilters.status === 'out' ? 'out' : 'all',
+    deliveryFilter: 'all',
+    sortBy: 'created_at',
+    sortOrder: 'desc',
+    startDate: appliedOtherFilters.startDate || '',
+    endDate: appliedOtherFilters.endDate || '',
+  }), [appliedSearchTerm, appliedOtherFilters]);
 
   const [quickFormData, setQuickFormData] = useState({
     product_id: '',
@@ -36,61 +76,66 @@ export default function Inventory() {
   
   // React Queryフック使用
   const { data: products = [], isLoading: productsLoading } = useProducts();
-  
+
   const {
     data: movementsData,
     isLoading: movementsLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-  } = useInfiniteMovements(filters);
-  
+    refetch: refetchMovements,
+  } = useAllMovements(filters);
+
   const { data: stats } = useInventoryStats(filters);
-  
-  // 無限スクロールデータをフラット化
-  const allMovements = useMemo(() => {
-    return movementsData?.pages?.flatMap(page => page.data) ?? [];
-  }, [movementsData]);
+
+  // 全移動履歴データ
+  const allMovements = movementsData?.data || [];
+
+  // ページネーション処理
+  const paginatedMovements = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return allMovements.slice(startIndex, endIndex);
+  }, [allMovements, currentPage, pageSize]);
+
+  // 総ページ数
+  const totalPages = Math.ceil(allMovements.length / pageSize);
   
   const loading = productsLoading || movementsLoading;
   
-  // フィルター更新関数を最適化
-  const updateFilter = useCallback((key: keyof MovementFilters, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-  }, []);
-  
+
   // フィルターリセット関数
   const resetFilters = useCallback(() => {
-    setFilters({
-      searchTerm: '',
-      movementType: 'all',
-      deliveryFilter: 'all',
-      sortBy: 'created_at',
-      sortOrder: 'desc',
+    setSearchInput('');
+    setAppliedSearchTerm('');
+    setCurrentPage(1);
+    setOtherFilters({
+      status: 'all',
+      startDate: '',
+      endDate: '',
+    });
+    setAppliedOtherFilters({
+      status: 'all',
       startDate: '',
       endDate: '',
     });
   }, []);
 
-  // クイックフィルター関数
-  const setQuickDateFilter = useCallback((days: number) => {
-    const today = new Date();
-    const startDate = new Date(today);
-    startDate.setDate(today.getDate() - days);
-    
-    setFilters(prev => ({
-      ...prev,
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: new Date().toISOString().split('T')[0],
-    }));
+
+  // ページネーション関数
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
   }, []);
-  
-  // 無限スクロールローダー
-  const loadNextPage = useCallback(async () => {
-    if (hasNextPage && !isFetchingNextPage) {
-      await fetchNextPage();
+
+  // 在庫移動履歴のみをリフレッシュ（統計も含む）
+  const refreshInventoryList = useCallback(async () => {
+    try {
+      // 在庫移動データと統計データを並列でリフレッシュ
+      await Promise.all([
+        refetchMovements(),
+        queryClient.invalidateQueries({ queryKey: ['inventory-stats'] })
+      ]);
+    } catch (error) {
+      console.error('❌ 在庫リスト更新エラー:', error);
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [refetchMovements, queryClient]);
 
   const handleQuickAdd = async () => {
     if (!quickFormData.product_id || !quickFormData.quantity || !quickFormData.memo) {
@@ -106,7 +151,7 @@ export default function Inventory() {
       }
 
       const quantity = parseInt(quickFormData.quantity);
-      await recordInventoryTransaction({
+      const result = await recordInventoryTransaction({
         product_id: quickFormData.product_id,
         transaction_type: quickFormData.movement_type,
         quantity,
@@ -114,20 +159,30 @@ export default function Inventory() {
         memo: quickFormData.memo
       });
 
-      toast.success('在庫移動を記録しました');
-      
-      // フォームリセット
-      setQuickFormData({
-        product_id: '',
-        movement_type: 'in',
-        quantity: '',
-        memo: '',
-      });
-      setShowQuickForm(false);
+      if (result.success) {
+        toast.success('在庫移動を記録しました');
+        
+        // フォームリセット
+        setQuickFormData({
+          product_id: '',
+          movement_type: 'in',
+          quantity: '',
+          memo: '',
+        });
+        setShowQuickForm(false);
+
+        // データを強制リフレッシュ（React Query のキャッシュを無効化）
+        await queryClient.invalidateQueries({ queryKey: ['inventory-movements'] });
+        await queryClient.invalidateQueries({ queryKey: ['products'] });
+        await queryClient.invalidateQueries({ queryKey: ['inventory-stats'] });
+        
+      } else {
+        throw new Error(result.error || '在庫移動の記録に失敗しました');
+      }
       
     } catch (error) {
       console.error('❌ 在庫移動記録エラー:', error);
-      toast.error('在庫移動の記録に失敗しました');
+      toast.error(error instanceof Error ? error.message : '在庫移動の記録に失敗しました');
     }
   };
 
@@ -140,7 +195,7 @@ export default function Inventory() {
   const statsCards = useMemo(() => [
     {
       title: '総移動件数',
-      value: ((stats?.totalIn || 0) + (stats?.totalOut || 0)).toLocaleString(),
+      value: (stats?.totalMovements || 0).toLocaleString(),
       icon: <Package className="h-5 w-5" />,
       color: 'blue',
     },
@@ -158,7 +213,7 @@ export default function Inventory() {
     },
     {
       title: '純在庫増減',
-      value: `${(stats?.totalIn || 0) - (stats?.totalOut || 0) > 0 ? '+' : ''}${((stats?.totalIn || 0) - (stats?.totalOut || 0)).toLocaleString()}`,
+      value: `${(stats?.netQuantity || 0) > 0 ? '+' : ''}${(stats?.netQuantity || 0).toLocaleString()}`,
       icon: <TrendingUp className="h-5 w-5" />,
       color: 'purple',
     },
@@ -242,252 +297,168 @@ export default function Inventory() {
           ))}
         </div>
 
-        {/* フィルターセクション */}
+        {/* フィルターセクション - シンプルな実装に変更 */}
         <ModernCard className="p-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                フィルター・検索
+                在庫フィルター
               </h3>
-              <button
-                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className="flex items-center space-x-2 text-blue-600 hover:text-blue-700"
-              >
-                <Filter className="h-4 w-4" />
-                <span>{showAdvancedFilters ? '簡易表示' : '詳細フィルター'}</span>
-              </button>
-            </div>
-
-            {/* 基本検索 */}
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex-1 min-w-64">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="商品名、コード、メモで検索..."
-                    value={filters.searchTerm}
-                    onChange={(e) => updateFilter('searchTerm', e.target.value)}
-                    className={`w-full pl-10 pr-4 py-2 border rounded-lg ${
-                      isDark 
-                        ? 'bg-gray-800 border-gray-700 text-white' 
-                        : 'bg-white border-gray-300 text-gray-900'
-                    }`}
-                  />
-                </div>
-              </div>
-
-              <select
-                value={filters.movementType}
-                onChange={(e) => updateFilter('movementType', e.target.value)}
-                className={`px-3 py-2 border rounded-lg ${
-                  isDark 
-                    ? 'bg-gray-800 border-gray-700 text-white' 
-                    : 'bg-white border-gray-300 text-gray-900'
-                }`}
-              >
-                <option value="all">すべての移動</option>
-                <option value="in">入庫のみ</option>
-                <option value="out">出庫のみ</option>
-              </select>
-
-              <select
-                value={filters.deliveryFilter}
-                onChange={(e) => updateFilter('deliveryFilter', e.target.value)}
-                className={`px-3 py-2 border rounded-lg ${
-                  isDark 
-                    ? 'bg-gray-800 border-gray-700 text-white' 
-                    : 'bg-white border-gray-300 text-gray-900'
-                }`}
-                title="在庫移動の種類でフィルター"
-              >
-                <option value="all">すべての移動</option>
-                <option value="partial_delivery">分納連動（発注から自動生成）</option>
-                <option value="manual">手動入力（直接登録）</option>
-              </select>
-
               <button
                 onClick={resetFilters}
-                className="flex items-center space-x-1 px-3 py-2 text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="text-sm text-blue-600 hover:text-blue-700"
               >
-                <X className="h-4 w-4" />
-                <span>リセット</span>
+                リセット
               </button>
             </div>
-
-            {/* 詳細フィルター */}
-            {showAdvancedFilters && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t">
-                <div>
-                  <label className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    開始日
-                  </label>
-                  <input
-                    type="date"
-                    value={filters.startDate}
-                    onChange={(e) => updateFilter('startDate', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg ${
-                      isDark 
-                        ? 'bg-gray-800 border-gray-700 text-white' 
-                        : 'bg-white border-gray-300 text-gray-900'
-                    }`}
-                  />
-                </div>
-
-                <div>
-                  <label className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    終了日
-                  </label>
-                  <input
-                    type="date"
-                    value={filters.endDate}
-                    onChange={(e) => updateFilter('endDate', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg ${
-                      isDark 
-                        ? 'bg-gray-800 border-gray-700 text-white' 
-                        : 'bg-white border-gray-300 text-gray-900'
-                    }`}
-                  />
-                </div>
-
-                <div>
-                  <label className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    並び順
-                  </label>
-                  <select
-                    value={filters.sortBy}
-                    onChange={(e) => updateFilter('sortBy', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg ${
-                      isDark 
-                        ? 'bg-gray-800 border-gray-700 text-white' 
-                        : 'bg-white border-gray-300 text-gray-900'
-                    }`}
-                  >
-                    <option value="created_at">日時順</option>
-                    <option value="product_name">商品名順</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    順序
-                  </label>
-                  <select
-                    value={filters.sortOrder}
-                    onChange={(e) => updateFilter('sortOrder', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg ${
-                      isDark 
-                        ? 'bg-gray-800 border-gray-700 text-white' 
-                        : 'bg-white border-gray-300 text-gray-900'
-                    }`}
-                  >
-                    <option value="desc">降順</option>
-                    <option value="asc">昇順</option>
-                  </select>
-                </div>
-
-                {/* クイック日付フィルター */}
-                <div className="col-span-full">
-                  <p className={`text-sm font-medium mb-2 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    クイック期間選択
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { label: '今日', days: 0 },
-                      { label: '1週間', days: 7 },
-                      { label: '1ヶ月', days: 30 },
-                      { label: '3ヶ月', days: 90 },
-                    ].map(period => (
-                      <button
-                        key={period.days}
-                        onClick={() => setQuickDateFilter(period.days)}
-                        className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors"
-                      >
-                        {period.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            
+            {/* 検索フィールド - ボタン方式 */}
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="商品名、移動タイプで検索..."
+                  className={`w-full pl-10 pr-4 py-2 border rounded-lg ${
+                    isDark
+                      ? 'bg-gray-800 border-gray-700 text-white'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
+                />
               </div>
-            )}
-          </div>
-        </ModernCard>
-
-        {/* 仮想化テーブル */}
-        <ModernCard className="p-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                在庫移動履歴
-              </h3>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <Package className="h-4 w-4" />
-                <span>{allMovements.length}件表示</span>
-                {isFetchingNextPage && (
-                  <>
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                    <span>読み込み中...</span>
-                  </>
-                )}
+              <button
+                onClick={handleSearch}
+                className={`px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium ${
+                  isDark ? 'bg-blue-700 hover:bg-blue-800' : ''
+                }`}
+              >
+                <Search className="h-4 w-4" />
+                検索・フィルター実行
+              </button>
+            </div>
+            
+            {/* その他のフィルター */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className={`block text-sm font-medium mb-1 ${
+                  isDark ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  ステータス
+                </label>
+                <select
+                  value={otherFilters.status}
+                  onChange={(e) => {
+                    setOtherFilters(prev => ({ ...prev, status: e.target.value }));
+                  }}
+                  className={`w-full px-3 py-2 border rounded-lg ${
+                    isDark
+                      ? 'bg-gray-800 border-gray-700 text-white'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
+                >
+                  <option value="all">すべて</option>
+                  <option value="in">入庫のみ</option>
+                  <option value="out">出庫のみ</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className={`block text-sm font-medium mb-1 ${
+                  isDark ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  開始日
+                </label>
+                <input
+                  type="date"
+                  value={otherFilters.startDate}
+                  onChange={(e) => {
+                    setOtherFilters(prev => ({ ...prev, startDate: e.target.value }));
+                  }}
+                  className={`w-full px-3 py-2 border rounded-lg ${
+                    isDark
+                      ? 'bg-gray-800 border-gray-700 text-white'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
+                />
+              </div>
+              
+              <div>
+                <label className={`block text-sm font-medium mb-1 ${
+                  isDark ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  終了日
+                </label>
+                <input
+                  type="date"
+                  value={otherFilters.endDate}
+                  onChange={(e) => {
+                    setOtherFilters(prev => ({ ...prev, endDate: e.target.value }));
+                  }}
+                  className={`w-full px-3 py-2 border rounded-lg ${
+                    isDark
+                      ? 'bg-gray-800 border-gray-700 text-white'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
+                />
               </div>
             </div>
-
-            {allMovements && allMovements.length > 0 ? (
-              <VirtualizedInventoryTable
-                movements={allMovements || []}
-                hasNextPage={hasNextPage ?? false}
-                isNextPageLoading={isFetchingNextPage ?? false}
-                loadNextPage={loadNextPage}
-                onMovementClick={handleMovementClick}
-                isDark={isDark ?? false}
-              />
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Package className={`h-12 w-12 mb-4 ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
-                <p className={`text-lg font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                  在庫移動データがありません
-                </p>
-                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                  フィルター条件を変更するか、新しい在庫移動を追加してください
-                </p>
-              </div>
-            )}
+            
+            {/* クイックフィルター */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => {
+                  const today = new Date().toISOString().split('T')[0];
+                  setOtherFilters(prev => ({ ...prev, startDate: today, endDate: today }));
+                }}
+                className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                  isDark
+                    ? 'bg-blue-900 text-blue-200 hover:bg-blue-800'
+                    : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                }`}
+              >
+                今日の移動
+              </button>
+              <button
+                onClick={() => {
+                  setOtherFilters(prev => ({ ...prev, status: 'in' }));
+                }}
+                className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                  isDark
+                    ? 'bg-green-900 text-green-200 hover:bg-green-800'
+                    : 'bg-green-100 text-green-700 hover:bg-green-200'
+                }`}
+              >
+                入庫のみ
+              </button>
+            </div>
           </div>
         </ModernCard>
 
-        {/* クイック追加フォーム */}
+        {/* クイック追加フォーム - フィルターの直後に配置 */}
         {showQuickForm && (
           <ModernCard className="p-6">
             <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               クイック在庫移動追加
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <select
+              <SearchableSelect
+                options={[
+                  { value: '', label: '商品を選択してください' },
+                  ...products.map(product => ({
+                    value: product.id,
+                    label: product.product_name,
+                    description: `(${product.product_code}) 在庫: ${product.current_stock}`
+                  }))
+                ]}
                 value={quickFormData.product_id}
-                onChange={(e) => setQuickFormData(prev => ({ ...prev, product_id: e.target.value }))}
-                className={`px-3 py-2 border rounded-lg ${
-                  isDark 
-                    ? 'bg-gray-800 border-gray-700 text-white' 
-                    : 'bg-white border-gray-300 text-gray-900'
-                }`}
-              >
-                <option value="">商品を選択</option>
-                {products.map(product => (
-                  <option key={product.id} value={product.id}>
-                    {product.name} ({product.product_code})
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => setQuickFormData(prev => ({ ...prev, product_id: value }))}
+                placeholder="商品名またはコードで検索..."
+                className="w-full"
+                darkMode={isDark}
+              />
 
               <select
                 value={quickFormData.movement_type}
@@ -543,6 +514,332 @@ export default function Inventory() {
             </div>
           </ModernCard>
         )}
+
+        {/* 仮想化テーブル */}
+        <ModernCard className="p-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                在庫移動履歴
+              </h3>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2 text-sm text-gray-500">
+                  <Package className="h-4 w-4" />
+                  <span>{allMovements.length}件表示</span>
+                  {movementsLoading && (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      <span>読み込み中...</span>
+                    </>
+                  )}
+                </div>
+                
+                {/* 在庫リストリフレッシュボタン */}
+                <button
+                  onClick={refreshInventoryList}
+                  className={`flex items-center space-x-1 px-3 py-1 rounded-md text-xs transition-colors ${
+                    isDark
+                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                  title="在庫履歴をリフレッシュ"
+                >
+                  <RefreshCw className="h-3 w-3" />
+                  <span>更新</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              {allMovements && allMovements.length > 0 ? (
+                <>
+                  {/* ページネーション - 上部 */}
+                  <div className={`px-6 py-3 flex items-center justify-between border-b ${
+                    isDark ? 'border-gray-600 bg-gray-800' : 'border-gray-200 bg-gray-50'
+                  }`}>
+                    <div className="flex-1 flex justify-between sm:hidden">
+                      <button
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md ${
+                          currentPage === 1
+                            ? isDark
+                              ? 'border-gray-600 text-gray-500 bg-gray-800'
+                              : 'border-gray-300 text-gray-300 bg-gray-100'
+                            : isDark
+                            ? 'border-gray-600 text-gray-300 bg-gray-700 hover:bg-gray-600'
+                            : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
+                        }`}
+                      >
+                        前へ
+                      </button>
+                      <button
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className={`ml-3 relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md ${
+                          currentPage === totalPages
+                            ? isDark
+                              ? 'border-gray-600 text-gray-500 bg-gray-800'
+                              : 'border-gray-300 text-gray-300 bg-gray-100'
+                            : isDark
+                            ? 'border-gray-600 text-gray-300 bg-gray-700 hover:bg-gray-600'
+                            : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
+                        }`}
+                      >
+                        次へ
+                      </button>
+                    </div>
+                    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                      <div>
+                        <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                          <span className="font-medium">{((currentPage - 1) * pageSize) + 1}</span>
+                          {' から '}
+                          <span className="font-medium">{Math.min(currentPage * pageSize, allMovements.length)}</span>
+                          {' / '}
+                          <span className="font-medium">{allMovements.length}</span>
+                          {' 件'}
+                        </p>
+                      </div>
+                      <div>
+                        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                          <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className={`relative inline-flex items-center px-2 py-2 rounded-l-md border text-sm font-medium ${
+                              currentPage === 1
+                                ? isDark
+                                  ? 'border-gray-600 text-gray-500 bg-gray-800'
+                                  : 'border-gray-300 text-gray-300 bg-gray-100'
+                                : isDark
+                                ? 'border-gray-600 text-gray-300 bg-gray-700 hover:bg-gray-600'
+                                : 'border-gray-300 text-gray-500 bg-white hover:bg-gray-50'
+                            }`}
+                          >
+                            <span className="sr-only">前へ</span>
+                            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                          {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                            let pageNumber;
+                            if (totalPages <= 7) {
+                              pageNumber = i + 1;
+                            } else if (currentPage <= 4) {
+                              pageNumber = i + 1;
+                            } else if (currentPage >= totalPages - 3) {
+                              pageNumber = totalPages - 6 + i;
+                            } else {
+                              pageNumber = currentPage - 3 + i;
+                            }
+
+                            return (
+                              <button
+                                key={pageNumber}
+                                onClick={() => handlePageChange(pageNumber)}
+                                className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                  pageNumber === currentPage
+                                    ? isDark
+                                      ? 'z-10 bg-blue-600 border-blue-600 text-white'
+                                      : 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                                    : isDark
+                                    ? 'border-gray-600 text-gray-300 bg-gray-700 hover:bg-gray-600'
+                                    : 'border-gray-300 text-gray-500 bg-white hover:bg-gray-50'
+                                }`}
+                              >
+                                {pageNumber}
+                              </button>
+                            );
+                          })}
+                          <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className={`relative inline-flex items-center px-2 py-2 rounded-r-md border text-sm font-medium ${
+                              currentPage === totalPages
+                                ? isDark
+                                  ? 'border-gray-600 text-gray-500 bg-gray-800'
+                                  : 'border-gray-300 text-gray-300 bg-gray-100'
+                                : isDark
+                                ? 'border-gray-600 text-gray-300 bg-gray-700 hover:bg-gray-600'
+                                : 'border-gray-300 text-gray-500 bg-white hover:bg-gray-50'
+                            }`}
+                          >
+                            <span className="sr-only">次へ</span>
+                            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </nav>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 在庫移動履歴テーブル */}
+                  <div className={`overflow-hidden rounded-lg shadow-lg ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className={`${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                          <tr>
+                            <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
+                              製品
+                            </th>
+                            <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
+                              移動タイプ
+                            </th>
+                            <th className={`px-6 py-3 text-center text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
+                              移動数量
+                            </th>
+                            <th className={`px-6 py-3 text-center text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
+                              在庫変化
+                            </th>
+                            <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
+                              移動日時
+                            </th>
+                            <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
+                              操作
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className={`divide-y ${isDark ? 'divide-gray-700 bg-gray-800' : 'divide-gray-200 bg-white'}`}>
+                          {paginatedMovements.map((movement) => (
+                            <tr
+                              key={movement.id}
+                              className={`transition-colors ${
+                                isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+                              }`}
+                            >
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center space-x-3">
+                                  <div className="flex-shrink-0">
+                                    <div className="h-10 w-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                                      <Package className={`h-5 w-5 ${isDark ? 'text-gray-500' : 'text-gray-600'}`} />
+                                    </div>
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'} truncate`}>
+                                      {movement.products?.product_name || movement.products?.name || 'N/A'}
+                                    </div>
+                                    <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'} font-mono`}>
+                                      {movement.products?.product_code || 'N/A'}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="space-y-1">
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                    movement.movement_type === 'in'
+                                      ? isDark ? 'bg-emerald-900 text-emerald-200' : 'bg-emerald-100 text-emerald-700'
+                                      : isDark ? 'bg-rose-900 text-rose-200' : 'bg-rose-100 text-rose-700'
+                                  }`}>
+                                    {movement.movement_type === 'in' ? '入庫' : '出庫'}
+                                  </span>
+                                  {movement.transaction_details && (
+                                    <div>
+                                      <span className={`inline-flex items-center px-2 py-1 rounded text-xs ${
+                                        movement.transaction_details.delivery_type === 'full'
+                                          ? isDark ? 'bg-indigo-900 text-indigo-200' : 'bg-indigo-100 text-indigo-700'
+                                          : isDark ? 'bg-amber-900 text-amber-200' : 'bg-amber-100 text-amber-700'
+                                      }`}>
+                                        {movement.transaction_details.delivery_type === 'full' ? '全納' : '分納'}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-center">
+                                <div className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                  {movement.quantity?.toLocaleString() || 0}
+                                </div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  個
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center justify-between border rounded-lg p-4 bg-white dark:bg-gray-800 dark:border-gray-600">
+                                  <div className="text-center flex-1">
+                                    <div className={`text-lg font-semibold ${
+                                      movement.movement_type === 'in'
+                                        ? 'text-green-600'
+                                        : 'text-red-600'
+                                    }`}>
+                                      {movement.movement_type === 'in' ? '+' : '-'}{movement.quantity?.toLocaleString() || 0}
+                                    </div>
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      変動量
+                                    </div>
+                                  </div>
+                                  <div className="h-10 w-px bg-gray-300 dark:bg-gray-600 mx-4"></div>
+                                  <div className="text-center flex-1">
+                                    <div className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                      {movement.cumulative_stock_at_time?.toLocaleString() || 0}
+                                    </div>
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      移動後在庫
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="space-y-1">
+                                  <div className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                    {new Date(movement.created_at).toLocaleDateString('ja-JP')}
+                                  </div>
+                                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    {new Date(movement.created_at).toLocaleTimeString('ja-JP', {
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleMovementClick(movement);
+                                  }}
+                                  className="text-blue-600 hover:text-blue-900"
+                                >
+                                  詳細
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12">
+                  {hasSearchTerm ? (
+                    <>
+                      <Package className={`h-12 w-12 mb-4 ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
+                      <p className={`text-lg font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        「{appliedSearchTerm}」に一致する結果がありません
+                      </p>
+                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                        検索条件を変更してお試しください
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <Package className={`h-12 w-12 mb-4 ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
+                      <p className={`text-lg font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        在庫移動データがありません
+                      </p>
+                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                        フィルター条件を変更するか、新しい在庫移動を追加してください
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </ModernCard>
+
 
         {/* 詳細モーダル */}
         {showDetailModal && selectedMovement && (

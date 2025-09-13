@@ -100,12 +100,13 @@ export default function SearchableSelect({
         setHighlightedIndex(nextUp);
         break;
       }
-      case 'Enter':
+      case 'Enter': {
         e.preventDefault();
         if (highlightedIndex >= 0 && filteredOptions[highlightedIndex] && !filteredOptions[highlightedIndex].disabled) {
           handleSelect(filteredOptions[highlightedIndex].value);
         }
         break;
+      }
     }
   };
 

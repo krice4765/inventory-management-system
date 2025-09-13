@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Filter, 
@@ -38,10 +38,38 @@ export function UniversalFilters({
   className = '' 
 }: UniversalFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [searchInput, setSearchInput] = useState(filters.searchKeyword || '');
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const hasActiveFilters = Object.entries(filters).some(([, value]) => 
     value !== undefined && value !== '' && value !== 'all'
   );
+
+  // 検索デバウンス処理
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    searchTimeoutRef.current = setTimeout(() => {
+      if (searchInput !== filters.searchKeyword) {
+        onFiltersChange({ ...filters, searchKeyword: searchInput });
+      }
+    }, 300); // 300msのデバウンス（よりレスポンシブに）
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchInput, filters, onFiltersChange]);
+
+  // 外部からのフィルター変更に対応
+  useEffect(() => {
+    if (filters.searchKeyword !== searchInput) {
+      setSearchInput(filters.searchKeyword || '');
+    }
+  }, [filters.searchKeyword]);
 
   const getFilterConfig = () => {
     switch (filterType) {
@@ -203,8 +231,8 @@ export function UniversalFilters({
                   <input
                     type="text"
                     placeholder={config.searchPlaceholder}
-                    value={filters.searchKeyword || ''}
-                    onChange={(e) => onFiltersChange({ ...filters, searchKeyword: e.target.value })}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white transition-all"
                   />
                 </div>

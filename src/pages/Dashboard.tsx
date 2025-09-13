@@ -3,8 +3,10 @@ import { supabase } from '../lib/supabase';
 import { Package, TrendingUp, AlertTriangle, DollarSign, RefreshCw, Sparkles, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useDarkMode } from '../hooks/useDarkMode';
+import { useOrders, useAllOrders } from '../hooks/useOptimizedOrders';
 import { motion } from 'framer-motion';
 import { ModernCard } from '../components/ui/ModernCard';
+import { PreloadManager } from '../utils/preloadStrategies';
 
 interface DashboardStats {
   totalProducts: number;
@@ -29,6 +31,19 @@ interface DashboardStats {
 
 export default function Dashboard() {
   const { isDark, toggle: toggleDarkMode } = useDarkMode();
+  
+  // OrdersページとData同期のため、useOrdersを使用（キャッシュ戦略を短縮）
+  const { data: ordersData, refetch: refetchOrders, isLoading: ordersLoading, dataUpdatedAt } = useAllOrders({});
+  
+  // ordersDataの変化を監視
+  useEffect(() => {
+    console.log('📊 Dashboard - ordersData changed:', {
+      hasData: !!ordersData,
+      count: ordersData?.data?.length || 0,
+      dataUpdatedAt: new Date(dataUpdatedAt || 0).toLocaleTimeString(),
+      timestamp: new Date().toLocaleTimeString()
+    });
+  }, [ordersData, dataUpdatedAt]);
   const [stats, setStats] = useState<DashboardStats>({
     totalProducts: 0,
     totalStock: 0,
@@ -59,7 +74,24 @@ export default function Dashboard() {
   useEffect(() => {
     fetchDashboardStats();
     fetchWeeklyActivity();
-  }, []);
+    // インテリジェントプリローディング
+    PreloadManager.preloadLikelyRoutes();
+  }, [ordersData]); // ordersDataの変更を監視
+
+  // 手動リフレッシュ機能を追加
+  const handleRefresh = async () => {
+    setLoading(true);
+    try {
+      await refetchOrders(); // 発注データを強制再取得
+      await fetchDashboardStats(); // ダッシュボード統計を再計算
+      await fetchWeeklyActivity(); // 週次活動を再取得
+      console.log('🔄 ダッシュボード手動更新完了');
+    } catch (error) {
+      console.error('❌ ダッシュボード更新エラー:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchWeeklyActivity = async () => {
     try {
@@ -93,7 +125,7 @@ export default function Dashboard() {
         .gte('created_at', lastWeekStart.toISOString())
         .lt('created_at', lastWeekEnd.toISOString());
 
-      // 発注活動
+      // 発注活動（今回の対象問題のコア部分）
       const { data: ordersThisWeek } = await supabase
         .from('purchase_orders')
         .select('id')
@@ -104,6 +136,12 @@ export default function Dashboard() {
         .select('id')
         .gte('created_at', lastWeekStart.toISOString())
         .lt('created_at', lastWeekEnd.toISOString());
+
+      console.log('📊 週次発注活動取得:', {
+        今週の発注数: ordersThisWeek?.length || 0,
+        先週の発注数: ordersLastWeek?.length || 0,
+        timestamp: new Date().toLocaleTimeString()
+      });
 
       // 取引先活動
       const { data: partnersThisWeek } = await supabase
@@ -142,6 +180,36 @@ export default function Dashboard() {
 
   const fetchDashboardStats = async () => {
     try {
+      // 発注数を直接データベースから取得（キャッシュバイパス） - 全件診断版
+      const { data: ordersCount, error: ordersCountError } = await supabase
+        .from('purchase_orders')
+        .select('id, status, order_no, created_at', { count: 'exact' })
+        .order('created_at', { ascending: false }); // 制限を解除して全件取得
+
+      if (ordersCountError) {
+        console.error('❌ 発注数取得エラー:', ordersCountError);
+      } else {
+        const statusBreakdown = ordersCount?.reduce((acc, order) => {
+          acc[order.status] = (acc[order.status] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>) || {};
+        
+        console.log('🔍 データベース直接発注分析（全件版）:', {
+          総発注数: ordersCount?.length || 0,
+          ステータス別: statusBreakdown,
+          直近5件: ordersCount?.slice(0, 5).map(o => ({
+            order_no: o.order_no,
+            status: o.status,
+            created_at: o.created_at
+          })),
+          最古5件: ordersCount?.slice(-5).map(o => ({
+            order_no: o.order_no,
+            status: o.status,
+            created_at: o.created_at
+          }))
+        });
+      }
+
       const { data: products, error } = await supabase
         .from('products')
         .select('id, current_stock, selling_price, min_stock_level');
@@ -157,73 +225,64 @@ export default function Dashboard() {
         sum + ((product.current_stock || 0) * (product.selling_price || 0)), 0
       ) || 0;
 
-      // 分納進捗データを取得（purchase_ordersテーブルが存在しない場合のデフォルト）
-      let purchaseOrders: any[] = [];
-      try {
-        const { data: orderData } = await supabase
-          .from('purchase_orders')
-          .select('id, total_amount, status, created_at');
-        purchaseOrders = orderData || [];
-      } catch (error) {
-        console.warn('purchase_ordersテーブルが見つかりません。デフォルトデータを使用:', error);
-        purchaseOrders = [];
-      }
-
-      // 取引データを取得（transactionsテーブルが存在しない場合のデフォルト）
-      let transactions: any[] = [];
-      try {
-        const { data: transactionData } = await supabase
-          .from('transactions')
-          .select('total_amount, created_at, parent_order_id')
-          .eq('transaction_type', 'purchase')
-          .eq('status', 'confirmed');
-        transactions = transactionData || [];
-      } catch (error) {
-        console.warn('transactionsテーブルが見つかりません。デフォルトデータを使用:', error);
-        transactions = [];
-      }
-
+      // 発注データはuseOrdersフックから取得（Ordersページとデータ同期）
+      const allOrders = ordersData?.data || [];
+      
+      console.log('🔍 Dashboard Stats Debug - Detailed:', {
+        timestamp: new Date().toISOString(),
+        ordersData: !!ordersData,
+        dataStructure: ordersData ? Object.keys(ordersData) : null,
+        allOrdersCount: allOrders.length,
+        allOrdersSample: allOrders.map(o => ({ 
+          id: o.id, 
+          status: o.status, 
+          orderNo: o.order_no,
+          createdAt: o.created_at
+        })).slice(0, 3),
+        isLoading: ordersLoading,
+        cacheStatus: `Generated at ${new Date().toLocaleTimeString()}`
+      });
+      
       // アクティブ発注（未完了）
-      const activeOrders = purchaseOrders?.filter(order => 
+      const activeOrders = allOrders.filter(order => 
         order.status === 'pending' || order.status === 'confirmed'
-      ).length || 0;
+      ).length;
 
-      // 分納進捗計算 - purchase_ordersテーブルの基本情報のみ使用
-      const completed = purchaseOrders?.filter(order => 
-        order.status === 'completed'
-      ).length || 0;
+      // 分納進捗計算 - useOptimizedOrdersのdelivery_progressを直接使用
+      const completed = allOrders.filter(order => 
+        order.delivery_progress >= 100
+      ).length;
       
-      const partial = purchaseOrders?.filter(order => 
-        order.status === 'partial'
-      ).length || 0;
+      const partial = allOrders.filter(order => 
+        order.delivery_progress > 0 && order.delivery_progress < 100
+      ).length;
       
-      const pending = purchaseOrders?.filter(order => 
-        order.status === 'pending'
-      ).length || 0;
+      const pending = allOrders.filter(order => 
+        order.delivery_progress === 0
+      ).length;
       
-      const totalOrders = purchaseOrders?.length || 1;
-      const completionRate = (completed / totalOrders) * 100;
+      const totalOrders = allOrders.length;
+      const completionRate = totalOrders > 0 ? (completed / totalOrders) * 100 : 0;
 
-      // 今月の分納金額
+      // 今月の分納金額（allOrdersからdelivered_amountの合計を計算）
       const currentMonth = new Date();
       const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-      const monthlyDeliveryAmount = transactions?.filter(t => 
-        new Date(t.created_at) >= monthStart
-      ).reduce((sum, t) => sum + t.total_amount, 0) || 0;
+      const monthlyDeliveryAmount = allOrders
+        .filter(order => order.latest_delivery_date && new Date(order.latest_delivery_date) >= monthStart)
+        .reduce((sum, order) => sum + (order.delivered_amount || 0), 0);
 
       // 平均分納時間（発注から初回分納まで）の計算
-      const ordersWithDeliveries = purchaseOrders?.filter(order => 
-        (order.delivery_amount || 0) > 0
-      ) || [];
+      const ordersWithDeliveries = allOrders.filter(order => 
+        order.delivered_amount > 0 && order.latest_delivery_date
+      );
       
       let totalDeliveryTime = 0;
       let deliveryCount = 0;
       
       for (const order of ordersWithDeliveries) {
-        const firstDelivery = transactions?.find(t => t.parent_order_id === order.id);
-        if (firstDelivery) {
+        if (order.latest_delivery_date) {
           const orderDate = new Date(order.created_at);
-          const deliveryDate = new Date(firstDelivery.created_at);
+          const deliveryDate = new Date(order.latest_delivery_date);
           const timeDiff = deliveryDate.getTime() - orderDate.getTime();
           totalDeliveryTime += timeDiff / (1000 * 60 * 60 * 24); // 日数に変換
           deliveryCount++;
@@ -246,7 +305,7 @@ export default function Dashboard() {
         totalValue,
         monthlySales: mockMonthlySales,
         totalCustomers: mockTotalCustomers,
-        pendingOrders: mockPendingOrders,
+        pendingOrders: ordersCount?.length || totalOrders, // データベース直接取得を優先
         monthlyProfit: mockMonthlyProfit,
         activeOrders,
         deliveryProgress: {
@@ -257,6 +316,13 @@ export default function Dashboard() {
         },
         monthlyDeliveryAmount,
         averageDeliveryTime,
+      });
+      
+      console.log('📊 最終統計情報:', {
+        useOrdersの発注数: totalOrders,
+        データベース直接の発注数: ordersCount?.length || 0,
+        採用した発注数: ordersCount?.length || totalOrders,
+        timestamp: new Date().toLocaleTimeString()
       });
     } catch (error) {
       console.error('Dashboard stats fetch error:', error);
@@ -430,11 +496,21 @@ export default function Dashboard() {
           transition={{ duration: 0.5, delay: 0.5 }}
         >
           <ModernCard className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
-                <Sparkles className="w-5 h-5 text-white" />
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">システム概要</h2>
               </div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">システム概要</h2>
+              <button
+                onClick={handleRefresh}
+                disabled={loading}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/30 transition-colors disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                {loading ? '更新中...' : '最新データを取得'}
+              </button>
             </div>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
               統合業務管理システムへようこそ。商品管理・在庫管理・発注管理・取引先管理の各機能を統合的に確認できます。
