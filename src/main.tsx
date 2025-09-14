@@ -5,6 +5,21 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import App from './App.tsx';
 import './index.css';
+import './utils/sql-test-runner'; // SQLテスト実行用
+import './utils/excessive-installment-analyzer'; // 過剰分納分析用
+import './utils/simple-installment-check'; // シンプル分納チェック
+import './utils/correction-executor'; // 分納修正実行
+import './utils/safe-correction'; // 安全な修正ツール
+import './utils/direct-correction'; // 直接修正ツール
+import './utils/batch-correction'; // バッチ修正ツール
+import './utils/proportional-reduction'; // 比例削減システム
+import './utils/continuous-monitoring'; // 継続監視システム
+import './utils/final-system-verification'; // 最終システム検証
+import './utils/large-case-processor'; // 大型案件処理システム
+import './utils/specific-case-analyzer'; // 特定案件詳細分析システム
+import './utils/precise-tax-adjuster'; // 精密税込調整システム
+import './utils/performanceMonitor'; // パフォーマンス監視システム
+import './utils/integrity-test'; // 整合性テストシステム
 
 // 富士精工様向けシステム用QueryClient - パフォーマンス最適化設定
 const queryClient = new QueryClient({
