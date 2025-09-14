@@ -215,18 +215,20 @@ export interface InstallmentResult {
 }
 
 export async function addPurchaseInstallment(params: AddInstallmentParams): Promise<InstallmentResult> {
-  const { data, error } = await supabase.rpc('add_purchase_installment_secure', {
-    p_order_id: params.parentOrderId,
+  const { data, error } = await supabase.rpc('add_purchase_installment', {
+    p_parent_order_id: params.parentOrderId,
     p_amount: params.amount,
-    p_transaction_date: params.dueDate || new Date().toISOString().split('T')[0],
+    p_status: params.status || 'draft',
+    p_due_date: params.dueDate,
+    p_memo: params.memo,
   });
 
   if (error) throw error;
-  
+
   if (!data) {
     throw new Error('分納の追加に失敗しました');
   }
-  
-  // SQL記録のadd_purchase_installment_secure関数の戻り値形式に対応
+
+  // 統一されたadd_purchase_installment関数の戻り値形式に対応
   return data as InstallmentResult;
 }
