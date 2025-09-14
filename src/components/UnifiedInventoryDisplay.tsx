@@ -11,11 +11,13 @@ import { AdvancedUnifiedFilters } from './AdvancedUnifiedFilters';
 interface UnifiedInventoryDisplayProps {
   initialFilters?: MovementFilters;
   showTitle?: boolean;
+  showFilters?: boolean;
 }
 
 export const UnifiedInventoryDisplay: React.FC<UnifiedInventoryDisplayProps> = ({
   initialFilters = {},
-  showTitle = true
+  showTitle = true,
+  showFilters = true
 }) => {
   const { isDark } = useDarkMode();
   const [filters, setFilters] = useState<MovementFilters>({
@@ -184,12 +186,14 @@ export const UnifiedInventoryDisplay: React.FC<UnifiedInventoryDisplayProps> = (
       )}
 
       {/* 高度フィルタリングコントロール */}
-      <AdvancedUnifiedFilters
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-        isLoading={isLoading}
-        totalRecords={unifiedData?.data?.length || 0}
-      />
+      {showFilters && (
+        <AdvancedUnifiedFilters
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          isLoading={isLoading}
+          totalRecords={unifiedData?.data?.length || 0}
+        />
+      )}
 
       {/* データ表示エリア */}
       <ModernCard className="p-6">

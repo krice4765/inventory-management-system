@@ -268,7 +268,7 @@ export default function Inventory() {
               }`}
             >
               <Package className="h-4 w-4" />
-              <span>{showUnifiedDisplay ? '在庫履歴' : '分析表示'}</span>
+              <span>{showUnifiedDisplay ? '標準表示' : '統合分析'}</span>
             </button>
 
             <button
@@ -542,6 +542,7 @@ export default function Inventory() {
               recordType: 'all'
             }}
             showTitle={true}
+            showFilters={false}
           />
         ) : (
           <ModernCard className="p-6">
