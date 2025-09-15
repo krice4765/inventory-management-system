@@ -1,12 +1,15 @@
 /**
  * システムヘルスダッシュボード
  * 日次チェック結果の可視化とリアルタイム監視
+ * データ整合性チェック機能統合
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useErrorHandler, UserFriendlyError } from '../utils/error-handler';
 import { ErrorDisplay } from './shared/ErrorDisplay';
+import { IntegrityDashboard } from './IntegrityDashboard';
+import { useSystemIntegrity, useIntegritySummary } from '../hooks/useSystemIntegrity';
 
 interface HealthMetric {
   name: string;
@@ -60,7 +63,11 @@ export const HealthDashboard: React.FC = () => {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [error, setError] = useState<UserFriendlyError | null>(null);
+  const [showIntegrityDetails, setShowIntegrityDetails] = useState(false);
   const { handleError } = useErrorHandler();
+
+  // データ整合性情報を取得
+  const { summary: integritySummary, isLoading: integrityLoading } = useIntegritySummary();
 
   // ヘルスデータの取得
   const fetchHealthData = useCallback(async () => {
@@ -175,12 +182,42 @@ export const HealthDashboard: React.FC = () => {
       setAlerts(systemAlerts);
       setLastRefresh(new Date());
 
-      // 健康度スコアの計算（簡易版）
-      const integrityScore = systemAlerts.filter(a => a.level === 'error').length === 0 ? 100 : 70;
-      const performanceScore = healthMetrics.some(m => m.name.includes('API応答時間') && m.value > 1000) ? 60 : 
+      // 健康度スコアの計算（整合性チェック統合版）
+      let integrityScore = systemAlerts.filter(a => a.level === 'error').length === 0 ? 100 : 70;
+
+      // データ整合性スコアを統合
+      if (integritySummary) {
+        if (integritySummary.critical_issues > 0) {
+          integrityScore = Math.min(integrityScore, 60);
+        } else if (integritySummary.warning_issues > 0) {
+          integrityScore = Math.min(integrityScore, 80);
+        }
+
+        // 整合性チェック結果をアラートに追加
+        if (integritySummary.critical_issues > 0) {
+          systemAlerts.push({
+            id: 'integrity-critical',
+            level: 'error',
+            message: `${integritySummary.critical_issues}件の緊急データ整合性問題が検出されました`,
+            timestamp: integritySummary.last_check_at,
+            resolved: false
+          });
+        }
+        if (integritySummary.warning_issues > 0) {
+          systemAlerts.push({
+            id: 'integrity-warning',
+            level: 'warning',
+            message: `${integritySummary.warning_issues}件のデータ整合性警告が検出されました`,
+            timestamp: integritySummary.last_check_at,
+            resolved: false
+          });
+        }
+      }
+
+      const performanceScore = healthMetrics.some(m => m.name.includes('API応答時間') && m.value > 1000) ? 60 :
                              healthMetrics.some(m => m.name.includes('API応答時間') && m.value > 500) ? 80 : 100;
       const securityScore = 100; // RLS設定確認は別途実装
-      const operationalScore = systemAlerts.filter(a => a.level === 'error').length > 0 ? 70 : 
+      const operationalScore = systemAlerts.filter(a => a.level === 'error').length > 0 ? 70 :
                                systemAlerts.filter(a => a.level === 'warning').length > 0 ? 85 : 100;
       
       const overallScore = (integrityScore + performanceScore + securityScore + operationalScore) / 4;
@@ -286,6 +323,12 @@ export const HealthDashboard: React.FC = () => {
               />
               自動更新
             </label>
+            <button
+              onClick={() => setShowIntegrityDetails(!showIntegrityDetails)}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+            >
+              {showIntegrityDetails ? '🔼 整合性詳細を隠す' : '🔽 整合性詳細を表示'}
+            </button>
             <button
               onClick={runDailyHealthCheck}
               disabled={isLoading}
@@ -489,6 +532,16 @@ export const HealthDashboard: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* データ整合性ダッシュボード */}
+      {showIntegrityDetails && (
+        <IntegrityDashboard
+          className="mt-6"
+          showDetailedResults={true}
+          enableMonitoring={autoRefresh}
+          monitoringInterval={30}
+        />
+      )}
     </div>
   );
 };

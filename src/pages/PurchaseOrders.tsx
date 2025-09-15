@@ -17,7 +17,7 @@ import SearchableSelect from '../components/SearchableSelect';
 import { motion } from 'framer-motion';
 import { ModernCard } from '../components/ui/ModernCard';
 import { ShoppingCart, Plus, Search, FileDown, Printer } from 'lucide-react';
-import { OrderPDFGenerator, PDFPerformanceMonitor } from '../utils/pdfGenerator';
+import { DynamicPDFService } from '../utils/dynamicPdfLoader';
 import type { OrderPDFData } from '../types/pdf';
 import toast from 'react-hot-toast';
 
@@ -212,15 +212,12 @@ const { data: partners, isLoading: partnersLoading, error: partnersError } = use
         ]
       };
 
-      // パフォーマンス監視付きPDF生成
-      const result = await PDFPerformanceMonitor.measureOperation(
-        () => OrderPDFGenerator.generateOrderPDF(pdfData),
-        'PDF生成'
-      );
+      // 動的インポート対応PDF生成（パフォーマンス監視内蔵）
+      const result = await DynamicPDFService.generateOrderPDF(pdfData);
 
       if (result.success && result.pdfBlob && result.filename) {
-        // PDFダウンロード
-        OrderPDFGenerator.downloadPDF(result.pdfBlob, result.filename);
+        // PDFダウンロード（動的ロード対応）
+        await DynamicPDFService.downloadPDF(result.pdfBlob, result.filename);
         toast.success('PDF生成完了！', { id: 'pdf-generation' });
       } else {
         throw new Error(result.error || 'PDF生成に失敗しました');

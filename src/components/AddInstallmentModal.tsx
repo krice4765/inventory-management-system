@@ -67,7 +67,7 @@ export const AddInstallmentModal = () => {
 
   // 残額が変わったときにデフォルト金額を更新
   React.useEffect(() => {
-    if (orderData && orderData.remaining_amount > 0) {
+    if (orderData && orderData.remaining_amount > 1) {
       form.setValue('amount', orderData.remaining_amount, { shouldValidate: true })
     } else if (orderData && orderData.remaining_amount === 0) {
       form.setValue('amount', 0, { shouldValidate: true })
@@ -192,9 +192,9 @@ export const AddInstallmentModal = () => {
               </div>
             </div>
 
-            {orderData.remaining_amount <= 0 ? (
+            {orderData.remaining_amount <= 1 ? (
               <div className="p-3 bg-amber-50 text-amber-700 rounded mb-4">
-                この発注の分納金額は既に発注金額に達しています。
+                ✅ この発注は完了しています（残額: ¥1以下）
               </div>
             ) : (
               <>
@@ -334,7 +334,7 @@ export const AddInstallmentModal = () => {
               >
                 キャンセル
               </button>
-              {orderData && orderData.remaining_amount > 0 && (
+              {orderData && orderData.remaining_amount > 1 && (
                 <button
                   type="submit"
                   disabled={addInstallmentMutation.isPending || !form.formState.isValid}

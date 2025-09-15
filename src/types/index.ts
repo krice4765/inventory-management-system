@@ -29,7 +29,7 @@ export interface PurchaseOrderItem {
   // Supabase JOINで取得する場合のオプショナルフィールド
   products?: {
     id: string;
-    name: string;
+    product_name: string;
     product_code: string;
     purchase_price: number;
   };
@@ -39,7 +39,7 @@ export interface DeliveryProgress {
   purchase_order_id: string;
   order_no: string;
   partner_id: string;
-  partner_name: string;
+  partner_product_name: string;
   order_date: string;
   delivery_deadline: string | null;
   ordered_amount: number;
@@ -69,7 +69,7 @@ export interface OrderItem {
 // 既存型との互換性確保
 export interface Product {
   id: string;
-  name: string;
+  product_name: string;
   product_code: string;
   category: string;
   purchase_price: number;

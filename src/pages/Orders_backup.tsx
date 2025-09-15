@@ -2,8 +2,7 @@ import { Link } from 'react-router-dom';
 import { Plus, FileText, Calendar, TrendingUp, Package, AlertCircle, Search, X, Filter, RefreshCw, FileDown, Printer } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { JapanesePDFGenerator } from '../utils/japanesePdfGenerator';
-import { PDFPerformanceMonitor } from '../utils/pdfGenerator';
+import { DynamicPDFService } from '../utils/dynamicPdfLoader';
 import type { OrderPDFData } from '../types/pdf';
 import { useQuery } from '@tanstack/react-query';
 import { useState, useMemo } from 'react';
@@ -275,14 +274,11 @@ export default function Orders() {
         ]
       };
 
-      // PDF生成（パフォーマンス監視付き・日本語対応）
-      const result = await PDFPerformanceMonitor.measureOperation(
-        () => JapanesePDFGenerator.generateOrderPDF(pdfData),
-        '日本語対応発注書PDF生成'
-      );
+      // 動的インポート対応日本語PDF生成（パフォーマンス監視内蔵）
+      const result = await DynamicPDFService.generateJapaneseOrderPDF(pdfData);
 
       if (result.success && result.pdfBlob && result.filename) {
-        JapanesePDFGenerator.downloadPDF(result.pdfBlob, result.filename);
+        await DynamicPDFService.downloadPDF(result.pdfBlob, result.filename);
         toast.success('発注書PDF生成完了！', { id: 'pdf-generation' });
       } else {
         throw new Error(result.error || 'PDF生成に失敗しました');

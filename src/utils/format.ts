@@ -11,6 +11,24 @@ export const formatNumber = (value: number): string => {
   return new Intl.NumberFormat('ja-JP').format(value);
 };
 
+export const formatCurrency = (value: number): string => {
+  if (value === null || value === undefined || isNaN(value)) {
+    return '￥0';
+  }
+  return formatJPY(value);
+};
+
+export const formatDate = (date: string | Date | null | undefined): string => {
+  if (!date) return '-';
+  const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return '-';
+  return d.toLocaleDateString('ja-JP', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+};
+
 export type TransactionStatus = 'draft' | 'confirmed' | 'cancelled';
 
 export interface TransactionFilters {

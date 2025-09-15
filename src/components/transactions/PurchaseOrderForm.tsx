@@ -205,6 +205,73 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
       toast.error('すべての明細行で商品を選択し、数量を正しく入力してください');
       return;
     }
+
+    // 🛡️ 金額制限チェック（発注書上限額：1,000万円）
+    const MAX_ORDER_AMOUNT = 10000000; // 1,000万円
+    if (calculations.total > MAX_ORDER_AMOUNT) {
+      toast.error(
+        `🚫 発注金額制限を超過しています\n\n` +
+        `発注額: ¥${calculations.total.toLocaleString()}\n` +
+        `制限額: ¥${MAX_ORDER_AMOUNT.toLocaleString()}\n` +
+        `超過額: ¥${(calculations.total - MAX_ORDER_AMOUNT).toLocaleString()}\n\n` +
+        `発注金額を制限額以下に調整してください。`,
+        {
+          duration: 6000,
+          style: {
+            background: '#FEF2F2',
+            border: '2px solid #F87171',
+            color: '#DC2626',
+            fontSize: '14px',
+            maxWidth: '500px'
+          }
+        }
+      );
+      return;
+    }
+
+    // 🛡️ 一日あたりの発注制限チェック（同日発注額合計：3,000万円）
+    const DAILY_ORDER_LIMIT = 30000000; // 3,000万円
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data: todayOrders, error: todayOrdersError } = await supabase
+        .from('purchase_orders')
+        .select('total_amount')
+        .eq('order_date', today)
+        .eq('status', 'active');
+
+      if (todayOrdersError) {
+        console.warn('📊 同日発注額チェックでエラー:', todayOrdersError);
+      } else {
+        const todayTotal = (todayOrders || []).reduce((sum, order) => sum + (order.total_amount || 0), 0);
+        const projectedTotal = todayTotal + calculations.total;
+
+        if (projectedTotal > DAILY_ORDER_LIMIT) {
+          toast.error(
+            `🚫 同日発注制限を超過します\n\n` +
+            `今日の既存発注額: ¥${todayTotal.toLocaleString()}\n` +
+            `今回の発注額: ¥${calculations.total.toLocaleString()}\n` +
+            `合計予定額: ¥${projectedTotal.toLocaleString()}\n` +
+            `同日制限額: ¥${DAILY_ORDER_LIMIT.toLocaleString()}\n` +
+            `超過額: ¥${(projectedTotal - DAILY_ORDER_LIMIT).toLocaleString()}\n\n` +
+            `発注額を調整するか、別の日に分けて発注してください。`,
+            {
+              duration: 8000,
+              style: {
+                background: '#FEF2F2',
+                border: '2px solid #F87171',
+                color: '#DC2626',
+                fontSize: '14px',
+                maxWidth: '500px'
+              }
+            }
+          );
+          return;
+        }
+      }
+    } catch (limitCheckError) {
+      console.warn('📊 発注制限チェックでエラー:', limitCheckError);
+      // 制限チェックエラーは警告のみ、発注は継続
+    }
     
     // 🛡️ 事前重複チェック（送信前）
     const selectedProductIds = items.map(item => item.product_id);
@@ -559,11 +626,68 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
           </div>
           <div className="flex justify-between text-lg font-bold border-t pt-2">
             <span className="text-gray-900 dark:text-white">合計:</span>
-            <span className="text-blue-600 dark:text-blue-400">
+            <span className={`${calculations.total > 10000000 ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`}>
               ¥{calculations.total.toLocaleString()}
             </span>
           </div>
         </div>
+      </div>
+
+      {/* **🛡️ 金額制限情報表示** */}
+      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-2 border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
+        <div className="flex items-center mb-3">
+          <span className="text-2xl mr-2">💰</span>
+          <h4 className="text-lg font-bold text-yellow-800 dark:text-yellow-200">発注金額制限</h4>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-gray-700 dark:text-gray-300">単件発注上限:</span>
+              <span className="font-semibold text-gray-900 dark:text-white">¥10,000,000</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-700 dark:text-gray-300">今回発注額:</span>
+              <span className={`font-bold ${calculations.total > 10000000 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                ¥{calculations.total.toLocaleString()}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-700 dark:text-gray-300">残り利用可能額:</span>
+              <span className={`font-semibold ${10000000 - calculations.total < 1000000 ? 'text-orange-600 dark:text-orange-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                ¥{Math.max(0, 10000000 - calculations.total).toLocaleString()}
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-gray-700 dark:text-gray-300">同日発注制限:</span>
+              <span className="font-semibold text-gray-900 dark:text-white">¥30,000,000</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-700 dark:text-gray-300">制限まで:</span>
+              <span className="font-semibold text-blue-600 dark:text-blue-400">
+                {calculations.total <= 10000000 ? '✅ 制限内' : '❌ 制限超過'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* 制限超過警告 */}
+        {calculations.total > 10000000 && (
+          <div className="mt-3 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-600 rounded-md">
+            <div className="flex items-center">
+              <span className="text-red-500 mr-2">⚠️</span>
+              <span className="text-red-700 dark:text-red-300 font-semibold">
+                発注額が制限を¥{(calculations.total - 10000000).toLocaleString()}超過しています
+              </span>
+            </div>
+            <p className="text-red-600 dark:text-red-400 text-xs mt-1">
+              発注額を調整するか、複数の発注書に分けてください。
+            </p>
+          </div>
+        )}
       </div>
 
       {/* **備考** */}
@@ -591,9 +715,15 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
         </button>
         <button
           type="submit"
-          className="px-6 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={calculations.total > 10000000}
+          className={`px-6 py-2 text-white rounded-md focus:outline-none focus:ring-2 transition-colors ${
+            calculations.total > 10000000
+              ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed focus:ring-gray-400'
+              : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+          }`}
+          title={calculations.total > 10000000 ? '発注金額が制限を超過しているため作成できません' : '発注を作成'}
         >
-          発注を作成
+          {calculations.total > 10000000 ? '制限超過のため作成不可' : '発注を作成'}
         </button>
       </div>
     </form>

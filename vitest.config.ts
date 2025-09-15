@@ -9,6 +9,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test-setup.ts'],
     css: true,
+    exclude: ['**/node_modules/**', '**/tests/e2e/**'], // E2Eテストを除外
     // グローバル変数の定義
     define: {
       global: 'globalThis',

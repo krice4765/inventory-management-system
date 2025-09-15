@@ -7,13 +7,14 @@ const PRODUCTS_KEY = ['products'] as const;
 const SUPPLIERS_KEY = ['suppliers'] as const;
 
 /**
- * 商品一覧を取得するクエリ
+ * 商品一覧を取得するクエリ（パフォーマンス最適化版）
  */
 export function useProducts() {
   return useQuery({
     queryKey: PRODUCTS_KEY,
     queryFn: api.getProducts,
-    staleTime: 5 * 60 * 1000, // 5分間キャッシュ
+    staleTime: 10 * 60 * 1000, // 10分間キャッシュ（API最適化により延長）
+    cacheTime: 15 * 60 * 1000, // 15分間保持
   });
 }
 

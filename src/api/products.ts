@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/database';
+import { performanceMonitor } from '../utils/performanceMonitor';
 
 // Database型から商品関連の型を抽出
 export type Product = Database['public']['Tables']['products']['Row'];
@@ -15,22 +16,41 @@ export type ProductWithSupplier = Product & {
 };
 
 /**
- * 全ての商品データを仕入先情報と共に取得
+ * 全ての商品データを仕入先情報と共に取得（パフォーマンス最適化版 + 監視機能）
  */
 export const getProducts = async (): Promise<ProductWithSupplier[]> => {
+  const startTime = performance.now();
+
   const { data, error } = await supabase
     .from('products')
     .select(`
-      *,
+      id,
+      product_code,
+      product_name,
+      description,
+      purchase_price,
+      sell_price,
+      stock_quantity,
+      safety_stock_quantity,
+      main_supplier_id,
+      image_url,
+      created_at,
+      updated_at,
       suppliers:main_supplier_id(id, name)
     `)
-    .order('created_at', { ascending: false });
+    .order('id', { ascending: false })
+    .limit(1000);
+
+  const executionTime = performance.now() - startTime;
+
+  // パフォーマンス監視に記録（最適化済みとしてマーク）
+  performanceMonitor.trackQuery('getProducts', executionTime, true);
 
   if (error) {
     console.error('商品データ取得エラー:', error);
     throw new Error(`商品データの取得に失敗しました: ${error.message}`);
   }
-  
+
   return data || [];
 };
 

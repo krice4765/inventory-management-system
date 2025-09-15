@@ -1,5 +1,5 @@
-// 統合在庫履歴表示コンポーネント（Phase 2 本格実装）
-import React, { useState, useMemo } from 'react';
+// 統合在庫履歴表示コンポーネント（Phase 2 本格実装 - パフォーマンス最適化版）
+import React, { useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Package, Calendar, DollarSign, Hash, Truck, Database, Layers } from 'lucide-react';
 import { useUnifiedInventoryMovements } from '../hooks/useUnifiedInventory';
@@ -14,7 +14,7 @@ interface UnifiedInventoryDisplayProps {
   showFilters?: boolean;
 }
 
-export const UnifiedInventoryDisplay: React.FC<UnifiedInventoryDisplayProps> = ({
+const UnifiedInventoryDisplayComponent: React.FC<UnifiedInventoryDisplayProps> = ({
   initialFilters = {},
   showTitle = true,
   showFilters = true
@@ -69,11 +69,21 @@ export const UnifiedInventoryDisplay: React.FC<UnifiedInventoryDisplayProps> = (
 
   const totalPages = Math.ceil((unifiedData?.data?.length || 0) / itemsPerPage);
 
-  // フィルター変更時にページをリセット
-  const handleFiltersChange = (newFilters: MovementFilters) => {
+  // フィルター変更時にページをリセット（最適化: useCallback）
+  const handleFiltersChange = useCallback((newFilters: MovementFilters) => {
     setFilters(newFilters);
     setCurrentPage(1);
-  };
+  }, []);
+
+  // ページ変更ハンドラー（最適化: useCallback）
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+  }, []);
+
+  // 再試行ハンドラー（最適化: useCallback）
+  const handleRefetch = useCallback(() => {
+    refetch();
+  }, [refetch]);
 
   if (error) {
     return (
@@ -87,7 +97,7 @@ export const UnifiedInventoryDisplay: React.FC<UnifiedInventoryDisplayProps> = (
             統合在庫データの読み込みに失敗しました
           </p>
           <button
-            onClick={() => refetch()}
+            onClick={handleRefetch}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             再試行
@@ -219,7 +229,7 @@ export const UnifiedInventoryDisplay: React.FC<UnifiedInventoryDisplayProps> = (
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
-                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                       disabled={currentPage === 1}
                       className={`px-3 py-1 rounded text-sm font-medium ${
                         currentPage === 1
@@ -245,7 +255,7 @@ export const UnifiedInventoryDisplay: React.FC<UnifiedInventoryDisplayProps> = (
                       return (
                         <button
                           key={pageNumber}
-                          onClick={() => setCurrentPage(pageNumber)}
+                          onClick={() => handlePageChange(pageNumber)}
                           className={`px-3 py-1 rounded text-sm font-medium ${
                             pageNumber === currentPage
                               ? isDark ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600 border border-blue-200'
@@ -258,7 +268,7 @@ export const UnifiedInventoryDisplay: React.FC<UnifiedInventoryDisplayProps> = (
                     })}
 
                     <button
-                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
                       disabled={currentPage === totalPages}
                       className={`px-3 py-1 rounded text-sm font-medium ${
                         currentPage === totalPages
@@ -286,7 +296,7 @@ export const UnifiedInventoryDisplay: React.FC<UnifiedInventoryDisplayProps> = (
             {totalPages > 1 && (
               <div className="flex items-center justify-center space-x-2 mt-6">
                 <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
                   className={`px-3 py-2 rounded-md text-sm font-medium ${
                     currentPage === 1
@@ -312,7 +322,7 @@ export const UnifiedInventoryDisplay: React.FC<UnifiedInventoryDisplayProps> = (
                   return (
                     <button
                       key={pageNumber}
-                      onClick={() => setCurrentPage(pageNumber)}
+                      onClick={() => handlePageChange(pageNumber)}
                       className={`px-3 py-2 rounded-md text-sm font-medium ${
                         pageNumber === currentPage
                           ? isDark ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600 border border-blue-200'
@@ -325,7 +335,7 @@ export const UnifiedInventoryDisplay: React.FC<UnifiedInventoryDisplayProps> = (
                 })}
 
                 <button
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
                   className={`px-3 py-2 rounded-md text-sm font-medium ${
                     currentPage === totalPages
@@ -354,12 +364,16 @@ export const UnifiedInventoryDisplay: React.FC<UnifiedInventoryDisplayProps> = (
   );
 };
 
-// 個別レコードカードコンポーネント
-const UnifiedRecordCard: React.FC<{
+// React.memo最適化されたメインコンポーネント
+export const UnifiedInventoryDisplay = React.memo(UnifiedInventoryDisplayComponent);
+UnifiedInventoryDisplay.displayName = 'UnifiedInventoryDisplay';
+
+// 個別レコードカードコンポーネント（React.memo最適化版）
+const UnifiedRecordCard = React.memo<{
   record: UnifiedInventoryRecord;
   index: number;
   isDark: boolean;
-}> = ({ record, index, isDark }) => {
+}>(({ record, index, isDark }) => {
   const isInventoryMovement = record.record_type === 'inventory_movement';
 
   return (
@@ -480,4 +494,6 @@ const UnifiedRecordCard: React.FC<{
       </div>
     </motion.div>
   );
-};
+});
+
+UnifiedRecordCard.displayName = 'UnifiedRecordCard';
