@@ -240,7 +240,7 @@ export default function OrderNew() {
           status: 'active',
           memo: formData.memo,
         }])
-        .select()
+        .select('id, order_no, partner_id, order_date, delivery_deadline, total_amount, status, memo')
         .single();
 
       if (orderError) throw orderError;
