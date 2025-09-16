@@ -58,7 +58,6 @@ export class SimplifiedInstallmentService {
           transaction_date: new Date().toISOString().split('T')[0],
           status: 'confirmed',
           total_amount: data.amount,
-          installment_no: installmentNumber,
           memo: data.memo || `第${installmentNumber}回分納 (簡略化処理)`,
           created_at: new Date().toISOString(),
         })

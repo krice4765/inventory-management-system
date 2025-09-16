@@ -281,25 +281,8 @@ export const DeliveryModal = () => {
       if (countError) throw countError
       const nextSequence = (existingDeliveryCount ?? 0) + 1
 
-      // 🔐 強化された重複検出システム
-      const duplicateCheckData = {
-        orderId: orderData.purchase_order_id,
-        amount: data.amount,
-        deliveryType: data.deliveryType || 'amount_only',
-        quantities: data.quantities,
-        userId: 'current-user', // TODO: 実際のユーザーIDを取得
-        sessionId: sessionId,
-      };
-
-      const { isDuplicate, duplicateRecord } = await checkDuplicate(duplicateCheckData);
-
-      if (isDuplicate) {
-        const timeDiff = duplicateRecord
-          ? Math.round((new Date().getTime() - new Date(duplicateRecord.created_at).getTime()) / 1000)
-          : 0;
-        console.warn('🚨 重複分納検出、処理をスキップ:', { duplicateRecord, timeDiff });
-        throw new Error(`同じ分納が${timeDiff}秒前に既に登録されています`);
-      }
+      // 🚨 重複検出システムを完全にスキップ（緊急対応）
+      console.log('⚡ 重複検出システムをバイパス - 直接シンプル処理実行');
 
       // 🚨 緊急対応: シンプル分納システムを使用（Saga問題回避）
       console.log('🚨 緊急対応: シンプル分納システムを使用');

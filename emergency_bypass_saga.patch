@@ -1,0 +1,34 @@
+// 緊急対応: Sagaシステムのバイパス
+// 以下のコードをDeliveryModal.tsxの該当部分に置き換える
+
+// 🚨 緊急対応: シンプル分納システムを使用
+console.log('🚨 緊急対応: シンプル分納システムを使用');
+
+const simplifiedData = {
+  orderId: orderData.purchase_order_id,
+  amount: data.amount,
+  deliveryType: data.deliveryType || 'amount_only',
+  quantities: data.quantities,
+  userId: 'current-user',
+  memo: data.memo
+};
+
+console.log('📝 シンプル分納データ:', simplifiedData);
+
+const installmentResult = await createInstallment(simplifiedData);
+
+if (!installmentResult.success) {
+  throw new Error(installmentResult.error || 'シンプル分納処理失敗');
+}
+
+console.log('✅ シンプル分納処理成功:', installmentResult);
+
+// Sagaの代わりにシンプルな結果を返す
+return {
+  deliveredAmount: data.amount,
+  memo: data.memo,
+  deliveryType: data.deliveryType,
+  quantities: data.quantities,
+  transactionId: installmentResult.transactionId,
+  deliverySequence: nextSequence
+};
