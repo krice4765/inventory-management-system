@@ -240,19 +240,16 @@ export default function OrderNew() {
         memo: formData.memo,
       };
 
-      // 1段階目: INSERT （selectなし）
-      const { error: insertError } = await supabase
-        .from('purchase_orders')
-        .insert([orderData]);
-
-      if (insertError) throw insertError;
-
-      // 2段階目: 作成されたorderを取得
-      const { data: order, error: orderError } = await supabase
-        .from('purchase_orders')
-        .select('*')
-        .eq('order_no', orderNo)
-        .single();
+      // 🚨 ULTIMATE FIX: RPC関数を使用してSupabaseライブラリのバグを完全回避
+      const { data: order, error: orderError } = await supabase.rpc('create_purchase_order', {
+        p_order_no: orderNo,
+        p_partner_id: formData.partner_id,
+        p_order_date: formData.order_date,
+        p_delivery_deadline: formData.delivery_deadline || null,
+        p_total_amount: grandTotal,
+        p_status: 'active',
+        p_memo: formData.memo
+      });
 
       if (orderError) throw orderError;
 
