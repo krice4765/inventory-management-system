@@ -64,7 +64,7 @@ export const DeliveryHistoryList: React.FC<DeliveryHistoryListProps> = ({ orderI
           <div className="flex-1">
             <div className="flex items-center space-x-2">
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                第{delivery.delivery_sequence || delivery.installment_no || (index + 1)}回
+                第{delivery.installment_no || delivery.delivery_sequence || (index + 1)}回
               </span>
               <div className="flex flex-col text-xs">
                 <div className="flex items-center space-x-2">
@@ -84,7 +84,7 @@ export const DeliveryHistoryList: React.FC<DeliveryHistoryListProps> = ({ orderI
                 </div>
               </div>
             </div>
-            {delivery.memo && (
+            {delivery.memo && !delivery.memo.match(/^第\d+回$/) && (
               <div className="text-xs text-gray-500 mt-1">
                 {delivery.memo.includes('理由:') ? (
                   <div className="flex items-center space-x-2">

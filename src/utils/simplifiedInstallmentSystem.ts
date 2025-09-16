@@ -28,7 +28,38 @@ export class SimplifiedInstallmentService {
         userId: data.userId
       });
 
-      // 🛡️ Phase 1: データベース関数を使用した安全な分納作成を試行（修正版）
+      // 🛡️ Phase 1: 分納番号を事前計算
+      console.log('📊 分納番号計算開始');
+
+      // 分納番号を安全に取得
+      let installmentNumber = 1;
+      try {
+        const { data: existingTransactions, error: countError } = await supabase
+          .from('transactions')
+          .select('installment_no')
+          .eq('parent_order_id', data.orderId)
+          .eq('transaction_type', 'purchase')
+          .eq('status', 'confirmed')
+          .order('installment_no', { ascending: false })
+          .limit(1);
+
+        console.log('🔍 分納番号計算デバッグ:', {
+          orderId: data.orderId,
+          existingTransactions,
+          countError,
+          currentInstallmentNumber: installmentNumber
+        });
+
+        if (!countError && existingTransactions?.length > 0) {
+          installmentNumber = (existingTransactions[0]?.installment_no || 0) + 1;
+          console.log('📊 既存分納あり、次回番号:', installmentNumber);
+        } else {
+          console.log('📊 新規発注書、初回分納番号:', installmentNumber);
+        }
+      } catch (error) {
+        console.warn('⚠️ 分納番号計算でエラー、デフォルト値使用:', error);
+      }
+
       console.log('📊 データベース関数による安全な分納作成を試行（パラメータ修正版）');
 
       // パートナーID取得
@@ -48,7 +79,7 @@ export class SimplifiedInstallmentService {
             p_transaction_date: new Date().toISOString().split('T')[0],
             p_due_date: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
             p_total_amount: data.amount,
-            p_memo: data.memo || '簡略化分納処理V2'
+            p_memo: data.memo || `第${installmentNumber}回`
           });
 
         // データベース関数が成功した場合
@@ -78,43 +109,10 @@ export class SimplifiedInstallmentService {
 
       // 🔄 Phase 2: フォールバック - 従来方式（改良版）
       console.log('⚠️ V2データベース関数が使用できません。フォールバック処理を実行:', rpcError?.message || 'パートナー情報取得失敗');
+      console.log('📊 使用する分納番号:', installmentNumber);
 
       // UUID v4形式で確実なID生成
       const transactionId = globalThis.crypto.randomUUID();
-
-      // 分納番号を安全に取得（再試行ロジック付き）
-      let installmentNumber = 1;
-      let retryCount = 0;
-      const maxRetries = 3;
-
-      while (retryCount < maxRetries) {
-        try {
-          const { data: existingTransactions, error: countError } = await supabase
-            .from('transactions')
-            .select('installment_no')
-            .eq('parent_order_id', data.orderId)
-            .eq('transaction_type', 'purchase')
-            .order('installment_no', { ascending: false })
-            .limit(1);
-
-          if (countError) {
-            console.error('❌ 既存分納数取得エラー:', countError);
-            retryCount++;
-            await new Promise(resolve => setTimeout(resolve, 100 * retryCount));
-            continue;
-          }
-
-          installmentNumber = (existingTransactions?.[0]?.installment_no || 0) + 1;
-          break;
-
-        } catch (error) {
-          console.error('❌ 分納番号取得で予期しないエラー:', error);
-          retryCount++;
-          if (retryCount >= maxRetries) {
-            return { success: false, error: '分納番号の取得に失敗しました' };
-          }
-        }
-      }
 
       // 一意性を保証するトランザクション番号生成
       const timestamp = Date.now();
@@ -122,7 +120,8 @@ export class SimplifiedInstallmentService {
       const transactionNo = `SAFE-${timestamp}-${installmentNumber}-${randomSuffix}`;
 
       // 安全な分納レコード挿入（再試行ロジック付き）
-      retryCount = 0;
+      let retryCount = 0;
+      const maxRetries = 3;
       while (retryCount < maxRetries) {
         try {
           const { data: transaction, error: insertError } = await supabase
@@ -137,7 +136,7 @@ export class SimplifiedInstallmentService {
               transaction_date: new Date().toISOString().split('T')[0],
               status: 'confirmed',
               total_amount: data.amount,
-              memo: data.memo || `第${installmentNumber}回分納 (フォールバック処理)`,
+              memo: data.memo || `第${installmentNumber}回`,
               created_at: new Date().toISOString(),
             })
             .select()
@@ -235,8 +234,9 @@ export class SimplifiedInstallmentService {
 // React Hook
 export function useSimplifiedInstallment() {
   const createInstallment = async (data: SimplifiedInstallmentData) => {
-    // 事前にクリーンアップを実行
-    await SimplifiedInstallmentService.cleanupTodaysDuplicates(data.orderId);
+    // 🚨 緊急修正: 重複削除を無効化（数量リセットバグの原因）
+    // await SimplifiedInstallmentService.cleanupTodaysDuplicates(data.orderId);
+    console.log('🚨 重複削除システムを無効化 - 数量リセットバグ修正のため');
 
     // シンプルな分納処理を実行
     return await SimplifiedInstallmentService.createInstallmentTransaction(data);

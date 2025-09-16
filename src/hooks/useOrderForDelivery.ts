@@ -28,10 +28,11 @@ export const useOrderForDelivery = (orderId: string | null) => {
           .eq('purchase_order_id', orderId),
         supabase
           .from('transactions')
-          .select('id, total_amount')
+          .select('id, total_amount, installment_no, delivery_sequence, created_at, transaction_date, memo')
           .eq('parent_order_id', orderId)
           .eq('transaction_type', 'purchase')
-          .eq('status', 'confirmed'),
+          .eq('status', 'confirmed')
+          .order('installment_no', { ascending: true }),
         // 在庫移動履歴から分納実績を取得（transaction_idで結合）
         supabase
           .from('inventory_movements')
@@ -54,6 +55,18 @@ export const useOrderForDelivery = (orderId: string | null) => {
       const deliveries = deliveryResult.data || [];
       const movements = movementsResult.data || [];
       const currentStocks = stockResult.data || [];
+
+      console.log('🔍 分納履歴データ確認:', {
+        orderId,
+        deliveries: deliveries?.map(d => ({
+          id: d.id,
+          installment_no: d.installment_no,
+          amount: d.total_amount,
+          memo: d.memo,
+          created_at: d.created_at
+        })),
+        deliveriesCount: deliveries?.length || 0
+      });
       
       // 分納実績を合計
       const delivered_amount = deliveries.reduce((sum, delivery) => sum + (delivery.total_amount || 0), 0);

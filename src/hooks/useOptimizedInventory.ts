@@ -21,6 +21,10 @@ export interface InventoryMovement {
   transaction_id?: string;
   delivery_scheduled_date?: string;
   cumulative_stock_at_time?: number; // その時点での累積在庫数量
+  transactions?: {
+    installment_no?: number;
+    delivery_sequence?: number;
+  } | null;
   transaction_details?: {
     order_no?: string;
     purchase_order_id?: string;
@@ -90,7 +94,7 @@ export function useAllMovements(filters: MovementFilters = {}) {
       console.log('🔄 全在庫移動データ取得開始:', { filters });
 
       try {
-        // Step 1: inventory_movementsデータを全件取得
+        // Step 1: inventory_movementsデータを全件取得（transaction情報付き）
         let movementQuery = supabase
           .from('inventory_movements')
           .select(`
@@ -102,7 +106,8 @@ export function useAllMovements(filters: MovementFilters = {}) {
             total_amount,
             memo,
             created_at,
-            transaction_id
+            transaction_id,
+            transactions(installment_no, delivery_sequence)
           `);
 
         // フィルタ適用（inventory_movementsテーブルのみ）

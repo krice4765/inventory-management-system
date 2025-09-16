@@ -20,6 +20,8 @@ import './utils/specific-case-analyzer'; // 特定案件詳細分析システム
 import './utils/precise-tax-adjuster'; // 精密税込調整システム
 import './utils/performanceMonitor'; // パフォーマンス監視システム
 import './utils/integrity-test'; // 整合性テストシステム
+import './utils/databaseBackup'; // データベースバックアップツール
+import './utils/fixInstallmentData'; // 分納データ修正ツール
 
 // 富士精工様向けシステム用QueryClient - パフォーマンス最適化設定
 const queryClient = new QueryClient({

@@ -207,23 +207,64 @@ export const DeliveryModal = () => {
         throw new Error('分納金額は0より大きい値を入力してください')
       }
 
-      // 🛡️ 個数指定分納の完了チェック
-      if (data.deliveryType === 'amount_and_quantity' && data.quantities) {
-        const hasQuantityInput = Object.values(data.quantities).some(q => (q || 0) > 0)
-        if (!hasQuantityInput) {
-          throw new Error('個数指定分納では、最低1つの商品の個数を入力してください')
+      // 🛡️ 分納完了チェック（全分納タイプ共通）
+      if (orderData) {
+        // 🚨 重要: 残額以上の金額入力チェック
+        if (data.amount > orderData.remaining_amount) {
+          throw new Error(`分納金額が残額を超過しています。残額: ¥${orderData.remaining_amount.toLocaleString()}, 入力: ¥${data.amount.toLocaleString()}`)
         }
 
-        // すべての商品が完了している場合、残額と一致するかチェック
-        if (orderData) {
-          const allItemsComplete = orderData.items?.every((item: OrderItem) => {
+        // 個数指定分納の場合の詳細チェック
+        if (data.deliveryType === 'amount_and_quantity' && data.quantities) {
+          const hasQuantityInput = Object.values(data.quantities).some(q => (q || 0) > 0)
+          if (!hasQuantityInput) {
+            throw new Error('個数指定分納では、最低1つの商品の個数を入力してください')
+          }
+
+          // 今回の入力ですべての商品が完了する場合、残額と一致するかチェック
+          const allItemsCompleteWithThisInput = orderData.items?.every((item: OrderItem) => {
+            const inputQuantity = data.quantities![item.product_id] || 0
+            const remainingQuantity = item.remaining_quantity || item.quantity
+            // 残り個数がある商品について、今回の入力で完了するかチェック
+            return remainingQuantity === 0 || inputQuantity === remainingQuantity
+          })
+
+          // 追加チェック: 今回入力があった商品で残り個数があるものがあるかチェック
+          const hasActiveInput = orderData.items?.some((item: OrderItem) => {
+            const inputQuantity = data.quantities![item.product_id] || 0
+            const remainingQuantity = item.remaining_quantity || item.quantity
+            return inputQuantity > 0 && remainingQuantity > 0
+          })
+
+          if (allItemsCompleteWithThisInput && hasActiveInput && data.amount !== orderData.remaining_amount) {
+            throw new Error(`すべての商品が完了する場合、金額は残額(¥${orderData.remaining_amount.toLocaleString()})と正確に一致する必要があります。現在の入力: ¥${data.amount.toLocaleString()}`)
+          }
+        }
+
+        // 🚨 金額のみ分納での最終回チェック
+        if (data.deliveryType === 'amount_only' && Math.abs(data.amount - orderData.remaining_amount) <= 1) {
+          // 最終回の場合は残額と一致させる
+          data.amount = orderData.remaining_amount
+        }
+
+        // 🚨 重要: 全分納タイプ共通 - 個数満了時の金額チェック
+        if (data.quantities && orderData.items) {
+          // 今回入力で個数がすべて完了するかチェック
+          const allQuantitiesComplete = orderData.items.every((item: OrderItem) => {
             const inputQuantity = data.quantities![item.product_id] || 0
             const remainingQuantity = item.remaining_quantity || item.quantity
             return remainingQuantity === 0 || inputQuantity >= remainingQuantity
           })
 
-          if (allItemsComplete && Math.abs(data.amount - orderData.remaining_amount) > 1) {
-            throw new Error(`すべての商品が完了する場合、金額は残額(¥${orderData.remaining_amount.toLocaleString()})と一致する必要があります`)
+          // 個数入力がある商品があるかチェック
+          const hasQuantityInput = orderData.items.some((item: OrderItem) => {
+            const inputQuantity = data.quantities![item.product_id] || 0
+            return inputQuantity > 0
+          })
+
+          // すべての商品が完了する場合、金額は残額と一致する必要がある
+          if (allQuantitiesComplete && hasQuantityInput && data.amount < orderData.remaining_amount) {
+            throw new Error(`個数がすべて完了する分納では、金額は残額(¥${orderData.remaining_amount.toLocaleString()})と一致する必要があります。現在の入力: ¥${data.amount.toLocaleString()}`)
           }
         }
       }
@@ -368,18 +409,28 @@ export const DeliveryModal = () => {
           }
         }
 
-        // キャッシュを強制的にクリアし、即座に最新データを取得
-        console.log('🔄 分納完了後キャッシュ無効化開始');
-        await queryClient.invalidateQueries(); // 全キャッシュクリア
+        // 🚨 強制的な全キャッシュクリア＋データ再取得
+        console.log('🔄 分納完了後キャッシュ完全無効化開始');
 
-        // 特定のキーを強制再フェッチ（分納関連の全キャッシュ更新）
+        // Step 1: 全キャッシュを強制削除
+        await queryClient.clear();
+
+        // Step 2: 重要なデータを即座に再フェッチ
         await Promise.all([
-          queryClient.refetchQueries({ queryKey: ['orders'] }),
-          queryClient.refetchQueries({ queryKey: ['orders-page'] }),
-          queryClient.refetchQueries({ queryKey: ['order-stats'] }),
-          queryClient.refetchQueries({ queryKey: ['delivery-order', formData.orderId] }),
-          queryClient.refetchQueries({ queryKey: ['delivery-history', formData.orderId] }),
+          queryClient.prefetchQuery({ queryKey: ['orders'] }),
+          queryClient.prefetchQuery({ queryKey: ['inventory-movements'] }),
+          queryClient.prefetchQuery({ queryKey: ['optimized-inventory'] }),
+          queryClient.prefetchQuery({ queryKey: ['unified-inventory'] }),
+          queryClient.prefetchQuery({ queryKey: ['delivery-order', selectedOrderId] }),
+          queryClient.prefetchQuery({ queryKey: ['delivery-history', selectedOrderId] }),
         ]);
+
+        // Step 3: 1秒後に追加再フェッチ（確実な更新のため）
+        setTimeout(async () => {
+          await queryClient.refetchQueries({ queryKey: ['inventory-movements'] });
+          await queryClient.refetchQueries({ queryKey: ['optimized-inventory'] });
+          console.log('🔄 遅延キャッシュ更新完了');
+        }, 1000);
 
         console.log('✅ 分納完了後キャッシュ無効化完了');
 
@@ -1293,6 +1344,12 @@ export const DeliveryModal = () => {
                           const isAmountFull = Math.abs(enteredAmount - orderData.remaining_amount) <= tolerance;
 
                           if (allRemainingQuantitiesWillBeZero && !isAmountFull) {
+                            console.error('🚨 バリデーションエラー: 全商品完了時の金額不整合', {
+                              allRemainingQuantitiesWillBeZero,
+                              enteredAmount,
+                              remainingAmount: orderData.remaining_amount,
+                              isAmountFull
+                            });
                             return `全商品が完了するため、金額を残額満了（¥${orderData.remaining_amount.toLocaleString()}）にする必要があります`;
                           }
                         }

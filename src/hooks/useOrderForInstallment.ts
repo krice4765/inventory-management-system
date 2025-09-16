@@ -37,18 +37,28 @@ export const useOrderForInstallment = (orderId: string | null) => {
         
       if (partnerError) throw partnerError;
       
-      // 既存分納情報取得
+      // 既存分納情報取得（確定済みのみ）
       const { data: installments, error: installmentError } = await supabase
         .from('transactions')
         .select('total_amount, installment_no')
         .eq('parent_order_id', orderId)
-        .eq('transaction_type', 'purchase');
+        .eq('transaction_type', 'purchase')
+        .eq('status', 'confirmed');
         
       if (installmentError) throw installmentError;
       
       const allocatedAmount = installments?.reduce((sum, item) => sum + (item.total_amount || 0), 0) || 0;
       const remainingAmount = Math.max(0, orderData.total_amount - allocatedAmount);
       const installmentCount = installments?.length || 0;
+
+      console.log('🔍 分納カウント計算:', {
+        orderId,
+        orderNo: orderData.order_no,
+        installments: installments?.map(i => ({ amount: i.total_amount, no: i.installment_no })),
+        installmentCount,
+        allocatedAmount,
+        remainingAmount
+      });
       
       return {
         purchase_order_id: String(orderData.id),

@@ -82,13 +82,34 @@ const MovementRow = memo<MovementRowProps>(({ index, style, data }) => {
     );
   }
 
-  // memoに含まれる分納回数を解析
-  const parseDeliverySequence = (memo: string) => {
-    const match = memo.match(/第(\d+)回/);
-    return match ? parseInt(match[1]) : null;
+  // transaction情報から分納回数を取得（優先）、フォールバックでmemoから解析
+  const getDeliverySequence = (movement: any) => {
+    // 1. transactionから直接取得（最優先）
+    if (movement.transactions?.installment_no) {
+      console.log('🔍 分納回数 (installment_no):', movement.transactions.installment_no, 'for transaction:', movement.transaction_id);
+      return movement.transactions.installment_no;
+    }
+    if (movement.transactions?.delivery_sequence) {
+      console.log('🔍 分納回数 (delivery_sequence):', movement.transactions.delivery_sequence, 'for transaction:', movement.transaction_id);
+      return movement.transactions.delivery_sequence;
+    }
+
+    // 2. フォールバック: memoから解析
+    const match = movement.memo.match(/第(\d+)回/);
+    if (match) {
+      console.log('🔍 分納回数 (memo解析):', parseInt(match[1]), 'memo:', movement.memo);
+      return parseInt(match[1]);
+    }
+
+    console.log('⚠️ 分納回数取得失敗:', {
+      transaction_id: movement.transaction_id,
+      transactions: movement.transactions,
+      memo: movement.memo
+    });
+    return null;
   };
 
-  const deliverySequence = parseDeliverySequence(movement.memo);
+  const deliverySequence = getDeliverySequence(movement);
   const isDeliveryRelated = !!movement.transaction_id;
   const stockChange = movement.movement_type === 'in' ? movement.quantity : -movement.quantity;
   
