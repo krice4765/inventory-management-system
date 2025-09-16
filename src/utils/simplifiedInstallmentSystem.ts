@@ -28,10 +28,8 @@ export class SimplifiedInstallmentService {
         userId: data.userId
       });
 
-      // 1. 一意のトランザクションIDを生成（タイムスタンプベース）
-      const timestamp = Date.now();
-      const randomSuffix = Math.random().toString(36).substring(2, 8);
-      const transactionId = `${timestamp}-${randomSuffix}`;
+      // 1. 一意のトランザクションIDを生成（UUID形式）
+      const transactionId = globalThis.crypto.randomUUID();
 
       // 2. 次の分納番号を取得
       const { data: existingTransactions, error: countError } = await supabase
@@ -53,7 +51,7 @@ export class SimplifiedInstallmentService {
         .insert({
           id: transactionId,
           transaction_type: 'purchase',
-          transaction_no: `SIMPLE-${timestamp}-${installmentNumber}`,
+          transaction_no: `SIMPLE-${Date.now()}-${installmentNumber}`,
           parent_order_id: data.orderId,
           transaction_date: new Date().toISOString().split('T')[0],
           status: 'confirmed',
@@ -81,7 +79,8 @@ export class SimplifiedInstallmentService {
       console.log('✅ シンプル分納処理成功:', {
         transactionId: transaction.id,
         installmentNumber,
-        amount: data.amount
+        amount: data.amount,
+        transaction_no: transaction.transaction_no
       });
 
       return {
