@@ -229,18 +229,29 @@ export default function OrderNew() {
 
       const grandTotal = getGrandTotal();
 
+      // 🚨 緊急回避: 2段階処理でSupabaseライブラリの問題を回避
+      const orderData = {
+        order_no: orderNo,
+        partner_id: formData.partner_id,
+        order_date: formData.order_date,
+        delivery_deadline: formData.delivery_deadline || null,
+        total_amount: grandTotal,
+        status: 'active',
+        memo: formData.memo,
+      };
+
+      // 1段階目: INSERT （selectなし）
+      const { error: insertError } = await supabase
+        .from('purchase_orders')
+        .insert([orderData]);
+
+      if (insertError) throw insertError;
+
+      // 2段階目: 作成されたorderを取得
       const { data: order, error: orderError } = await supabase
         .from('purchase_orders')
-        .insert([{
-          order_no: orderNo,
-          partner_id: formData.partner_id,
-          order_date: formData.order_date,
-          delivery_deadline: formData.delivery_deadline || null,
-          total_amount: grandTotal,
-          status: 'active',
-          memo: formData.memo,
-        }])
-        .select('id, order_no, partner_id, order_date, delivery_deadline, total_amount, status, memo')
+        .select('*')
+        .eq('order_no', orderNo)
         .single();
 
       if (orderError) throw orderError;
