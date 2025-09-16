@@ -245,8 +245,8 @@ export default function OrderNew() {
         p_order_no: orderNo,
         p_partner_id: formData.partner_id,
         p_order_date: formData.order_date,
-        p_delivery_deadline: formData.delivery_deadline || null,
         p_total_amount: grandTotal,
+        p_delivery_deadline: formData.delivery_deadline || null,
         p_status: 'active',
         p_memo: formData.memo
       });
