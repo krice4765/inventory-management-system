@@ -64,19 +64,42 @@ export const useOrderForDelivery = (orderId: string | null) => {
         deliveryTransactionIds.includes(m.transaction_id)
       );
       
-      // デバッグログ
+      // 🚨 強化デバッグログ（数量リセットバグ調査）
       console.log('🔍 分納数量集計デバッグ:', {
         orderId,
         deliveries: deliveries.length,
         deliveryTransactionIds,
         movements: movements.length,
         relevantMovements: relevantMovements.length,
-        movementDetails: relevantMovements.map(m => ({
-          productId: m.product_id,
+        deliveriesDetail: deliveries.map(d => ({
+          id: d.id,
+          total_amount: d.total_amount,
+          created_at: d.created_at
+        })),
+        movementsDetail: movements.map(m => ({
+          id: m.id,
+          product_id: m.product_id,
           quantity: m.quantity,
-          transactionId: m.transaction_id
+          transaction_id: m.transaction_id,
+          created_at: m.created_at
+        })),
+        relevantMovementsDetail: relevantMovements.map(m => ({
+          product_id: m.product_id,
+          quantity: m.quantity,
+          transaction_id: m.transaction_id
         }))
       });
+
+      // 🚨 数量リセットバグ検出
+      if (relevantMovements.length === 0 && deliveries.length > 0) {
+        console.error('🚨 数量リセットバグ検出: 分納レコードは存在するが在庫移動が0件', {
+          問題: '分納レコードと在庫移動の関連付け失敗',
+          deliveriesCount: deliveries.length,
+          movementsCount: movements.length,
+          deliveryTransactionIds,
+          分析: 'transaction_idのマッピングに問題がある可能性'
+        });
+      }
       
       const deliveredQuantitiesByProduct = relevantMovements.reduce((acc: { [key: string]: number }, movement) => {
         const productId = movement.product_id;
