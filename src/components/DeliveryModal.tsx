@@ -201,6 +201,32 @@ export const DeliveryModal = () => {
       if (!data.scheduled_delivery_date) {
         throw new Error(`${deliveryType === 'full' ? '全納' : '分納'}予定日を設定してください`)
       }
+
+      // 🛡️ 完了チェック: 金額0かつ個数0の場合はエラー
+      if (data.amount <= 0) {
+        throw new Error('分納金額は0より大きい値を入力してください')
+      }
+
+      // 🛡️ 個数指定分納の完了チェック
+      if (data.deliveryType === 'amount_and_quantity' && data.quantities) {
+        const hasQuantityInput = Object.values(data.quantities).some(q => (q || 0) > 0)
+        if (!hasQuantityInput) {
+          throw new Error('個数指定分納では、最低1つの商品の個数を入力してください')
+        }
+
+        // すべての商品が完了している場合、残額と一致するかチェック
+        if (orderData) {
+          const allItemsComplete = orderData.items?.every((item: OrderItem) => {
+            const inputQuantity = data.quantities![item.product_id] || 0
+            const remainingQuantity = item.remaining_quantity || item.quantity
+            return remainingQuantity === 0 || inputQuantity >= remainingQuantity
+          })
+
+          if (allItemsComplete && Math.abs(data.amount - orderData.remaining_amount) > 1) {
+            throw new Error(`すべての商品が完了する場合、金額は残額(¥${orderData.remaining_amount.toLocaleString()})と一致する必要があります`)
+          }
+        }
+      }
       
       // 🛡️ 在庫チェック（個数指定モードの場合）
       if (data.deliveryType === 'amount_and_quantity' && data.quantities) {
