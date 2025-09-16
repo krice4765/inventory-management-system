@@ -13,7 +13,7 @@ import type { DeliveryNotePDFData } from '../types/pdf'
 import { DeliveryHistoryList } from './DeliveryHistoryList'
 import { InventoryOverrideModal } from './InventoryOverrideModal'
 import { useInventoryOverride } from '../hooks/usePermissions'
-import { useDuplicateDetection } from '../utils/duplicateDetection'
+import { useImprovedDuplicateDetection } from '../utils/improvedDuplicateDetection'
 import { DeliveryTransactionSaga } from '../utils/transactionSaga'
 
 interface DeliveryFormData {
@@ -48,7 +48,7 @@ export const DeliveryModal = () => {
   const queryClient = useQueryClient()
   const { syncOrderData } = useOrdersSync()
   const { canOverrideInventory } = useInventoryOverride()
-  const { checkDuplicate, generateSessionId } = useDuplicateDetection()
+  const { checkDuplicate, generateSessionId } = useImprovedDuplicateDetection()
 
   // セッション管理
   const [sessionId] = useState(() => generateSessionId())

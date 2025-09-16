@@ -1,4 +1,4 @@
-// ブラウザ環境でのcrypto使用
+// 改良された重複検出システム - アトミック操作とレース条件対応
 import { supabase } from '../lib/supabase';
 
 export interface DuplicateDetectionData {
@@ -22,8 +22,8 @@ export interface DuplicateRecord {
   is_valid: boolean;
 }
 
-// ハッシュベースの重複検出システム
-export class DuplicateDetectionService {
+// 改良された重複検出サービス
+export class ImprovedDuplicateDetectionService {
   private static readonly EXPIRY_MINUTES = 60; // 1時間でハッシュを無効化
 
   /**
@@ -37,6 +37,7 @@ export class DuplicateDetectionService {
       deliveryType: data.deliveryType,
       quantities: data.quantities ? Object.entries(data.quantities).sort() : null,
       userId: data.userId,
+      // sessionIdは含めない - 同じ操作は異なるセッションでも重複と見なす
     };
 
     const inputString = JSON.stringify(hashInput);
@@ -50,7 +51,7 @@ export class DuplicateDetectionService {
   }
 
   /**
-   * 重複チェックと記録の挿入
+   * 重複チェックと記録の挿入（アトミック操作）
    */
   static async checkAndRecordOperation(data: DuplicateDetectionData): Promise<{
     isDuplicate: boolean;
@@ -62,24 +63,98 @@ export class DuplicateDetectionService {
     const expiresAt = new Date(now.getTime() + this.EXPIRY_MINUTES * 60 * 1000);
 
     try {
+      console.log('🔍 重複チェック開始:', {
+        hash: operationHash.substring(0, 16) + '...',
+        orderId: data.orderId
+      });
+
+      // RPC関数を使用してアトミックな重複チェックと挿入を実行
+      const { data: result, error: rpcError } = await supabase.rpc(
+        'check_and_insert_duplicate_detection',
+        {
+          p_operation_hash: operationHash,
+          p_session_id: data.sessionId,
+          p_operation_type: 'transaction_creation',
+          p_resource_id: data.orderId,
+          p_expires_at: expiresAt.toISOString(),
+          p_metadata: {
+            userId: data.userId,
+            orderId: data.orderId,
+            operation_data: data
+          }
+        }
+      );
+
+      if (rpcError) {
+        console.error('❌ RPC関数エラー:', rpcError);
+        // フォールバック：従来の方法で処理
+        return await this.fallbackCheckAndRecord(data, operationHash, expiresAt);
+      }
+
+      console.log('✅ RPC結果:', result);
+
+      if (result && result.is_duplicate) {
+        console.log('🚨 重複操作検出 (RPC):', {
+          hash: operationHash.substring(0, 16) + '...',
+          orderId: data.orderId
+        });
+
+        return {
+          isDuplicate: true,
+          operationHash,
+          duplicateRecord: result.existing_record as DuplicateRecord
+        };
+      }
+
+      console.log('✅ 新規操作記録 (RPC):', {
+        hash: operationHash.substring(0, 16) + '...',
+        orderId: data.orderId
+      });
+
+      return { isDuplicate: false, operationHash };
+
+    } catch (error) {
+      console.error('❌ 重複検出処理エラー:', error);
+      // エラー時はフォールバック処理を実行
+      return await this.fallbackCheckAndRecord(data, operationHash, expiresAt);
+    }
+  }
+
+  /**
+   * フォールバック処理：RPC関数が利用できない場合の従来の方法
+   */
+  private static async fallbackCheckAndRecord(
+    data: DuplicateDetectionData,
+    operationHash: string,
+    expiresAt: Date
+  ): Promise<{
+    isDuplicate: boolean;
+    operationHash: string;
+    duplicateRecord?: DuplicateRecord;
+  }> {
+    console.log('⚠️ フォールバック処理を実行');
+    const now = new Date();
+
+    try {
       // 1. 既存の同一ハッシュ操作をチェック（期限内のみ）
       const { data: existingRecord, error: checkError } = await supabase
         .from('duplicate_detection_records')
         .select('*')
         .eq('operation_hash', operationHash)
         .gt('expires_at', now.toISOString())
+        .eq('is_valid', true)
         .order('created_at', { ascending: false })
         .limit(1);
 
       if (checkError) {
-        console.error('重複チェックエラー:', checkError);
+        console.error('❌ 重複チェックエラー:', checkError);
         // エラー時は安全側に寄せて重複として扱わない
         return { isDuplicate: false, operationHash };
       }
 
       if (existingRecord && existingRecord.length > 0) {
-        console.log('🚨 重複操作検出:', {
-          hash: operationHash,
+        console.log('🚨 重複操作検出 (フォールバック):', {
+          hash: operationHash.substring(0, 16) + '...',
           existingRecord: existingRecord[0],
           timeDiff: now.getTime() - new Date(existingRecord[0].created_at).getTime()
         });
@@ -104,21 +179,26 @@ export class DuplicateDetectionService {
             userId: data.userId,
             orderId: data.orderId,
             operation_data: data
-          }
+          },
+          is_valid: true
         });
 
       if (insertError) {
-        console.error('重複検出記録挿入エラー:', insertError);
-        // 挿入失敗時も安全側に寄せる
-        return { isDuplicate: false, operationHash };
+        console.error('❌ 重複検出記録挿入エラー:', insertError);
+        // 挿入失敗時は重複として扱う（安全側）
+        return { isDuplicate: true, operationHash };
       }
 
-      console.log('✅ 新規操作記録:', { hash: operationHash, orderId: data.orderId });
+      console.log('✅ 新規操作記録 (フォールバック):', {
+        hash: operationHash.substring(0, 16) + '...',
+        orderId: data.orderId
+      });
+
       return { isDuplicate: false, operationHash };
 
     } catch (error) {
-      console.error('重複検出処理エラー:', error);
-      return { isDuplicate: false, operationHash };
+      console.error('❌ フォールバック処理エラー:', error);
+      return { isDuplicate: true, operationHash }; // 安全側に寄せる
     }
   }
 
@@ -135,12 +215,12 @@ export class DuplicateDetectionService {
         .lt('expires_at', now);
 
       if (error) {
-        console.error('期限切れレコードクリーンアップエラー:', error);
+        console.error('❌ 期限切れレコードクリーンアップエラー:', error);
       } else {
         console.log('✅ 期限切れレコードクリーンアップ完了');
       }
     } catch (error) {
-      console.error('クリーンアップ処理エラー:', error);
+      console.error('❌ クリーンアップ処理エラー:', error);
     }
   }
 
@@ -152,37 +232,37 @@ export class DuplicateDetectionService {
       const now = new Date().toISOString();
       const { error } = await supabase
         .from('duplicate_detection_records')
-        .update({ expires_at: now })
+        .update({ is_valid: false, expires_at: now })
         .eq('session_id', sessionId)
         .gt('expires_at', now);
 
       if (error) {
-        console.error('セッション操作無効化エラー:', error);
+        console.error('❌ セッション操作無効化エラー:', error);
       } else {
         console.log('✅ セッション操作無効化完了:', sessionId);
       }
     } catch (error) {
-      console.error('セッション無効化処理エラー:', error);
+      console.error('❌ セッション無効化処理エラー:', error);
     }
   }
 }
 
 // Hook for React components
-export function useDuplicateDetection() {
+export function useImprovedDuplicateDetection() {
   const generateSessionId = (): string => {
     return globalThis.crypto.randomUUID();
   };
 
   const checkDuplicate = async (data: DuplicateDetectionData) => {
-    return await DuplicateDetectionService.checkAndRecordOperation(data);
+    return await ImprovedDuplicateDetectionService.checkAndRecordOperation(data);
   };
 
   const cleanup = async () => {
-    return await DuplicateDetectionService.cleanupExpiredRecords();
+    return await ImprovedDuplicateDetectionService.cleanupExpiredRecords();
   };
 
   const invalidateSession = async (sessionId: string) => {
-    return await DuplicateDetectionService.invalidateSessionOperations(sessionId);
+    return await ImprovedDuplicateDetectionService.invalidateSessionOperations(sessionId);
   };
 
   return {

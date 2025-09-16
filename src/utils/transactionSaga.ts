@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import type { DuplicateDetectionData } from './duplicateDetection';
+import type { DuplicateDetectionData } from './improvedDuplicateDetection';
 
 // Saga Patternによる分散トランザクション管理
 export interface SagaStep {
