@@ -28,33 +28,56 @@ export class SimplifiedInstallmentService {
         userId: data.userId
       });
 
-      // 🛡️ Phase 1: データベース関数を使用した安全な分納作成を試行
-      console.log('📊 データベース関数による安全な分納作成を試行');
-      const { data: result, error: rpcError } = await supabase
-        .rpc('create_safe_installment', {
-          p_parent_order_id: data.orderId,
-          p_amount: data.amount,
-          p_memo: data.memo || '簡略化分納処理'
-        });
+      // 🛡️ Phase 1: データベース関数を使用した安全な分納作成を試行（修正版）
+      console.log('📊 データベース関数による安全な分納作成を試行（パラメータ修正版）');
 
-      // データベース関数が成功した場合
-      if (!rpcError && result && result.length > 0 && result[0].success) {
-        const installmentResult = result[0];
-        console.log('✅ データベース関数による分納作成成功:', {
-          transactionId: installmentResult.transaction_id,
-          installmentNumber: installmentResult.installment_no,
-          amount: data.amount,
-          transaction_no: installmentResult.transaction_no
-        });
+      // パートナーID取得
+      const { data: orderData, error: orderError } = await supabase
+        .from('purchase_orders')
+        .select('partner_id')
+        .eq('id', data.orderId)
+        .single();
 
-        return {
-          success: true,
-          transactionId: installmentResult.transaction_id
-        };
+      if (orderError) {
+        console.warn('⚠️ パートナーID取得失敗、フォールバックに移行:', orderError);
+      } else {
+        const { data: result, error: rpcError } = await supabase
+          .rpc('create_installment_v2', {
+            p_parent_order_id: data.orderId,
+            p_partner_id: orderData?.partner_id || null,
+            p_transaction_date: new Date().toISOString().split('T')[0],
+            p_due_date: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
+            p_total_amount: data.amount,
+            p_memo: data.memo || '簡略化分納処理V2'
+          });
+
+        // データベース関数が成功した場合
+        if (!rpcError && result) {
+          console.log('✅ V2データベース関数による分納作成成功:', {
+            result: result,
+            transactionId: result.id,
+            transactionNo: result.transaction_no,
+            installmentNo: result.installment_no,
+            amount: data.amount
+          });
+
+          return {
+            success: true,
+            transactionId: result.id
+          };
+        } else {
+          console.log('⚠️ V2 RPC関数エラー詳細:', {
+            error: rpcError,
+            message: rpcError?.message,
+            details: rpcError?.details,
+            hint: rpcError?.hint,
+            code: rpcError?.code
+          });
+        }
       }
 
       // 🔄 Phase 2: フォールバック - 従来方式（改良版）
-      console.log('⚠️ データベース関数が使用できません。フォールバック処理を実行:', rpcError?.message);
+      console.log('⚠️ V2データベース関数が使用できません。フォールバック処理を実行:', rpcError?.message || 'パートナー情報取得失敗');
 
       // UUID v4形式で確実なID生成
       const transactionId = globalThis.crypto.randomUUID();

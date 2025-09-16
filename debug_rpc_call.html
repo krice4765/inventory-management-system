@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RPC Function Debug Tool</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>🔧 RPC Function Debug Tool</h1>
+    <div id="results"></div>
+
+    <script>
+        const supabaseUrl = 'https://tleequspizctgoosostd.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsZWVxdXNwaXpjdGdvb3Nvc3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU2MDE0MjYsImV4cCI6MjA0MTE3NzQyNn0.rOzElOm_VjQZGNY1WqXJ_3PHI1vFWiRoNqc33TjEWnY';
+
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function debugRPC() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h2>🚀 RPC Debug Results</h2>';
+
+            // Test 1: Check if function exists
+            results.innerHTML += '<h3>Test 1: Function Existence</h3>';
+            try {
+                const { data, error } = await supabase
+                    .from('information_schema.routines')
+                    .select('routine_name')
+                    .eq('routine_name', 'create_safe_installment');
+
+                results.innerHTML += `<p>✅ Function query: ${JSON.stringify({data, error})}</p>`;
+            } catch (err) {
+                results.innerHTML += `<p>❌ Function query error: ${err.message}</p>`;
+            }
+
+            // Test 2: Get sample order ID
+            results.innerHTML += '<h3>Test 2: Sample Order Data</h3>';
+            let sampleOrderId = null;
+            let samplePartnerId = null;
+
+            try {
+                const { data: orders, error } = await supabase
+                    .from('purchase_orders')
+                    .select('id, partner_id')
+                    .limit(1);
+
+                if (orders && orders.length > 0) {
+                    sampleOrderId = orders[0].id;
+                    samplePartnerId = orders[0].partner_id;
+                    results.innerHTML += `<p>✅ Sample order: ${sampleOrderId}</p>`;
+                    results.innerHTML += `<p>✅ Sample partner: ${samplePartnerId}</p>`;
+                } else {
+                    results.innerHTML += `<p>❌ No orders found: ${JSON.stringify(error)}</p>`;
+                }
+            } catch (err) {
+                results.innerHTML += `<p>❌ Order query error: ${err.message}</p>`;
+            }
+
+            // Test 3: Call RPC function with correct parameters
+            if (sampleOrderId && samplePartnerId) {
+                results.innerHTML += '<h3>Test 3: RPC Function Call</h3>';
+
+                const params = {
+                    p_parent_order_id: sampleOrderId,
+                    p_partner_id: samplePartnerId,
+                    p_transaction_date: '2025-09-16',
+                    p_due_date: '2025-09-23',
+                    p_total_amount: 5000.00,
+                    p_memo: 'Debug Test Call'
+                };
+
+                results.innerHTML += `<p>📝 Parameters: ${JSON.stringify(params, null, 2)}</p>`;
+
+                try {
+                    const { data: rpcResult, error: rpcError } = await supabase
+                        .rpc('create_safe_installment', params);
+
+                    if (rpcError) {
+                        results.innerHTML += `<p>❌ RPC Error: ${JSON.stringify(rpcError, null, 2)}</p>`;
+                        results.innerHTML += `<p>🔍 Error Code: ${rpcError.code}</p>`;
+                        results.innerHTML += `<p>🔍 Error Message: ${rpcError.message}</p>`;
+                    } else {
+                        results.innerHTML += `<p>✅ RPC Success: ${JSON.stringify(rpcResult, null, 2)}</p>`;
+                    }
+                } catch (err) {
+                    results.innerHTML += `<p>❌ RPC Exception: ${err.message}</p>`;
+                    results.innerHTML += `<p>🔍 Exception Stack: ${err.stack}</p>`;
+                }
+            }
+
+            results.innerHTML += '<h3>🎯 Analysis Complete</h3>';
+        }
+
+        // Auto-run on page load
+        window.addEventListener('load', debugRPC);
+    </script>
+</body>
+</html>

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RPC関数診断ツール - create_safe_installment</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      background: white;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .test-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: #fafafa;
+    }
+    .test-result {
+      margin: 10px 0;
+      padding: 12px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+    .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+    .warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+    .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px;
+    }
+    button:hover { background: #0056b3; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #007bff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    pre {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+      padding: 15px;
+      overflow-x: auto;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .summary {
+      background: #e7f3ff;
+      border: 2px solid #007bff;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .config-section {
+      background: #fff9e6;
+      border: 1px solid #ffd700;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 RPC関数診断ツール</h1>
+    <p style="text-align: center; color: #666;">create_safe_installment の404エラー根本原因分析</p>
+
+    <div class="config-section">
+      <h3>📋 Supabase設定</h3>
+      <p><strong>URL:</strong> <code id="supabase-url">未設定</code></p>
+      <p><strong>Project ID:</strong> <code id="project-id">未設定</code></p>
+      <p><strong>APIキー:</strong> <code id="api-key">未設定</code></p>
+      <button onclick="showSupabaseConfig()">設定表示</button>
+    </div>
+
+    <div class="summary" id="summary" style="display:none;">
+      <h3>📊 診断結果サマリー</h3>
+      <p id="summary-content">診断を実行してください</p>
+    </div>
+
+    <div class="test-section">
+      <h3>🚀 診断実行</h3>
+      <button id="run-basic" onclick="runBasicDiagnostic()">基本診断</button>
+      <button id="run-full" onclick="runFullDiagnostic()">完全診断</button>
+      <button id="run-rpc-only" onclick="runRPCOnlyTest()">RPC関数のみテスト</button>
+      <button onclick="clearResults()">結果クリア</button>
+    </div>
+
+    <div id="results-container">
+      <!-- 診断結果がここに表示されます -->
+    </div>
+
+    <div class="test-section">
+      <h3>🛠️ 緊急対応手順</h3>
+      <div class="info test-result">
+        <h4>Phase 1: 即座確認（推奨）</h4>
+        <p>1. 「RPC関数のみテスト」ボタンをクリック</p>
+        <p>2. 404エラーが継続する場合 → 本番環境でfix_installment_schema.sqlを実行</p>
+        <p>3. その他エラー → パラメータ不一致の修正が必要</p>
+
+        <h4>Phase 2: 環境確認</h4>
+        <p>1. VITE_SUPABASE_URL と VITE_SUPABASE_ANON_KEY の環境変数確認</p>
+        <p>2. 本番Supabaseプロジェクト (tleequspizctgoosostd) への接続確認</p>
+
+        <h4>Phase 3: デプロイ同期</h4>
+        <p>1. Supabase Dashboard → SQL Editor</p>
+        <p>2. fix_installment_schema.sql の内容を実行</p>
+        <p>3. 関数作成後24時間以内に伝播完了</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Supabaseクライアント初期化（環境変数から）
+    let supabase = null;
+
+    function initSupabase() {
+      // 本番環境の設定（実際の値に置き換えてください）
+      const SUPABASE_URL = 'https://tleequspizctgoosostd.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsZWVxdXNwaXpjdGdvb3Nvc3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU4NTk4NTksImV4cCI6MjA0MTQzNTg1OX0.tVAaoB3gaBKQ-ItYoxfhfaU6YOQOmKrLRyA7Mf6Fhzs';
+
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      // 設定表示
+      document.getElementById('supabase-url').textContent = SUPABASE_URL;
+      document.getElementById('project-id').textContent = SUPABASE_URL.match(/https:\/\/(.+?)\.supabase\.co/)?.[1] || '不明';
+      document.getElementById('api-key').textContent = SUPABASE_ANON_KEY.substring(0, 30) + '...';
+    }
+
+    function showSupabaseConfig() {
+      const config = {
+        URL: supabase?.supabaseUrl,
+        KEY: supabase?.supabaseKey?.substring(0, 50) + '...',
+        auth: supabase?.auth
+      };
+      addResult('設定確認', 'info', 'Supabase設定', JSON.stringify(config, null, 2));
+    }
+
+    function addResult(testName, status, message, details = null) {
+      const container = document.getElementById('results-container');
+      const result = document.createElement('div');
+      result.className = `test-result ${status}`;
+
+      const icon = status === 'success' ? '✅' :
+                  status === 'warning' ? '⚠️' :
+                  status === 'error' ? '❌' : '📋';
+
+      let html = `<strong>${icon} ${testName}:</strong> ${message}`;
+
+      if (details) {
+        html += `<pre>${typeof details === 'object' ? JSON.stringify(details, null, 2) : details}</pre>`;
+      }
+
+      result.innerHTML = html;
+      container.appendChild(result);
+
+      // 自動スクロール
+      result.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function clearResults() {
+      document.getElementById('results-container').innerHTML = '';
+      document.getElementById('summary').style.display = 'none';
+    }
+
+    function setButtonLoading(buttonId, loading) {
+      const button = document.getElementById(buttonId);
+      if (loading) {
+        button.disabled = true;
+        button.innerHTML = '<div class="loading"></div>診断中...';
+      } else {
+        button.disabled = false;
+        button.innerHTML = button.id.includes('basic') ? '基本診断' :
+                          button.id.includes('full') ? '完全診断' : 'RPC関数のみテスト';
+      }
+    }
+
+    async function runBasicDiagnostic() {
+      setButtonLoading('run-basic', true);
+
+      try {
+        addResult('基本診断開始', 'info', '接続確認とRPC関数存在チェック');
+
+        // Test 1: Supabase接続確認
+        await testSupabaseConnection();
+
+        // Test 2: RPC関数テスト
+        await testRPCFunction();
+
+        addResult('基本診断完了', 'success', '基本診断が完了しました');
+      } catch (error) {
+        addResult('基本診断エラー', 'error', error.message, error);
+      }
+
+      setButtonLoading('run-basic', false);
+    }
+
+    async function runFullDiagnostic() {
+      setButtonLoading('run-full', true);
+
+      try {
+        addResult('完全診断開始', 'info', 'すべてのテストを実行します');
+
+        await testSupabaseConnection();
+        await testRPCFunction();
+        await testRPCParameters();
+        await testPermissions();
+
+        showSummary();
+        addResult('完全診断完了', 'success', 'すべての診断が完了しました');
+      } catch (error) {
+        addResult('完全診断エラー', 'error', error.message, error);
+      }
+
+      setButtonLoading('run-full', false);
+    }
+
+    async function runRPCOnlyTest() {
+      setButtonLoading('run-rpc-only', true);
+
+      try {
+        addResult('RPC関数テスト開始', 'info', 'create_safe_installment関数のみをテスト');
+        await testRPCFunction();
+        addResult('RPC関数テスト完了', 'success', 'RPC関数テストが完了しました');
+      } catch (error) {
+        addResult('RPC関数テストエラー', 'error', error.message, error);
+      }
+
+      setButtonLoading('run-rpc-only', false);
+    }
+
+    async function testSupabaseConnection() {
+      try {
+        const { data, error } = await supabase
+          .from('purchase_orders')
+          .select('count')
+          .limit(1);
+
+        if (error) {
+          addResult('Supabase接続', 'error', 'データベース接続失敗', error);
+          throw error;
+        }
+
+        addResult('Supabase接続', 'success', 'データベース接続正常');
+      } catch (error) {
+        addResult('Supabase接続', 'error', '接続テスト例外', error);
+        throw error;
+      }
+    }
+
+    async function testRPCFunction() {
+      try {
+        const testOrderId = '00000000-0000-4000-8000-000000000001';
+
+        const { data, error } = await supabase.rpc('create_safe_installment', {
+          p_parent_order_id: testOrderId,
+          p_partner_id: null,
+          p_transaction_date: '2025-09-16',
+          p_due_date: '2025-09-23',
+          p_total_amount: 1000.00,
+          p_memo: 'RPC診断テスト'
+        });
+
+        if (error) {
+          // 404エラーの詳細分析
+          if (error.message?.includes('does not exist') || error.code === '42883') {
+            addResult('RPC関数', 'error',
+              '🚨 404 Not Found - 関数が本番環境に存在しません',
+              {
+                error_code: error.code,
+                message: error.message,
+                solution: '本番Supabaseプロジェクトでfix_installment_schema.sqlを実行してください',
+                sql_file: 'fix_installment_schema.sql',
+                function_name: 'create_safe_installment'
+              }
+            );
+            return;
+          }
+
+          addResult('RPC関数', 'error', `RPC呼び出し失敗: ${error.message}`, error);
+          return;
+        }
+
+        addResult('RPC関数', 'success', 'RPC関数呼び出し成功', data);
+      } catch (error) {
+        addResult('RPC関数', 'error', 'RPC呼び出し例外', error);
+      }
+    }
+
+    async function testRPCParameters() {
+      try {
+        // パラメータ完全版テスト
+        const testOrderId = '00000000-0000-4000-8000-000000000002';
+
+        const { data, error } = await supabase.rpc('create_safe_installment', {
+          p_parent_order_id: testOrderId,
+          p_partner_id: '00000000-0000-4000-8000-000000000003',
+          p_transaction_date: '2025-09-16',
+          p_due_date: '2025-09-23',
+          p_total_amount: 2500.00,
+          p_memo: 'RPC完全パラメータテスト',
+          p_delivery_sequence: 1,
+          p_product_name: 'テスト商品',
+          p_unit_price: 2500.00,
+          p_quantity: 1
+        });
+
+        if (error) {
+          addResult('RPC完全パラメータ', 'error', `完全パラメータRPC失敗: ${error.message}`, error);
+          return;
+        }
+
+        addResult('RPC完全パラメータ', 'success', '完全パラメータRPC成功', data);
+      } catch (error) {
+        addResult('RPC完全パラメータ', 'error', '完全パラメータRPC例外', error);
+      }
+    }
+
+    async function testPermissions() {
+      try {
+        const { data, error } = await supabase.auth.getUser();
+
+        if (error) {
+          addResult('権限確認', 'warning', 'ユーザー情報取得失敗（匿名アクセス）', error);
+          return;
+        }
+
+        const userRole = data.user ? 'authenticated' : 'anon';
+
+        addResult('権限確認', 'success', `現在のロール: ${userRole}`, {
+          user_id: data.user?.id,
+          role: userRole,
+          expected_grants: ['authenticated', 'anon']
+        });
+      } catch (error) {
+        addResult('権限確認', 'error', '権限確認例外', error);
+      }
+    }
+
+    function showSummary() {
+      const results = document.querySelectorAll('.test-result');
+      const total = results.length;
+      const success = document.querySelectorAll('.test-result.success').length;
+      const errors = document.querySelectorAll('.test-result.error').length;
+      const warnings = document.querySelectorAll('.test-result.warning').length;
+
+      const summaryContent = `
+        <p><strong>総テスト数:</strong> ${total}</p>
+        <p><strong>成功:</strong> ${success} <strong>エラー:</strong> ${errors} <strong>警告:</strong> ${warnings}</p>
+        <p><strong>成功率:</strong> ${Math.round((success / total) * 100)}%</p>
+      `;
+
+      document.getElementById('summary-content').innerHTML = summaryContent;
+      document.getElementById('summary').style.display = 'block';
+    }
+
+    // ページ読み込み時にSupabaseを初期化
+    window.addEventListener('load', () => {
+      initSupabase();
+      addResult('初期化', 'info', 'RPC診断ツールが準備完了しました');
+    });
+  </script>
+</body>
+</html>
