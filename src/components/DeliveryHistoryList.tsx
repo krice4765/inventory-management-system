@@ -5,7 +5,8 @@ import { supabase } from '../lib/supabase'
 interface DeliveryHistoryItem {
   id: string
   total_amount: number
-  delivery_sequence: number
+  delivery_sequence: number | null
+  installment_no: number | null
   created_at: string
   transaction_date: string
   memo: string
@@ -24,7 +25,7 @@ export const DeliveryHistoryList: React.FC<DeliveryHistoryListProps> = ({ orderI
       
       const { data, error } = await supabase
         .from('transactions')
-        .select('id, total_amount, delivery_sequence, created_at, transaction_date, memo')
+        .select('id, total_amount, delivery_sequence, installment_no, created_at, transaction_date, memo')
         .eq('parent_order_id', orderId)
         .eq('transaction_type', 'purchase')
         .eq('status', 'confirmed')
@@ -63,7 +64,7 @@ export const DeliveryHistoryList: React.FC<DeliveryHistoryListProps> = ({ orderI
           <div className="flex-1">
             <div className="flex items-center space-x-2">
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                第{index + 1}回
+                第{delivery.delivery_sequence || delivery.installment_no || (index + 1)}回
               </span>
               <div className="flex flex-col text-xs">
                 <div className="flex items-center space-x-2">

@@ -133,6 +133,7 @@ export class SimplifiedInstallmentService {
               transaction_no: transactionNo,
               parent_order_id: data.orderId,
               installment_no: installmentNumber,
+              delivery_sequence: installmentNumber, // UIとの整合性のため追加
               transaction_date: new Date().toISOString().split('T')[0],
               status: 'confirmed',
               total_amount: data.amount,
