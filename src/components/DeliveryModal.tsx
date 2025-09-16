@@ -14,6 +14,7 @@ import { DeliveryHistoryList } from './DeliveryHistoryList'
 import { InventoryOverrideModal } from './InventoryOverrideModal'
 import { useInventoryOverride } from '../hooks/usePermissions'
 import { useImprovedDuplicateDetection } from '../utils/improvedDuplicateDetection'
+import { useSimplifiedInstallment } from '../utils/simplifiedInstallmentSystem'
 import { DeliveryTransactionSaga } from '../utils/transactionSaga'
 
 interface DeliveryFormData {
@@ -49,6 +50,7 @@ export const DeliveryModal = () => {
   const { syncOrderData } = useOrdersSync()
   const { canOverrideInventory } = useInventoryOverride()
   const { checkDuplicate, generateSessionId } = useImprovedDuplicateDetection()
+  const { createInstallment } = useSimplifiedInstallment()
 
   // セッション管理
   const [sessionId] = useState(() => generateSessionId())
@@ -299,86 +301,35 @@ export const DeliveryModal = () => {
         throw new Error(`同じ分納が${timeDiff}秒前に既に登録されています`);
       }
 
-      // 🔄 Saga Pattern による堅牢な分散トランザクション実行
-      const transactionId = globalThis.crypto.randomUUID();
-      console.log('🚀 Saga開始 - 分納処理:', {
-        transactionId,
-        amount: data.amount,
-        sequence: nextSequence,
-        orderId: orderData.purchase_order_id
-      });
+      // 🚨 緊急対応: シンプル分納システムを使用（Saga問題回避）
+      console.log('🚨 緊急対応: シンプル分納システムを使用');
 
-      // Sagaコンテキストの構築
-      const sagaContext = {
+      const simplifiedData = {
         orderId: orderData.purchase_order_id,
         amount: data.amount,
         deliveryType: data.deliveryType || 'amount_only',
         quantities: data.quantities,
-        userId: 'current-user', // TODO: 実際のユーザーIDを取得
-        sessionId: sessionId,
+        userId: 'current-user',
+        memo: data.memo
       };
 
-      const saga = new DeliveryTransactionSaga(sagaContext);
+      console.log('📝 シンプル分納データ:', simplifiedData);
 
-      // ステップ1: 重複検出レコード管理
-      saga.addDuplicateDetectionStep(duplicateCheckData);
+      const installmentResult = await createInstallment(simplifiedData);
 
-      // ステップ2: 分納記録作成
-      saga.addTransactionCreationStep({
-        transactionId,
-        parentOrderId: orderData.purchase_order_id,
-        amount: data.amount,
-        partnerId: orderData.partner_id,
-        installmentNo: nextSequence,
-      });
-
-      // ステップ3: 在庫処理（個数＋金額分納の場合）
-      if (data.deliveryType === 'amount_and_quantity' && data.quantities && orderData.items) {
-        const inventoryUpdates = [];
-        const inventoryMovements = [];
-
-        for (const item of orderData.items) {
-          const quantity = data.quantities[item.product_id];
-          if (quantity && quantity > 0) {
-            inventoryUpdates.push({
-              productId: item.product_id,
-              quantity: quantity,
-              unitPrice: item.unit_price,
-            });
-
-            inventoryMovements.push({
-              id: globalThis.crypto.randomUUID(),
-              productId: item.product_id,
-              quantity: quantity,
-              unitPrice: item.unit_price,
-              transactionId,
-              installmentNo: nextSequence,
-            });
-          }
-        }
-
-        if (inventoryUpdates.length > 0) {
-          saga.addInventoryUpdateStep(inventoryUpdates);
-          saga.addInventoryMovementStep(inventoryMovements);
-        }
+      if (!installmentResult.success) {
+        throw new Error(installmentResult.error || 'シンプル分納処理失敗');
       }
 
-      // Saga実行
-      const sagaResult = await saga.execute();
-
-      if (!sagaResult.success) {
-        throw new Error(sagaResult.error || 'Saga実行失敗');
-      }
-
-      console.log('🎉 Saga実行完了 - 分納登録成功');
+      console.log('✅ シンプル分納処理成功:', installmentResult);
 
       // 🔄 分納完了時の処理
       return {
-        deliveredAmount: data.amount, 
+        deliveredAmount: data.amount,
         memo: data.memo,
         deliveryType: data.deliveryType,
         quantities: data.quantities,
-        transactionId: transactionId,
+        transactionId: installmentResult.transactionId,
         deliverySequence: nextSequence
       };
     },
