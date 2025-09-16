@@ -7,6 +7,28 @@ import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom'; // 1. インポート
 
+// 開発環境での管理者ログイン情報保持
+const getDefaultLoginValues = () => {
+  const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost';
+
+  if (isDevelopment) {
+    // 開発環境: 管理者アカウントをローテーション
+    const adminAccounts = [
+      { email: 'Krice4765104@gmail.com', password: 'AdminPass123!' },
+      { email: 'dev@inventory.test', password: 'password123' }
+    ];
+
+    // ローカルストレージから前回使用したアカウントを取得
+    const lastUsedEmail = localStorage.getItem('dev_last_email');
+    const account = adminAccounts.find(acc => acc.email === lastUsedEmail) || adminAccounts[0];
+
+    return account;
+  }
+
+  // 本番環境: 空の状態
+  return { email: '', password: '' };
+};
+
 const schema = yup.object({
   email: yup
     .string()
@@ -26,12 +48,17 @@ export const Login: React.FC = () => {
   const { signIn } = useAuth(); // 3. hasValidCredentials を削除
   const navigate = useNavigate(); // 1. useNavigateフックを使用
 
+  const defaultValues = getDefaultLoginValues();
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginForm>({
     resolver: yupResolver(schema),
+    defaultValues: {
+      email: defaultValues.email,
+      password: defaultValues.password
+    }
   });
 
   const onSubmit = async (data: LoginForm) => {
@@ -42,6 +69,12 @@ export const Login: React.FC = () => {
         // 2. エラーハンドリングを修正
         toast.error('ログインに失敗しました。メールアドレスとパスワードを確認してください。');
       } else {
+        // 開発環境での管理者アカウント使用履歴を保存
+        const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost';
+        if (isDevelopment && (data.email === 'Krice4765104@gmail.com' || data.email === 'dev@inventory.test')) {
+          localStorage.setItem('dev_last_email', data.email);
+        }
+
         // 2. ログイン成功時はリダイレクト
         // 成功のtoastはuseAuth側で表示される
         navigate('/');

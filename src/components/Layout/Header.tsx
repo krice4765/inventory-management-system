@@ -11,7 +11,8 @@ export const Header: React.FC = () => {
     if (error) {
       toast.error('ログアウトに失敗しました');
     } else {
-      toast.success('ログアウトしました');
+      // トーストはApp.tsxの認証リスナーで統一管理
+      // toast.success('ログアウトしました');
     }
   };
 

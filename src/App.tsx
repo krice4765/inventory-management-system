@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { useAuthStore } from './stores/authStore';
 import { useEffect, Suspense } from 'react';
 import { supabase } from './lib/supabase';
@@ -27,10 +28,14 @@ function App() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
-    });
 
+      // 認証イベントのトースト表示（統一管理）
+      if (event === 'SIGNED_OUT') {
+        toast.success('ログアウトしました。');
+      }
+    });
 
     return () => subscription.unsubscribe();
   }, [setUser, setLoading]);
@@ -43,130 +48,159 @@ function App() {
     );
   }
 
-  if (!user) {
-    return <Login />;
-  }
-
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <Sidebar />
-        <div className="lg:pl-64">
-          <main className="min-h-screen">
-            <ErrorBoundary>
-              <Routes>
-                {/* 高優先度ルート（同期ローディング） */}
-                <Route path="/" element={<Dashboard />} />
+      <Routes>
+        {/* 認証不要な公開ルート */}
+        <Route path="/login" element={<Login />} />
+        <Route
+          path="/user-application"
+          element={
+            <Suspense fallback={<LazyLoadingSpinner message="申請フォームを読み込み中..." />}>
+              <LazyComponents.UserApplication />
+            </Suspense>
+          }
+        />
 
-                {/* 中優先度ルート（遅延ローディング） */}
-                <Route
-                  path="/products"
-                  element={
-                    <Suspense fallback={<LazyLoadingSpinner message="商品管理を読み込み中..." />}>
-                      <LazyComponents.Products />
-                    </Suspense>
-                  }
-                />
+        {/* 認証が必要な保護されたルート */}
+        <Route
+          path="/*"
+          element={
+            !user ? (
+              <Navigate to="/login" replace />
+            ) : (
+              <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+                <Sidebar />
+                <div className="lg:pl-64">
+                  <main className="min-h-screen">
+                    <ErrorBoundary>
+                      <Routes>
+                        {/* 高優先度ルート（同期ローディング） */}
+                        <Route path="/" element={<Dashboard />} />
 
-                <Route
-                  path="/inventory"
-                  element={
-                    <Suspense fallback={<LazyLoadingSpinner message="在庫管理を読み込み中..." />}>
-                      <LazyComponents.Inventory />
-                    </Suspense>
-                  }
-                />
+                        {/* 中優先度ルート（遅延ローディング） */}
+                        <Route
+                          path="/products"
+                          element={
+                            <Suspense fallback={<LazyLoadingSpinner message="商品管理を読み込み中..." />}>
+                              <LazyComponents.Products />
+                            </Suspense>
+                          }
+                        />
 
-                <Route
-                  path="/orders"
-                  element={
-                    <Suspense fallback={<LazyLoadingSpinner message="受注管理を読み込み中..." />}>
-                      <LazyComponents.Orders />
-                    </Suspense>
-                  }
-                />
+                        <Route
+                          path="/inventory"
+                          element={
+                            <Suspense fallback={<LazyLoadingSpinner message="在庫管理を読み込み中..." />}>
+                              <LazyComponents.Inventory />
+                            </Suspense>
+                          }
+                        />
 
-                {/* 低優先度ルート（遅延ローディング） */}
-                <Route
-                  path="/partners"
-                  element={
-                    <Suspense fallback={<LazyLoadingSpinner message="取引先管理を読み込み中..." />}>
-                      <LazyComponents.Partners />
-                    </Suspense>
-                  }
-                />
+                        <Route
+                          path="/orders"
+                          element={
+                            <Suspense fallback={<LazyLoadingSpinner message="受注管理を読み込み中..." />}>
+                              <LazyComponents.Orders />
+                            </Suspense>
+                          }
+                        />
 
-                <Route
-                  path="/purchase-orders"
-                  element={
-                    <Suspense fallback={<LazyLoadingSpinner message="発注管理を読み込み中..." />}>
-                      <LazyComponents.PurchaseOrders />
-                    </Suspense>
-                  }
-                />
+                        {/* 低優先度ルート（遅延ローディング） */}
+                        <Route
+                          path="/partners"
+                          element={
+                            <Suspense fallback={<LazyLoadingSpinner message="取引先管理を読み込み中..." />}>
+                              <LazyComponents.Partners />
+                            </Suspense>
+                          }
+                        />
 
-                <Route
-                  path="/purchase-orders/:id"
-                  element={
-                    <Suspense fallback={<LazyLoadingSpinner message="発注詳細を読み込み中..." />}>
-                      <LazyComponents.PurchaseOrderDetail />
-                    </Suspense>
-                  }
-                />
+                        <Route
+                          path="/purchase-orders"
+                          element={
+                            <Suspense fallback={<LazyLoadingSpinner message="発注管理を読み込み中..." />}>
+                              <LazyComponents.PurchaseOrders />
+                            </Suspense>
+                          }
+                        />
 
-                <Route
-                  path="/orders/:id"
-                  element={
-                    <Suspense fallback={<LazyLoadingSpinner message="受注詳細を読み込み中..." />}>
-                      <LazyComponents.OrderDetail />
-                    </Suspense>
-                  }
-                />
+                        <Route
+                          path="/purchase-orders/:id"
+                          element={
+                            <Suspense fallback={<LazyLoadingSpinner message="発注詳細を読み込み中..." />}>
+                              <LazyComponents.PurchaseOrderDetail />
+                            </Suspense>
+                          }
+                        />
 
-                <Route
-                  path="/orders/new"
-                  element={
-                    <Suspense fallback={<LazyLoadingSpinner message="新規受注画面を読み込み中..." />}>
-                      <LazyComponents.OrderNew />
-                    </Suspense>
-                  }
-                />
+                        <Route
+                          path="/orders/:id"
+                          element={
+                            <Suspense fallback={<LazyLoadingSpinner message="受注詳細を読み込み中..." />}>
+                              <LazyComponents.OrderDetail />
+                            </Suspense>
+                          }
+                        />
 
-                {/* 管理・監視ルート */}
-                <Route
-                  path="/performance"
-                  element={
-                    <Suspense fallback={<LazyLoadingSpinner message="パフォーマンス監視を読み込み中..." />}>
-                      <LazyComponents.PerformanceDashboard />
-                    </Suspense>
-                  }
-                />
+                        <Route
+                          path="/orders/new"
+                          element={
+                            <Suspense fallback={<LazyLoadingSpinner message="新規受注画面を読み込み中..." />}>
+                              <LazyComponents.OrderNew />
+                            </Suspense>
+                          }
+                        />
 
-                <Route
-                  path="/integrity"
-                  element={
-                    <Suspense fallback={<LazyLoadingSpinner message="データ整合性チェックを読み込み中..." />}>
-                      <LazyComponents.IntegrityDashboard />
-                    </Suspense>
-                  }
-                />
+                        {/* 管理・監視ルート */}
+                        <Route
+                          path="/performance"
+                          element={
+                            <Suspense fallback={<LazyLoadingSpinner message="パフォーマンス監視を読み込み中..." />}>
+                              <LazyComponents.PerformanceDashboard />
+                            </Suspense>
+                          }
+                        />
 
-                {/* 整合性管理統合画面 */}
-                <Route
-                  path="/integrity-management"
-                  element={
-                    <Suspense fallback={<LazyLoadingSpinner message="整合性管理を読み込み中..." />}>
-                      <LazyComponents.IntegrityManagement />
-                    </Suspense>
-                  }
-                />
+                        <Route
+                          path="/integrity"
+                          element={
+                            <Suspense fallback={<LazyLoadingSpinner message="データ整合性チェックを読み込み中..." />}>
+                              <LazyComponents.IntegrityDashboard />
+                            </Suspense>
+                          }
+                        />
 
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </ErrorBoundary>
-          </main>
-        </div>
-      </div>
+                        {/* 整合性管理統合画面 */}
+                        <Route
+                          path="/integrity-management"
+                          element={
+                            <Suspense fallback={<LazyLoadingSpinner message="整合性管理を読み込み中..." />}>
+                              <LazyComponents.IntegrityManagement />
+                            </Suspense>
+                          }
+                        />
+
+                        {/* ユーザー管理システム */}
+                        <Route
+                          path="/user-management"
+                          element={
+                            <Suspense fallback={<LazyLoadingSpinner message="ユーザー管理を読み込み中..." />}>
+                              <LazyComponents.UserManagement />
+                            </Suspense>
+                          }
+                        />
+
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                      </Routes>
+                    </ErrorBoundary>
+                  </main>
+                </div>
+              </div>
+            )
+          }
+        />
+      </Routes>
 
       {/* DeliveryModalも遅延ローディング対象 */}
       <ErrorBoundary>

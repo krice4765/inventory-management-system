@@ -55,3 +55,12 @@ export const IntegrityDashboard = lazy(() =>
 export const IntegrityManagement = lazy(() =>
   import('../pages/IntegrityManagement').then(module => ({ default: module.default }))
 );
+
+// ユーザー管理システム
+export const UserManagement = lazy(() =>
+  import('../pages/UserManagement').then(module => ({ default: module.default }))
+);
+
+export const UserApplication = lazy(() =>
+  import('../pages/UserApplication').then(module => ({ default: module.default }))
+);

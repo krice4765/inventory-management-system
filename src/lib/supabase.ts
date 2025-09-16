@@ -28,8 +28,10 @@ if (!supabaseAnonKey) {
 // Supabaseクライアント作成
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    persistSession: false,
-    autoRefreshToken: false
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce'
   }
 });
 
