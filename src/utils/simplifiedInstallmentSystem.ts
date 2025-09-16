@@ -42,7 +42,7 @@ export class SimplifiedInstallmentService {
         const installmentResult = result[0];
         console.log('✅ データベース関数による分納作成成功:', {
           transactionId: installmentResult.transaction_id,
-          installmentNumber: installmentResult.installment_number,
+          installmentNumber: installmentResult.installment_no,
           amount: data.amount,
           transaction_no: installmentResult.transaction_no
         });
@@ -68,10 +68,10 @@ export class SimplifiedInstallmentService {
         try {
           const { data: existingTransactions, error: countError } = await supabase
             .from('transactions')
-            .select('installment_number')
+            .select('installment_no')
             .eq('parent_order_id', data.orderId)
             .eq('transaction_type', 'purchase')
-            .order('installment_number', { ascending: false })
+            .order('installment_no', { ascending: false })
             .limit(1);
 
           if (countError) {
@@ -81,7 +81,7 @@ export class SimplifiedInstallmentService {
             continue;
           }
 
-          installmentNumber = (existingTransactions?.[0]?.installment_number || 0) + 1;
+          installmentNumber = (existingTransactions?.[0]?.installment_no || 0) + 1;
           break;
 
         } catch (error) {
@@ -109,7 +109,7 @@ export class SimplifiedInstallmentService {
               transaction_type: 'purchase',
               transaction_no: transactionNo,
               parent_order_id: data.orderId,
-              installment_number: installmentNumber,
+              installment_no: installmentNumber,
               transaction_date: new Date().toISOString().split('T')[0],
               status: 'confirmed',
               total_amount: data.amount,

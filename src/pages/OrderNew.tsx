@@ -241,7 +241,7 @@ export default function OrderNew() {
       };
 
       // 🚨 ULTIMATE FIX: RPC関数を使用してSupabaseライブラリのバグを完全回避（デフォルト値なし版）
-      const { data: order, error: orderError } = await supabase.rpc('create_purchase_order', {
+      const { data: orderResponse, error: orderError } = await supabase.rpc('create_purchase_order', {
         p_order_no: orderNo,
         p_partner_id: formData.partner_id,
         p_order_date: formData.order_date,
@@ -252,6 +252,9 @@ export default function OrderNew() {
       });
 
       if (orderError) throw orderError;
+
+      // 🔧 RPC関数のJSONレスポンスを正しく処理
+      const order = typeof orderResponse === 'string' ? JSON.parse(orderResponse) : orderResponse;
 
       const orderItems = validItems.map(item => ({
         purchase_order_id: order.id,
