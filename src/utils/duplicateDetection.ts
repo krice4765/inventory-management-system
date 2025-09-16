@@ -94,14 +94,16 @@ export class DuplicateDetectionService {
       const { error: insertError } = await supabase
         .from('duplicate_detection_records')
         .insert({
-          id: globalThis.crypto.randomUUID(),
-          operation_hash: operationHash,
-          order_id: data.orderId,
-          user_id: data.userId,
           session_id: data.sessionId,
-          created_at: now.toISOString(),
+          operation_hash: operationHash,
+          operation_type: 'transaction_creation',
+          resource_id: data.orderId,
           expires_at: expiresAt.toISOString(),
-          operation_data: data
+          metadata: {
+            userId: data.userId,
+            orderId: data.orderId,
+            operation_data: data
+          }
         });
 
       if (insertError) {
