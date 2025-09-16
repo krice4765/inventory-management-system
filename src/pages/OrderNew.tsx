@@ -240,15 +240,15 @@ export default function OrderNew() {
         memo: formData.memo,
       };
 
-      // 🚨 ULTIMATE FIX: RPC関数を使用してSupabaseライブラリのバグを完全回避
+      // 🚨 ULTIMATE FIX: RPC関数を使用してSupabaseライブラリのバグを完全回避（デフォルト値なし版）
       const { data: order, error: orderError } = await supabase.rpc('create_purchase_order', {
         p_order_no: orderNo,
         p_partner_id: formData.partner_id,
         p_order_date: formData.order_date,
+        p_delivery_deadline: formData.delivery_deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30日後
         p_total_amount: grandTotal,
-        p_delivery_deadline: formData.delivery_deadline || null,
         p_status: 'active',
-        p_memo: formData.memo
+        p_memo: formData.memo || ''
       });
 
       if (orderError) throw orderError;
