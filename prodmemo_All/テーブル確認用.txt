@@ -1,0 +1,19 @@
+// テーブル存在確認用コマンド（コンソールで1行ずつ実行）
+
+// 1. inventory_movementsテーブルの存在確認
+const tableCheck = await supabase.from('inventory_movements').select('count', { count: 'exact', head: true });
+
+// 2. 結果確認
+console.log('テーブル確認:', tableCheck);
+
+// 3. 代替：在庫関連テーブル一覧確認
+const inventoryCheck = await supabase.from('inventory').select('*').limit(1);
+
+// 4. 結果確認
+console.log('inventoryテーブル:', inventoryCheck);
+
+// 5. もう一つの可能性：product_movementsテーブル確認
+const productMovements = await supabase.from('product_movements').select('*').limit(1);
+
+// 6. 結果確認
+console.log('product_movementsテーブル:', productMovements);

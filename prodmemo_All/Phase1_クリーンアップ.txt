@@ -1,0 +1,14 @@
+// Phase 1: 完全データクリーンアップ
+// ブラウザコンソール（http://localhost:5174/）で1行ずつ実行
+
+// Step 1.1: 全在庫移動削除
+supabase.from('inventory_movements').delete().gte('created_at', '2025-09-20T00:00:00').then(r => console.log('在庫移動削除結果:', r));
+
+// Step 1.2: 全分納履歴削除
+supabase.from('transactions').delete().eq('transaction_type', 'purchase').then(r => console.log('分納履歴削除結果:', r));
+
+// Step 1.3: 全発注書削除
+supabase.from('purchase_orders').delete().gte('created_at', '2025-09-20T00:00:00').then(r => console.log('発注書削除結果:', r));
+
+// Step 1.4: クリーンアップ確認
+console.log('🧹 Phase 1完了 - データクリーンアップ完了');

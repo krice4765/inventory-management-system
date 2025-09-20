@@ -1,0 +1,22 @@
+// 修正版：RLS問題を回避した在庫移動確認（コンソールで1行ずつ実行）
+
+// 1. 在庫移動テーブルの最新データを少量取得（フィルタなし）
+const recentMovements = await supabase.from('inventory_movements').select('*').order('created_at', { ascending: false }).limit(5);
+
+// 2. 結果確認
+console.log('最新在庫移動5件:', recentMovements.data);
+
+// 3. テーブル構造確認のため1件だけ取得
+const sampleMovement = await supabase.from('inventory_movements').select('*').limit(1);
+
+// 4. 構造確認
+console.log('テーブル構造サンプル:', sampleMovement.data);
+
+// 5. PO250920003に関連する可能性のあるデータを日付で検索
+const todayMovements = await supabase.from('inventory_movements').select('*').gte('created_at', '2025-09-20T00:00:00').order('created_at', { ascending: true });
+
+// 6. 今日の在庫移動確認
+console.log('今日の在庫移動:', todayMovements.data);
+
+// 7. 分納履歴の詳細も再確認
+console.log('分納履歴詳細:', transactions.data);

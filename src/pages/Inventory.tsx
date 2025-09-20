@@ -750,9 +750,9 @@ export default function Inventory() {
                                       -
                                     </div>
                                   )}
-                                  {movement.transaction_details?.delivery_sequence && (
+                                  {(movement.transactions?.installment_no || movement.transaction_details?.delivery_sequence) && (
                                     <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                      第{movement.transaction_details.delivery_sequence}回
+                                      第{movement.transactions?.installment_no || movement.transaction_details?.delivery_sequence}回
                                     </div>
                                   )}
                                 </div>

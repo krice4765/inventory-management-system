@@ -215,7 +215,7 @@ export interface InstallmentResult {
 }
 
 export async function addPurchaseInstallment(params: AddInstallmentParams): Promise<InstallmentResult> {
-  const { data, error } = await supabase.rpc('add_purchase_installment', {
+  const { data, error } = await supabase.rpc('add_purchase_installment_v2', {
     p_parent_order_id: params.parentOrderId,
     p_amount: params.amount,
     p_status: params.status || 'draft',

@@ -22,6 +22,7 @@ import './utils/performanceMonitor'; // パフォーマンス監視システム
 import './utils/integrity-test'; // 整合性テストシステム
 import './utils/databaseBackup'; // データベースバックアップツール
 import './utils/fixInstallmentData'; // 分納データ修正ツール
+import './services/EnhancedInstallmentService'; // 強化された分納システム
 
 // 富士精工様向けシステム用QueryClient - パフォーマンス最適化設定
 const queryClient = new QueryClient({

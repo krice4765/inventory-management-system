@@ -64,7 +64,7 @@ export const DeliveryHistoryList: React.FC<DeliveryHistoryListProps> = ({ orderI
           <div className="flex-1">
             <div className="flex items-center space-x-2">
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                第{delivery.installment_no || delivery.delivery_sequence || (index + 1)}回
+                第{index + 1}回
               </span>
               <div className="flex flex-col text-xs">
                 <div className="flex items-center space-x-2">

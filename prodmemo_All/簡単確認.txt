@@ -1,0 +1,31 @@
+// 最も簡単な確認方法（コンソールに1行ずつコピペ）
+
+// 1行目
+supabase.from('purchase_orders').select('*').eq('order_no', 'PO250920003').single().then(r => window.order = r.data);
+
+// 2行目（1行目の実行後）
+supabase.from('transactions').select('*').eq('parent_order_id', window.order.id).eq('transaction_type', 'purchase').then(r => window.transactions = r.data);
+
+// 3行目（2行目の実行後）
+supabase.from('inventory_movements').select('*').gte('created_at', '2025-09-20T00:00:00').then(r => window.movements = r.data);
+
+// 4行目（3行目の実行後）
+console.log('発注書:', window.order);
+
+// 5行目
+console.log('分納件数:', window.transactions.length, '件');
+
+// 6行目
+console.log('在庫移動件数:', window.movements.length, '件');
+
+// 7行目
+console.log('在庫移動フィールド:', Object.keys(window.movements[0]));
+
+// 8行目
+console.log('分納フィールド:', Object.keys(window.transactions[0]));
+
+// 9行目
+console.log('在庫移動サンプル:', window.movements[0]);
+
+// 10行目
+console.log('分納サンプル:', window.transactions[0]);

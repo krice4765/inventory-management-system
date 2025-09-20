@@ -1,0 +1,38 @@
+// 統合構造確認用（変数再取得込み）コンソールで1行ずつ実行
+
+// Step 1: 発注書再取得
+const order = await supabase.from('purchase_orders').select('*').eq('order_no', 'PO250920003').single();
+
+// Step 2: 分納履歴再取得
+const transactions = await supabase.from('transactions').select('*').eq('parent_order_id', order.data.id).eq('transaction_type', 'purchase');
+
+// Step 3: 今日の在庫移動再取得
+const todayMovements = await supabase.from('inventory_movements').select('*').gte('created_at', '2025-09-20T00:00:00').order('created_at', { ascending: true });
+
+// Step 4: 構造確認
+console.log('在庫移動の全フィールド:', Object.keys(todayMovements.data[0]));
+
+// Step 5: 分納履歴の全フィールド確認
+console.log('分納履歴の全フィールド:', Object.keys(transactions.data[0]));
+
+// Step 6: 在庫移動の詳細構造表示
+console.log('在庫移動サンプル:', todayMovements.data[0]);
+
+// Step 7: 分納履歴の詳細構造表示
+console.log('分納履歴サンプル:', transactions.data[0]);
+
+// Step 8: 時系列と金額の関連性分析
+console.log('=== 連携分析 ===');
+console.log('分納件数:', transactions.data.length);
+console.log('在庫移動件数:', todayMovements.data.length);
+
+// Step 9: 分納の詳細
+transactions.data.forEach((t, i) => {
+  console.log(`分納${i+1}: ${new Date(t.created_at).toLocaleTimeString()} - ¥${t.total_amount?.toLocaleString()} (${t.memo})`);
+});
+
+// Step 10: 在庫移動の詳細
+todayMovements.data.forEach((m, i) => {
+  const amount = m.quantity * m.unit_price;
+  console.log(`在庫移動${i+1}: ${new Date(m.created_at).toLocaleTimeString()} - ${m.quantity}個 x ¥${m.unit_price?.toLocaleString()} = ¥${amount?.toLocaleString()}`);
+});

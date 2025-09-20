@@ -1,0 +1,35 @@
+// 連携詳細確認（コンソールで1行ずつ実行）
+
+// 1. 分納のIDと在庫移動のtransaction_idの一致確認
+console.log('=== 分納ID一覧 ===');
+window.transactions.forEach((t, i) => {
+  console.log(`分納${i+1}: ID=${t.id}, installment_no=${t.installment_no}, memo=${t.memo}`);
+});
+
+// 2. 在庫移動のtransaction_idと分納IDの一致確認
+console.log('=== 在庫移動の連携情報 ===');
+window.movements.forEach((m, i) => {
+  console.log(`在庫移動${i+1}: transaction_id=${m.transaction_id}, installment_no=${m.installment_no}, 数量=${m.quantity}`);
+});
+
+// 3. 一致するペアを検索
+console.log('=== 連携状況分析 ===');
+window.transactions.forEach((t, i) => {
+  const matchingMovements = window.movements.filter(m => m.transaction_id === t.id);
+  console.log(`分納${i+1}(${t.id})に対応する在庫移動: ${matchingMovements.length}件`);
+  matchingMovements.forEach(m => {
+    console.log(`  → 在庫移動: ${m.quantity}個 x ¥${m.unit_price} = ¥${m.total_amount}`);
+  });
+});
+
+// 4. 分納番号での一致確認
+console.log('=== 分納番号での連携確認 ===');
+[1,2,3].forEach(installmentNo => {
+  const transactionMatch = window.transactions.find(t => t.installment_no === installmentNo);
+  const movementMatches = window.movements.filter(m => m.installment_no === installmentNo);
+  console.log(`第${installmentNo}回: 分納=${transactionMatch ? '有' : '無'}, 在庫移動=${movementMatches.length}件`);
+});
+
+// 5. 連携されていない在庫移動の確認
+const unlinkedMovements = window.movements.filter(m => !window.transactions.find(t => t.id === m.transaction_id));
+console.log('未連携在庫移動:', unlinkedMovements.length, '件');

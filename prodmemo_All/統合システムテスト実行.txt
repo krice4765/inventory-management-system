@@ -1,0 +1,84 @@
+// 統合システム本格テスト - コンソールで実行
+
+console.log('🧪 統合システム本格テスト開始');
+
+// Step 1: v3関数で新しい統合分納を作成（商品情報付き）
+const testInstallmentV3 = async () => {
+  const { data, error } = await supabase.rpc('add_purchase_installment_v3', {
+    p_parent_order_id: window.order.id,
+    p_amount: 8000,
+    p_products: [
+      {
+        product_id: '037ac88a-6691-47a6-8d9b-5bb6d579dd62',
+        quantity: 2,
+        unit_price: 3000
+      },
+      {
+        product_id: '8f3a6dce-f35e-45ab-b44d-5b51e7989868',
+        quantity: 1,
+        unit_price: 2000
+      }
+    ],
+    p_memo: 'v3統合テスト分納'
+  });
+
+  console.log('v3分納作成結果:', { data, error });
+  return { data, error };
+};
+
+// Step 2: 統合検証を実行
+const validateIntegration = async () => {
+  const { data, error } = await supabase.rpc('validate_installment_integration', {
+    p_parent_order_id: window.order.id
+  });
+
+  console.log('統合検証結果:', { data, error });
+  return { data, error };
+};
+
+// Step 3: 自動修復を実行（既存の未連携データ対応）
+const repairIntegration = async () => {
+  const { data, error } = await supabase.rpc('repair_installment_inventory_integration', {
+    p_parent_order_id: window.order.id
+  });
+
+  console.log('自動修復結果:', { data, error });
+  return { data, error };
+};
+
+// Step 4: 統合テスト実行シーケンス
+const runFullIntegrationTest = async () => {
+  console.log('📋 Phase 1: 現在の統合状況確認');
+  const validation1 = await validateIntegration();
+
+  console.log('📋 Phase 2: 既存データ自動修復');
+  const repair = await repairIntegration();
+
+  console.log('📋 Phase 3: v3統合分納作成テスト');
+  const v3Result = await testInstallmentV3();
+
+  console.log('📋 Phase 4: 修復後の統合状況確認');
+  const validation2 = await validateIntegration();
+
+  console.log('📋 Phase 5: 在庫移動確認');
+  const movements = await supabase
+    .from('inventory_movements')
+    .select('*')
+    .gte('created_at', '2025-09-20T00:00:00')
+    .order('created_at', { ascending: false });
+
+  console.log('最新在庫移動:', movements.data);
+
+  console.log('🎉 統合システムテスト完了');
+
+  return {
+    beforeValidation: validation1.data,
+    repairResult: repair.data,
+    v3InstallmentResult: v3Result.data,
+    afterValidation: validation2.data,
+    latestMovements: movements.data
+  };
+};
+
+// 実行用（コンソールで実行）
+// runFullIntegrationTest();

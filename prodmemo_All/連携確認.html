@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>在庫連携確認</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>在庫移動履歴と発注情報の連携確認</h1>
+    <button onclick="checkIntegration()">連携確認実行</button>
+    <div id="results"></div>
+
+    <script>
+        // Supabase設定（メインアプリと同じ設定を使用）
+        const supabase = window.supabase.createClient(
+            'https://your-project.supabase.co', // 実際のURL
+            'your-anon-key' // 実際のキー
+        );
+
+        async function checkIntegration() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>確認中...</p>';
+
+            try {
+                // 1. 発注書取得
+                const orderResult = await supabase
+                    .from('purchase_orders')
+                    .select('*')
+                    .eq('order_no', 'PO250920003')
+                    .single();
+
+                if (orderResult.error) {
+                    resultsDiv.innerHTML = `<p>エラー: ${orderResult.error.message}</p>`;
+                    return;
+                }
+
+                const order = orderResult.data;
+
+                // 2. 分納履歴取得
+                const transactionsResult = await supabase
+                    .from('transactions')
+                    .select('*')
+                    .eq('parent_order_id', order.id)
+                    .eq('transaction_type', 'purchase');
+
+                // 3. 在庫移動履歴取得
+                const inventoryResult = await supabase
+                    .from('inventory_movements')
+                    .select('*')
+                    .eq('reference_type', 'purchase_order')
+                    .eq('reference_id', order.id);
+
+                // 結果表示
+                resultsDiv.innerHTML = `
+                    <h2>確認結果</h2>
+                    <p><strong>発注書:</strong> ${order.order_no} (¥${order.total_amount?.toLocaleString()})</p>
+                    <p><strong>分納件数:</strong> ${transactionsResult.data?.length || 0}件</p>
+                    <p><strong>在庫移動件数:</strong> ${inventoryResult.data?.length || 0}件</p>
+
+                    <h3>詳細データ</h3>
+                    <h4>分納履歴:</h4>
+                    <pre>${JSON.stringify(transactionsResult.data, null, 2)}</pre>
+
+                    <h4>在庫移動履歴:</h4>
+                    <pre>${JSON.stringify(inventoryResult.data, null, 2)}</pre>
+                `;
+
+            } catch (error) {
+                resultsDiv.innerHTML = `<p>エラー: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

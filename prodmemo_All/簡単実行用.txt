@@ -1,0 +1,22 @@
+// 簡単版: 1行ずつコピペして実行してください
+
+// Step 1: PO250920003の情報取得
+const order = await supabase.from('purchase_orders').select('*').eq('order_no', 'PO250920003').single();
+
+// Step 2: 結果確認
+console.log('発注書:', order.data);
+
+// Step 3: 分納履歴取得
+const transactions = await supabase.from('transactions').select('*').eq('parent_order_id', order.data.id).eq('transaction_type', 'purchase');
+
+// Step 4: 分納履歴確認
+console.log('分納履歴:', transactions.data);
+
+// Step 5: 在庫移動履歴取得
+const inventory = await supabase.from('inventory_movements').select('*').eq('reference_type', 'purchase_order').eq('reference_id', order.data.id);
+
+// Step 6: 在庫移動履歴確認
+console.log('在庫移動:', inventory.data);
+
+// Step 7: 連携状況確認
+console.log(`分納件数: ${transactions.data?.length || 0}件, 在庫移動件数: ${inventory.data?.length || 0}件`);

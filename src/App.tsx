@@ -21,10 +21,40 @@ function App() {
   const { isDark: _isDark } = useDarkMode();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    // 🔧 無効なリフレッシュトークンエラーを自動修復
+    const handleSessionRecovery = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        if (error?.message?.includes('Invalid Refresh Token')) {
+          console.warn('🔄 無効なセッションを検出、クリアしています...');
+
+          // Supabaseセッションのクリア
+          await supabase.auth.signOut();
+
+          // ローカルストレージからSupabase関連キーを削除
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('sb-')) {
+              localStorage.removeItem(key);
+            }
+          });
+
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+
+        setUser(session?.user ?? null);
+        setLoading(false);
+      } catch (sessionError) {
+        console.error('セッション復旧エラー:', sessionError);
+        await supabase.auth.signOut();
+        setUser(null);
+        setLoading(false);
+      }
+    };
+
+    handleSessionRecovery();
 
     const {
       data: { subscription },

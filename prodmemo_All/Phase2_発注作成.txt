@@ -1,0 +1,20 @@
+// Phase 2: 新規クリーンテスト発注作成
+// ブラウザコンソールで実行
+
+// Step 2.1: 新規テスト発注作成
+supabase.from('purchase_orders').insert({
+  order_no: 'TEST001',
+  partner_id: '39c69a3d-72ca-4a4c-be87-02563507c2af',
+  order_date: '2025-09-20',
+  delivery_deadline: '2025-10-20',
+  total_amount: 15000,
+  status: 'active',
+  transaction_type: 'purchase',
+  memo: 'クリーン統合システムテスト専用発注'
+}).select().single().then(r => {
+  window.testOrder = r.data;
+  console.log('✅ テスト発注作成結果:', r);
+});
+
+// Step 2.2: 発注作成確認
+console.log('📋 作成された発注:', window.testOrder);
