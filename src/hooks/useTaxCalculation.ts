@@ -240,7 +240,7 @@ export function useProductTaxCategories() {
     queryKey: ['product-tax-categories'],
     queryFn: async () => {
       // まずtax_categoryカラムありで試行
-      let { data, error } = await supabase
+      const { data, error } = await supabase
         .from('products')
         .select('id, product_name, product_code, tax_category, tax_category_updated_at')
         .order('product_name');
@@ -272,7 +272,7 @@ export function useProductTaxCategories() {
   const updateTaxCategoryMutation = useMutation({
     mutationFn: async ({ productId, taxCategory }: { productId: string; taxCategory: TaxCategory }) => {
       // まずtax_categoryカラムありで更新を試行
-      let { data, error } = await supabase
+      const { data, error } = await supabase
         .from('products')
         .update({
           tax_category: taxCategory,

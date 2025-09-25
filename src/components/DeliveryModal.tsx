@@ -128,20 +128,6 @@ export const DeliveryModal = () => {
 
     const hasShortage = shortageItems.length > 0;
 
-      deliveryType,
-      totalItems: orderData.items.length,
-      shortageItems: shortageItems.map(item => ({
-        product_name: item.product_name,
-        stock_status: item.stock_status,
-        current_stock: item.current_stock,
-        remaining_quantity: item.remaining_quantity,
-        quantity: item.quantity,
-        has_stock_for_delivery: item.has_stock_for_delivery,
-        stock_shortage: item.stock_shortage
-      })),
-      hasShortage
-    });
-
     return hasShortage;
   }, [orderData?.items, deliveryType]);
 

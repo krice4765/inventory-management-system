@@ -96,7 +96,7 @@ export const analyzeSpecificCase = async (orderNo: string) => {
     }
 
     // 修正候補の生成
-    let fixSuggestions = [];
+    const fixSuggestions = [];
 
     if (problemType === 'zero_order_amount' && totalDelivered > 0) {
       // 分納額から適切な発注額を推定

@@ -99,6 +99,7 @@ export const ParentOrderCell: React.FC<ParentOrderCellProps> = ({ transaction })
                 className="text-blue-600 hover:bg-blue-50 px-2 py-1 rounded cursor-pointer font-medium text-sm truncate max-w-full"
                 title={`発注番号: ${displayCode}\n発注額: ¥${parent_order_total?.toLocaleString() || '不明'}\n残額: ¥${parent_order_remaining?.toLocaleString() || '不明'}`}
                 onClick={() => {
+                    onOrderClick?.({
                         id: parent_order_id,
                         code: displayCode,
                         total: parent_order_total,

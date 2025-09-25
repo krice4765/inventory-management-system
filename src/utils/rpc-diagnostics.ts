@@ -45,12 +45,13 @@ export class RPCDiagnostics {
     const errorCount = results.filter(r => r.status === 'error').length;
     const warningCount = results.filter(r => r.status === 'warning').length;
 
+    return {
       total: results.length,
       success: successCount,
       errors: errorCount,
       warnings: warningCount,
       successRate: `${Math.round((successCount / results.length) * 100)}%`
-    });
+    };
 
     results.forEach(result => {
       const icon = result.status === 'success' ? '✅' :

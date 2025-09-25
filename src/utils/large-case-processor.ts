@@ -57,7 +57,7 @@ export const processLargeCases = async (caseIds: string[] = ['PO250911013', 'PO2
       const ratio = deliveredTotal / order.total_amount;
 
 
-      let processResult = {
+      const processResult = {
         orderNo: caseId,
         status: 'error' as const,
         beforeAmount: difference,

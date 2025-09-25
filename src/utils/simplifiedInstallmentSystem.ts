@@ -22,6 +22,7 @@ export class SimplifiedInstallmentService {
     error?: string;
   }> {
     try {
+      console.log('分納作成開始:', {
         orderId: data.orderId,
         amount: data.amount,
         userId: data.userId
