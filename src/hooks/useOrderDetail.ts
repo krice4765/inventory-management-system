@@ -40,7 +40,6 @@ interface OrderDetail {
 
 // 発注詳細データを取得する関数
 const getOrderDetail = async (orderId: string): Promise<OrderDetail> => {
-  console.log('🔄 発注詳細データ取得開始:', { orderId });
 
   // メイン発注データを取得
   const { data: order, error: orderError } = await supabase
@@ -162,7 +161,6 @@ const getOrderDetail = async (orderId: string): Promise<OrderDetail> => {
   const delivery_progress = total_amount_tax_included > 0 ? (delivered_amount / total_amount_tax_included) * 100 : 0;
 
   // デバッグログを追加
-  console.log('🔍 useOrderDetail データ確認:', {
     orderId,
     assigned_user_id: order.assigned_user_id,
     assigned_user: assignedUserData,
@@ -193,7 +191,6 @@ const getOrderDetail = async (orderId: string): Promise<OrderDetail> => {
     delivery_progress,
   };
 
-  console.log('✅ 発注詳細データ処理完了:', {
     orderId,
     itemsCount: processedItems.length,
     totalAmount: total_amount_tax_included,

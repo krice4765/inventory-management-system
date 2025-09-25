@@ -51,7 +51,6 @@ export const useOrderForInstallment = (orderId: string | null) => {
       const remainingAmount = Math.max(0, orderData.total_amount - allocatedAmount);
       const installmentCount = installments?.length || 0;
 
-      console.log('🔍 分納カウント計算:', {
         orderId,
         orderNo: orderData.order_no,
         installments: installments?.map(i => ({ amount: i.total_amount, no: i.installment_no })),

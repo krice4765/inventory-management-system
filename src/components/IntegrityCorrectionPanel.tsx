@@ -80,17 +80,14 @@ export const IntegrityCorrectionPanel: React.FC = () => {
   // 全体修正ミューテーション
   const fullCorrectionMutation = useMutation({
     mutationFn: async (): Promise<any> => {
-      console.log('🔧 Supabase RPC実行開始: fix_all_integrity_issues');
       const { data, error } = await supabase.rpc('fix_all_integrity_issues');
 
-      console.log('📊 Supabase応答:', { data, error });
 
       if (error) {
         console.error('💥 Supabase RPC エラー:', error);
         throw error;
       }
 
-      console.log('✅ Supabase RPC成功:', data);
       return data;
     },
     onSuccess: (result) => {
@@ -222,11 +219,8 @@ export const IntegrityCorrectionPanel: React.FC = () => {
 
   const handleFullCorrection = useCallback(async () => {
     try {
-      console.log('🚀 一括修正ボタンがクリックされました');
-      console.log('ミューテーションステータス:', fullCorrectionMutation.status);
 
       const result = await fullCorrectionMutation.mutateAsync();
-      console.log('✅ 一括修正完了:', result);
     } catch (error) {
       console.error('❌ 全体修正エラー:', error);
     }

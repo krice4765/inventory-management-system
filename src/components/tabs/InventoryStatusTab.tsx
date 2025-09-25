@@ -101,13 +101,11 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
           .order('delivery_deadline', { ascending: true });
 
         if (error) {
-          console.log('Orders table not found, using empty data:', error);
           ordersData = [];
         } else {
           ordersData = data || [];
         }
       } catch (error) {
-        console.log('Orders query failed, using empty data:', error);
         ordersData = [];
       }
 

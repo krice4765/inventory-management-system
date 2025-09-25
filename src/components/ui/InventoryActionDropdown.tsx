@@ -49,7 +49,6 @@ export const InventoryActionDropdown: React.FC<InventoryActionDropdownProps> = (
       icon: Edit,
       label: '在庫調整',
       onClick: () => {
-        console.log(`在庫調整: ${productName} (現在庫: ${currentStock})`);
         setIsOpen(false);
       },
       description: '在庫数量の手動調整'
@@ -58,7 +57,6 @@ export const InventoryActionDropdown: React.FC<InventoryActionDropdownProps> = (
       icon: Plus,
       label: '発注作成',
       onClick: () => {
-        console.log(`発注作成: ${productName} (${productId})`);
         setIsOpen(false);
       },
       description: 'この商品の発注書作成'
@@ -67,7 +65,6 @@ export const InventoryActionDropdown: React.FC<InventoryActionDropdownProps> = (
       icon: Truck,
       label: '出庫指示',
       onClick: () => {
-        console.log(`出庫指示: ${productName}`);
         setIsOpen(false);
       },
       description: '出庫指示書の作成'
@@ -76,7 +73,6 @@ export const InventoryActionDropdown: React.FC<InventoryActionDropdownProps> = (
       icon: BarChart3,
       label: '履歴表示',
       onClick: () => {
-        console.log(`履歴表示: ${productName}`);
         setIsOpen(false);
       },
       description: '在庫移動履歴の確認'
@@ -85,7 +81,6 @@ export const InventoryActionDropdown: React.FC<InventoryActionDropdownProps> = (
       icon: FileText,
       label: '移動履歴PDF',
       onClick: () => {
-        console.log(`PDF出力: ${productName}`);
         setIsOpen(false);
       },
       description: 'PDF形式でエクスポート'
@@ -94,7 +89,6 @@ export const InventoryActionDropdown: React.FC<InventoryActionDropdownProps> = (
       icon: Settings,
       label: '商品設定',
       onClick: () => {
-        console.log(`商品設定: ${productName}`);
         setIsOpen(false);
       },
       description: '商品マスター設定'
@@ -113,7 +107,6 @@ export const InventoryActionDropdown: React.FC<InventoryActionDropdownProps> = (
         {/* メイン詳細ボタン */}
         <button
           onClick={() => {
-            console.log(`詳細表示: ${productName} (${productId})`);
           }}
           disabled={disabled}
           className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${

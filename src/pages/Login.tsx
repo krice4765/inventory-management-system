@@ -31,27 +31,23 @@ const getDefaultLoginValues = () => {
 const createPasswordResetNotification = async (email: string, status: 'success' | 'failed' | 'system_error' = 'success') => {
   try {
     // デバッグ: 受信したパラメータを確認
-    console.log('🔧 createPasswordResetNotification呼び出し:', {
       email,
       status,
       timestamp: new Date().toISOString()
     });
 
     // 管理者ユーザーIDを取得
-    console.log('🔍 管理者ユーザーを検索中...');
     let { data: adminUsers, error: adminError } = await supabase
       .from('user_profiles')
       .select('id, email, role, is_active')
       .eq('role', 'admin')
       .eq('is_active', true);
 
-    console.log('📊 管理者検索結果:', { adminUsers, adminError });
 
     if (adminError) {
       console.error('管理者取得エラー:', adminError);
       // エラーの場合は特定の管理者メールを使用してフォールバック
       const adminEmails = ['krice4765104@gmail.com', 'dev@inventory.test', 'prod@inventory.test'];
-      console.log('⚠️ フォールバック: 特定管理者メールに通知送信');
       return;
     }
 
@@ -64,7 +60,6 @@ const createPasswordResetNotification = async (email: string, status: 'success' 
         .select('id, email, role, is_active')
         .in('email', ['krice4765104@gmail.com', 'dev@inventory.test', 'prod@inventory.test']);
 
-      console.log('📊 フォールバック管理者検索結果:', { fallbackAdmins, fallbackError });
 
       if (fallbackError || !fallbackAdmins || fallbackAdmins.length === 0) {
         console.error('フォールバック管理者も見つかりません - 既知の管理者IDを使用');
@@ -72,7 +67,6 @@ const createPasswordResetNotification = async (email: string, status: 'success' 
         // 最終フォールバック: 既知の管理者ID（krice4765104@gmail.com）を使用
         // この ID は UserManagement でログインしていることが確認されています
         const knownAdminId = '60604393-9b2f-4c20-8bcf-f33ea2593d22';
-        console.log('✅ 既知の管理者IDに通知送信:', knownAdminId);
         adminUsers = [{
           id: knownAdminId,
           email: 'krice4765104@gmail.com',
@@ -95,7 +89,6 @@ const createPasswordResetNotification = async (email: string, status: 'success' 
         title = 'パスワードリセット要求';
         message = `ユーザー ${email} がパスワードリセットを要求しました。`;
         type = 'password_reset_request';
-        console.log('🔧 通知メッセージ作成:', { title, message, email, type });
         break;
       case 'failed':
         title = 'パスワードリセット失敗';
@@ -132,7 +125,6 @@ const createPasswordResetNotification = async (email: string, status: 'success' 
     if (notificationError) {
       console.error('通知作成エラー:', notificationError);
     } else {
-      console.log(`パスワードリセット通知を管理者に送信しました (${status})`);
     }
   } catch (error) {
     console.error('通知送信エラー:', error);
@@ -152,7 +144,6 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
 
-    console.log('🔐 ログイン試行:', { email, hasPassword: !!password });
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -160,7 +151,6 @@ export default function Login() {
         password,
       });
 
-      console.log('🔐 ログイン結果:', {
         success: !error,
         error: error?.message,
         user: data.user?.email
@@ -263,7 +253,6 @@ export default function Login() {
                 }
                 try {
                   // 詳細なデバッグ情報を追加
-                  console.log('🔧 パスワードリセット詳細調査:', {
                     email,
                     timestamp: new Date().toISOString(),
                     supabaseUrl: supabase.supabaseUrl

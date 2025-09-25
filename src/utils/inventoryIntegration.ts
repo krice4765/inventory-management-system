@@ -62,7 +62,6 @@ export async function processInventoryFromOrder(
       if (checkError) {
         console.warn('重複チェックエラー:', checkError.message);
       } else if (existingMovements && existingMovements.length > 0) {
-        console.log('⚠️ 重複処理防止: この分納は既に在庫処理済みです', { transactionId });
         return { success: true }; // 既に処理済みなので成功として返す
       }
     }
@@ -85,12 +84,10 @@ export async function processInventoryFromOrder(
       throw new Error(`発注明細取得エラー: ${itemsError.message}`);
     }
 
-    console.log('発注明細データ:', { purchaseOrderId, orderItems, count: orderItems?.length });
 
     if (!orderItems || orderItems.length === 0) {
       console.warn('発注明細が見つかりません:', { purchaseOrderId, orderItems });
       // 発注明細がない場合でも処理を継続（全納の場合など）
-      console.log('発注明細なしで在庫連動処理をスキップします');
       return {
         success: true,
         message: '発注明細がないため在庫連動処理をスキップしました'
@@ -112,7 +109,6 @@ export async function processInventoryFromOrder(
     const orderTotalAmount = orderData.total_amount;
     const deliveryRatio = deliveredAmount / orderTotalAmount;
 
-    console.log(`🔄 在庫連動処理開始:`, {
       purchaseOrderId,
       orderTotalAmount,
       deliveredAmount,
@@ -138,7 +134,6 @@ export async function processInventoryFromOrder(
         // 個数指定分納: ユーザー指定数量を入庫
         deliveryQuantity = quantities[item.products.id];
         
-        console.log(`📦 個数指定入庫: ${item.products.product_name}`, {
           発注数量: item.quantity,
           指定入庫数量: deliveryQuantity,
           実際単価: actualUnitPrice,
@@ -147,13 +142,11 @@ export async function processInventoryFromOrder(
         });
       } else if (deliveryType === 'amount_and_quantity') {
         // 個数指定分納だが、この商品は指定されていない -> スキップ
-        console.log(`⏭️ 入庫対象外: ${item.products.product_name} (指定数量: ${quantities ? quantities[item.products.id] || 0 : 0})`);
         continue;
       } else if (deliveryType === 'full') {
         // 全納登録: 残り数量の100%を入庫
         deliveryQuantity = item.remaining_quantity || item.quantity;
         
-        console.log(`📦 全納入庫: ${item.products.product_name}`, {
           発注数量: item.quantity,
           入庫数量: deliveryQuantity,
           実際単価: actualUnitPrice,
@@ -162,7 +155,6 @@ export async function processInventoryFromOrder(
         });
       } else {
         // 金額のみ分納: 在庫変動なし（会計のみの処理）
-        console.log(`💰 金額のみ分納: ${item.products.product_name}`, {
           発注数量: item.quantity,
           入庫数量: '在庫変動なし',
           処理方式: '金額のみ分納（在庫変動なし）'
@@ -215,7 +207,6 @@ export async function processInventoryFromOrder(
         });
       }
 
-      console.log(`📦 商品入庫:`, {
         product: item.products.product_name,
         code: item.products.product_code,
         deliveryQuantity,
@@ -256,7 +247,6 @@ export async function processInventoryFromOrder(
         installment_no: deliverySequence || null  // 分納回数を追加
       }));
 
-      console.log('📝 在庫履歴記録開始:', movementRecords);
       const { error: transactionError } = await supabase
         .from('inventory_movements')
         .insert(movementRecords);
@@ -265,13 +255,10 @@ export async function processInventoryFromOrder(
         console.error('❌ 在庫履歴記録エラー:', transactionError);
         throw new Error(`在庫履歴記録エラー: ${transactionError.message}`);
       }
-      console.log('✅ 在庫履歴記録完了:', movementRecords.length, '件');
     }
 
     // 💰 会計配分情報の記録（将来的に別テーブルに保存予定）
-    console.log('💰 会計配分情報:', accountingAllocations);
     
-    console.log('✅ 在庫処理完了:', {
       更新商品数: inventoryUpdates.length,
       在庫移動記録数: inventoryTransactions.length,
       会計配分記録数: accountingAllocations.length,

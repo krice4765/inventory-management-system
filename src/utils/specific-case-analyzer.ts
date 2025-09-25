@@ -3,8 +3,6 @@ import { supabase } from '../lib/supabase';
 
 // 特定案件の詳細分析
 export const analyzeSpecificCase = async (orderNo: string) => {
-  console.log(`🔍 ${orderNo} 詳細分析開始`);
-  console.log('=====================================');
 
   try {
     // 発注書データ取得
@@ -19,12 +17,6 @@ export const analyzeSpecificCase = async (orderNo: string) => {
       return { status: 'error', message: '発注書が見つかりません' };
     }
 
-    console.log('📋 発注書基本情報:');
-    console.log(`  発注書番号: ${order.order_no}`);
-    console.log(`  発注額: ¥${order.total_amount.toLocaleString()}`);
-    console.log(`  作成日: ${new Date(order.created_at).toLocaleDateString('ja-JP')}`);
-    console.log(`  更新日: ${new Date(order.updated_at).toLocaleDateString('ja-JP')}`);
-    console.log(`  取引先ID: ${order.partner_id}`);
 
     // 分納データ取得
     const { data: installments, error: instError } = await supabase
@@ -39,9 +31,7 @@ export const analyzeSpecificCase = async (orderNo: string) => {
       return { status: 'error', message: '分納データ取得に失敗' };
     }
 
-    console.log('\n📦 分納詳細情報:');
     if (!installments || installments.length === 0) {
-      console.log('  分納データなし');
       return {
         status: 'completed',
         orderInfo: order,
@@ -55,22 +45,15 @@ export const analyzeSpecificCase = async (orderNo: string) => {
       };
     }
 
-    console.log(`  分納件数: ${installments.length}件`);
     let totalDelivered = 0;
 
     installments.forEach((inst, index) => {
-      console.log(`  分納${inst.installment_no}: ¥${inst.total_amount.toLocaleString()} (${new Date(inst.created_at).toLocaleDateString('ja-JP')})`);
       totalDelivered += inst.total_amount;
     });
 
     const difference = totalDelivered - order.total_amount;
     const ratio = order.total_amount === 0 ? Infinity : totalDelivered / order.total_amount;
 
-    console.log('\n📊 整合性分析:');
-    console.log(`  分納総額: ¥${totalDelivered.toLocaleString()}`);
-    console.log(`  発注額: ¥${order.total_amount.toLocaleString()}`);
-    console.log(`  差額: ¥${difference.toLocaleString()}`);
-    console.log(`  比率: ${ratio === Infinity ? 'Infinity (発注額¥0)' : ratio.toFixed(3)}`);
 
     // 問題分類
     let problemType = 'unknown';
@@ -99,10 +82,6 @@ export const analyzeSpecificCase = async (orderNo: string) => {
       recommendedAction = '個別調査・カスタム修正が必要';
     }
 
-    console.log('\n🎯 問題分類:');
-    console.log(`  分類: ${problemType}`);
-    console.log(`  重要度: ${severity}`);
-    console.log(`  推奨対応: ${recommendedAction}`);
 
     // 取引先情報の取得（可能であれば）
     if (order.partner_id) {
@@ -113,8 +92,6 @@ export const analyzeSpecificCase = async (orderNo: string) => {
         .single();
 
       if (partner) {
-        console.log(`\n🏢 取引先情報:`);
-        console.log(`  取引先名: ${partner.name}`);
       }
     }
 
@@ -147,15 +124,10 @@ export const analyzeSpecificCase = async (orderNo: string) => {
     }
 
     if (fixSuggestions.length > 0) {
-      console.log('\n💡 修正候補:');
       fixSuggestions.forEach((suggestion, index) => {
-        console.log(`  ${index + 1}. ${suggestion.method}: ${suggestion.description}`);
-        console.log(`     期待結果: ${suggestion.estimatedResult}`);
       });
     }
 
-    console.log('\n🔍 詳細分析完了');
-    console.log('=====================================');
 
     return {
       status: 'completed',
@@ -183,8 +155,6 @@ export const analyzeSpecificCase = async (orderNo: string) => {
 
 // 発注額¥0問題の修正実行
 export const fixZeroOrderAmount = async (orderNo: string, method: 'set_amount' | 'clear_installments', suggestedAmount?: number) => {
-  console.log(`🔧 ${orderNo} 発注額¥0問題修正開始`);
-  console.log('=====================================');
 
   try {
     // 発注書データ取得
@@ -201,7 +171,6 @@ export const fixZeroOrderAmount = async (orderNo: string, method: 'set_amount' |
 
     if (method === 'set_amount' && suggestedAmount) {
       // 発注額を設定する方法
-      console.log(`💰 発注額を¥${suggestedAmount.toLocaleString()}に設定中...`);
 
       const { error: updateError } = await supabase
         .from('purchase_orders')
@@ -213,11 +182,9 @@ export const fixZeroOrderAmount = async (orderNo: string, method: 'set_amount' |
         return { status: 'error', error: updateError.message };
       }
 
-      console.log('✅ 発注額設定完了');
 
     } else if (method === 'clear_installments') {
       // 分納データをクリアする方法
-      console.log('🗑️ 分納データクリア中...');
 
       const { error: deleteError } = await supabase
         .from('transactions')
@@ -230,16 +197,12 @@ export const fixZeroOrderAmount = async (orderNo: string, method: 'set_amount' |
         return { status: 'error', error: deleteError.message };
       }
 
-      console.log('✅ 分納データクリア完了');
     }
 
-    console.log('\n📊 修正結果確認中...');
 
     // 修正後の状況確認
     const verificationResult = await analyzeSpecificCase(orderNo);
 
-    console.log('🎉 発注額¥0問題修正完了');
-    console.log('=====================================');
 
     return {
       status: 'completed',

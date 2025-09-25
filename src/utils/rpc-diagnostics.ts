@@ -21,7 +21,6 @@ export class RPCDiagnostics {
   static async runFullDiagnostics(): Promise<DiagnosticResult[]> {
     const results: DiagnosticResult[] = [];
 
-    console.log('🔍 RPC関数診断開始: create_installment_v2');
 
     // Test 1: Supabase接続確認
     results.push(await this.testSupabaseConnection());
@@ -46,7 +45,6 @@ export class RPCDiagnostics {
     const errorCount = results.filter(r => r.status === 'error').length;
     const warningCount = results.filter(r => r.status === 'warning').length;
 
-    console.log('🎯 診断結果サマリー:', {
       total: results.length,
       success: successCount,
       errors: errorCount,
@@ -57,12 +55,9 @@ export class RPCDiagnostics {
     results.forEach(result => {
       const icon = result.status === 'success' ? '✅' :
                   result.status === 'warning' ? '⚠️' : '❌';
-      console.log(`${icon} ${result.test}: ${result.message}`);
       if (result.error) {
-        console.log(`   Error:`, result.error);
       }
       if (result.data) {
-        console.log(`   Data:`, result.data);
       }
     });
 
@@ -344,7 +339,6 @@ export class RPCDiagnostics {
    * 簡単な診断実行（コンソールログのみ）
    */
   static async quickDiagnostic(): Promise<void> {
-    console.log('🚀 RPC関数クイック診断開始');
 
     const results = await this.runFullDiagnostics();
 
@@ -352,11 +346,7 @@ export class RPCDiagnostics {
     const mainIssue = results.find(r => r.status === 'error');
 
     if (hasErrors) {
-      console.log('🚨 診断結果: 問題発見');
-      console.log('🎯 主要問題:', mainIssue?.message);
-      console.log('💡 推奨対応:', mainIssue?.error?.hint || '詳細ログを確認してください');
     } else {
-      console.log('✅ 診断結果: 正常動作');
     }
   }
 }

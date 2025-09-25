@@ -97,12 +97,10 @@ export default function UserApplication() {
 
         checkError = error;
         if (checkError && checkError.code !== 'PGRST116') {
-          console.log('既存申請チェックエラー:', checkError);
         } else {
           existingApplication = data;
         }
       } catch (error) {
-        console.log('既存申請チェック例外:', error);
       }
 
       // テーブルが存在しない場合はスキップ
@@ -110,7 +108,6 @@ export default function UserApplication() {
         console.warn('user_applications テーブルが存在しません。新規申請として処理します。');
       } else if (checkError && checkError.code !== 'PGRST116') {
         // その他のエラーは続行
-        console.log('既存申請チェック:', checkError.message);
       }
 
       if (existingApplication) {
@@ -135,7 +132,6 @@ export default function UserApplication() {
         created_at: new Date().toISOString()
       };
 
-      console.log('📝 申請データ送信:', applicationData);
 
       const { error } = await supabase
         .from('user_applications')

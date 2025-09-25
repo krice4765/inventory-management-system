@@ -3,7 +3,6 @@ import { supabase } from '../lib/supabase';
 
 // Phase 1: データ分析実行
 export const runDataAnalysisPhase1 = async () => {
-  console.log('🔄 Phase 1: データ分析開始');
 
   try {
     // 1. 基本データ量の確認
@@ -12,7 +11,6 @@ export const runDataAnalysisPhase1 = async () => {
       .select('*', { count: 'exact' })
       .limit(1);
 
-    console.log('📊 総発注書数:', totalOrders);
 
     // 2. 大額取引の確認 (1000万円以上)
     const { data: largeAmountOrders, count: largeCount } = await supabase
@@ -20,11 +18,8 @@ export const runDataAnalysisPhase1 = async () => {
       .select('id, total_amount, created_at', { count: 'exact' })
       .gte('total_amount', 10000000);
 
-    console.log('💰 1000万円以上の大額取引:', largeCount);
     if (largeCount && largeCount > 0) {
-      console.log('📝 大額取引例:');
       largeAmountOrders?.slice(0, 5).forEach((order, index) => {
-        console.log(`  ${index + 1}. ID: ${order.id}, 金額: ¥${order.total_amount.toLocaleString()}, 作成日: ${order.created_at}`);
       });
     }
 
@@ -35,7 +30,6 @@ export const runDataAnalysisPhase1 = async () => {
       .not('parent_order_id', 'is', null)
       .limit(1);
 
-    console.log('📦 分納取引数:', installmentCount);
 
     // 4. 同日大量作成の確認
     const { data: dailyStats } = await supabase
@@ -54,14 +48,11 @@ export const runDataAnalysisPhase1 = async () => {
         .filter(([_, count]) => count > 10)
         .sort(([,a], [,b]) => b - a);
 
-      console.log('📅 1日10件以上作成された日:', highVolumeDays.length);
       highVolumeDays.slice(0, 5).forEach(([date, count]) => {
-        console.log(`  ${date}: ${count}件`);
       });
     }
 
     // 5. 過剰分納の詳細確認
-    console.log('🔍 過剰分納分析中...');
 
     const { data: ordersWithInstallments } = await supabase
       .from('purchase_orders')
@@ -98,17 +89,11 @@ export const runDataAnalysisPhase1 = async () => {
         }
       });
 
-      console.log('🚨 過剰分納発注書:', excessiveCount);
       if (excessiveCount > 0) {
-        console.log('📝 過剰分納例 (上位5件):');
         excessiveOrders
           .sort((a, b) => b.excess - a.excess)
           .slice(0, 5)
           .forEach((order, index) => {
-            console.log(`  ${index + 1}. ID: ${order.id}`);
-            console.log(`     発注額: ¥${order.orderAmount.toLocaleString()}`);
-            console.log(`     分納額: ¥${order.deliveredAmount.toLocaleString()}`);
-            console.log(`     過剰額: ¥${order.excess.toLocaleString()}`);
           });
       }
     }
@@ -120,16 +105,9 @@ export const runDataAnalysisPhase1 = async () => {
       excessiveInstallments: 0 // 上で計算済み
     };
 
-    console.log('📋 分析結果サマリー:');
-    console.log(`  - 総発注書数: ${totalOrders}`);
-    console.log(`  - 大額取引: ${testDataIndicators.largeAmounts}件`);
-    console.log(`  - 分納取引: ${installmentCount}件`);
 
     if (testDataIndicators.largeAmounts > 0) {
-      console.log('⚠️ 推奨アクション: 大額取引がテストデータの可能性があります');
-      console.log('📋 次のステップ: バックアップ作成後にクリーンアップを実行してください');
     } else {
-      console.log('✅ テストデータは検出されませんでした');
     }
 
     return {

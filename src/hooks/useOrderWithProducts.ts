@@ -91,7 +91,6 @@ export const useOrderWithProducts = (orderId: string | null) => {
         total_amount: item.total_amount
       })) || [];
 
-      console.log('🔍 発注商品情報取得:', {
         orderId,
         orderNo: orderData.order_no,
         productsCount: products.length,

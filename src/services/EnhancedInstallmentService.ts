@@ -70,7 +70,6 @@ export class EnhancedInstallmentService {
       ? (existingInstallments[0].installment_no || 0) + 1
       : 1;
 
-    console.log(`🔢 次の分納番号: ${nextNumber} (既存: ${existingInstallments.length}件)`);
     return nextNumber;
   }
 
@@ -172,11 +171,9 @@ export class EnhancedInstallmentService {
 
     try {
       // 1. 事前整合性チェック
-      console.log('🔍 事前整合性チェック実行...');
       const validationResult = await this.validateInstallmentData(params.purchaseOrderId);
 
       if (validationResult.fixedIssues.length > 0) {
-        console.log('🔧 自動修正実行:', validationResult.fixedIssues);
       }
 
       // 2. 安全な分納番号取得
@@ -295,7 +292,6 @@ export class EnhancedInstallmentService {
     dueDate?: string
   ): Promise<InstallmentWithInventoryResult> {
     try {
-      console.log('🚀 分納・在庫統合作成開始:', {
         parentOrderId,
         amount,
         inventoryItemsCount: inventoryItems.length
@@ -320,7 +316,6 @@ export class EnhancedInstallmentService {
 
       const result = data[0];
 
-      console.log('✅ 分納・在庫統合作成成功:', {
         transaction_id: result.transaction_id,
         installment_no: result.installment_no,
         inventory_count: result.inventory_movement_ids?.length || 0
@@ -347,7 +342,6 @@ export class EnhancedInstallmentService {
     orderId: string
   ): Promise<IntegratedInstallmentHistory[]> {
     try {
-      console.log('📊 統合分納履歴取得開始:', { orderId });
 
       const { data, error } = await supabase.rpc('get_integrated_installment_history', {
         p_order_id: orderId
@@ -358,7 +352,6 @@ export class EnhancedInstallmentService {
         throw new Error(`統合分納履歴の取得に失敗しました: ${error.message}`);
       }
 
-      console.log('✅ 統合分納履歴取得成功:', {
         order_id: orderId,
         installment_count: data?.length || 0
       });
@@ -385,7 +378,6 @@ export class EnhancedInstallmentService {
     has_inventory_integration: boolean;
   }> {
     try {
-      console.log('📈 分納進捗取得開始:', { orderId });
 
       // 発注書情報取得
       const { data: orderData, error: orderError } = await supabase
@@ -415,7 +407,6 @@ export class EnhancedInstallmentService {
         has_inventory_integration: total_inventory_movements > 0
       };
 
-      console.log('✅ 分納進捗取得成功:', result);
       return result;
     } catch (error) {
       console.error('❌ 分納進捗取得エラー:', error);
@@ -441,7 +432,6 @@ export class EnhancedInstallmentService {
     }>;
   }> {
     try {
-      console.log('🔍 在庫状況分析開始:', { orderId });
 
       const installments = await this.getIntegratedInstallmentHistory(orderId);
 
@@ -492,7 +482,6 @@ export class EnhancedInstallmentService {
         movement_timeline
       };
 
-      console.log('✅ 在庫状況分析完了:', result);
       return result;
     } catch (error) {
       console.error('❌ 在庫状況分析エラー:', error);
@@ -512,7 +501,6 @@ export class EnhancedInstallmentService {
     details: string[];
   }> {
     try {
-      console.log('🔄 レガシー分納データ移行開始:', { orderId });
 
       const details: string[] = [];
       let migrated_count = 0;
@@ -601,7 +589,6 @@ export class EnhancedInstallmentService {
         details
       };
 
-      console.log('✅ レガシー分納データ移行完了:', result);
       return result;
     } catch (error) {
       console.error('❌ レガシー分納データ移行エラー:', error);

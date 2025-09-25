@@ -85,7 +85,6 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
       const { errorId: _errorId, reportData } = createErrorReport(error);
       
       // 実際の実装では、ここでエラーレポートをサーバーに送信
-      console.log('Error Report:', reportData);
       
       setReportSent(true);
       setTimeout(() => setReportSent(false), 3000);

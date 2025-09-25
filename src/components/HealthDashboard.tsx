@@ -277,7 +277,6 @@ export const HealthDashboard: React.FC = () => {
         data: result.status === 'fulfilled' ? result.value : result.reason
       }));
 
-      console.log('日次ヘルスチェック結果:', report);
       
       // データを再取得
       await fetchHealthData();

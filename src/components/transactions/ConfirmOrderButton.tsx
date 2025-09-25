@@ -45,7 +45,6 @@ export const ConfirmOrderButton: React.FC<ConfirmOrderButtonProps> = ({
     setIsConfirming(true);
     
     try {
-      console.log('🚀 [Confirm][RPC] 原子的確定処理開始:', { transactionId, orderNo });
       
       // 🛡️ 事前検証: 金額整合性チェック (分離クエリで曖昧性解決)
       const { data: transactionData, error: transactionError } = await supabase
@@ -76,7 +75,6 @@ export const ConfirmOrderButton: React.FC<ConfirmOrderButtonProps> = ({
         purchase_orders: orderData
       };
 
-      console.log('🔍 [Confirm][PreCheck] 金額検証:', {
         transaction_amount: preCheckData?.total_amount,
         order_amount: preCheckData?.purchase_orders?.total_amount,
         valid: preCheckData?.total_amount <= (preCheckData?.purchase_orders?.total_amount || 0)
@@ -104,7 +102,6 @@ export const ConfirmOrderButton: React.FC<ConfirmOrderButtonProps> = ({
         throw error;
       }
       
-      console.log('✅ [Confirm][RPC] 結果:', data);
       
       // RPCレスポンス処理
       if (data?.status === 'error') {
@@ -136,7 +133,6 @@ export const ConfirmOrderButton: React.FC<ConfirmOrderButtonProps> = ({
         queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
       ]);
       
-      console.log('✅ [Confirm][RPC] キャッシュ同期完了');
       onConfirmed?.();
       
     } catch (err: unknown) {

@@ -50,7 +50,6 @@ export class InstallmentDataFixer {
    * 特定の発注書の分納番号を修正
    */
   static async fixInstallmentNumbers(orderId: string) {
-    console.log('🔧 分納番号修正開始:', orderId);
 
     try {
       // 既存の分納取得（時系列順）
@@ -64,11 +63,9 @@ export class InstallmentDataFixer {
 
       if (fetchError) throw fetchError;
       if (!transactions || transactions.length === 0) {
-        console.log('📝 修正対象の分納がありません');
         return { success: true, message: '修正対象なし' };
       }
 
-      console.log('📊 修正前データ:', transactions);
 
       // 各分納の番号を正しい順序で更新
       const updates = transactions.map((transaction, index) => {
@@ -95,7 +92,6 @@ export class InstallmentDataFixer {
         throw new Error(`${errors.length}件の更新に失敗`);
       }
 
-      console.log('✅ 分納番号修正完了:', orderId);
       return {
         success: true,
         message: `${transactions.length}件の分納番号を修正しました`,
@@ -116,7 +112,6 @@ export class InstallmentDataFixer {
    * 注意: 大量データの場合は時間がかかる
    */
   static async fixAllInstallmentNumbers() {
-    console.log('🔧 全分納番号一括修正開始');
 
     try {
       // 分納がある発注書を取得
@@ -130,7 +125,6 @@ export class InstallmentDataFixer {
       if (ordersError) throw ordersError;
 
       const uniqueOrderIds = [...new Set(orders?.map(o => o.parent_order_id))];
-      console.log('📋 修正対象発注書数:', uniqueOrderIds.length);
 
       let successCount = 0;
       let errorCount = 0;
@@ -146,7 +140,6 @@ export class InstallmentDataFixer {
         }
       }
 
-      console.log('✅ 一括修正完了:', { successCount, errorCount });
       return {
         success: true,
         message: `${successCount}件修正、${errorCount}件エラー`,
@@ -178,7 +171,6 @@ export class InstallmentDataFixer {
 
       if (error) throw error;
 
-      console.log('📊 分納データ確認:', orderId, transactions);
       return { success: true, data: transactions };
     } catch (error) {
       console.error('❌ データ確認エラー:', error);

@@ -3,8 +3,6 @@ import { supabase } from '../lib/supabase';
 
 // 1.1倍税込問題の精密修正
 export const adjustTaxPrecisely = async (orderNo: string) => {
-  console.log(`🔧 ${orderNo} 精密税込調整開始`);
-  console.log('=====================================');
 
   try {
     // 発注書データ取得
@@ -35,26 +33,18 @@ export const adjustTaxPrecisely = async (orderNo: string) => {
     const difference = totalDelivered - order.total_amount;
     const ratio = totalDelivered / order.total_amount;
 
-    console.log(`📊 修正前状況:`);
-    console.log(`  発注額: ¥${order.total_amount.toLocaleString()}`);
-    console.log(`  分納額: ¥${totalDelivered.toLocaleString()}`);
-    console.log(`  差額: ¥${difference.toLocaleString()}`);
-    console.log(`  比率: ${ratio.toFixed(3)}`);
 
     // 1.1倍問題の確認
     if (Math.abs(ratio - 1.1) > 0.01) {
-      console.log(`⚠️ 1.1倍問題ではありません (比率: ${ratio.toFixed(3)})`);
       return { status: 'not_applicable' };
     }
 
-    console.log(`🎯 1.1倍税込問題を確認。精密修正を実行します。`);
 
     // 分納額を発注額に合わせて調整
     const targetTotal = order.total_amount;
     const currentTotal = totalDelivered;
     const adjustmentFactor = targetTotal / currentTotal;
 
-    console.log(`📐 調整係数: ${adjustmentFactor.toFixed(6)}`);
 
     let adjustedTotal = 0;
 
@@ -71,27 +61,18 @@ export const adjustTaxPrecisely = async (orderNo: string) => {
         return { status: 'error', error: updateError.message };
       }
 
-      console.log(`  分納${installment.installment_no}: ¥${installment.total_amount.toLocaleString()} → ¥${newAmount.toLocaleString()}`);
       adjustedTotal += newAmount;
     }
 
     const finalDifference = adjustedTotal - order.total_amount;
 
-    console.log(`\n📊 修正後結果:`);
-    console.log(`  修正後分納総額: ¥${adjustedTotal.toLocaleString()}`);
-    console.log(`  発注額: ¥${order.total_amount.toLocaleString()}`);
-    console.log(`  最終差額: ¥${finalDifference.toLocaleString()}`);
 
     const success = Math.abs(finalDifference) < 1;
 
     if (success) {
-      console.log(`✅ ${orderNo}: 精密税込調整完了 - 完全一致達成`);
     } else {
-      console.log(`⚠️ ${orderNo}: 部分的調整完了 - 差額¥${finalDifference.toLocaleString()}`);
     }
 
-    console.log('🎉 精密税込調整完了');
-    console.log('=====================================');
 
     return {
       status: 'completed',

@@ -15,7 +15,6 @@ export class IntegrityTester {
 
       if (error) throw error
 
-      console.log(`✅ ${tableName}テーブル構造:`, {
         columns: data.column_count,
         details: data.columns
       })
@@ -32,13 +31,11 @@ export class IntegrityTester {
    */
   static async fixAllIntegrityIssues() {
     try {
-      console.log('🔧 一括整合性修正を開始...')
 
       const { data, error } = await supabase.rpc('fix_all_integrity_issues')
 
       if (error) throw error
 
-      console.log('✅ 一括修正完了:', {
         success: data.success,
         totalFixed: data.total_fixed,
         orderFixes: data.order_fixes,
@@ -58,13 +55,11 @@ export class IntegrityTester {
    */
   static async fixPurchaseOrderTotals() {
     try {
-      console.log('📋 発注書合計値修正を開始...')
 
       const { data, error } = await supabase.rpc('fix_purchase_order_totals')
 
       if (error) throw error
 
-      console.log('✅ 発注書修正完了:', data)
 
       return data
     } catch (error) {
@@ -78,13 +73,11 @@ export class IntegrityTester {
    */
   static async fixInventoryQuantities() {
     try {
-      console.log('📦 在庫数量修正を開始...')
 
       const { data, error } = await supabase.rpc('fix_inventory_quantities')
 
       if (error) throw error
 
-      console.log('✅ 在庫修正完了:', data)
 
       return data
     } catch (error) {
@@ -98,7 +91,6 @@ export class IntegrityTester {
    */
   static async runFullIntegrityTest() {
     try {
-      console.log('🚀 システム整合性テストを開始...')
 
       // 1. テーブル構造確認
       await IntegrityTester.checkTableSchema('products')
@@ -112,7 +104,6 @@ export class IntegrityTester {
       // 3. 一括修正テスト
       await IntegrityTester.fixAllIntegrityIssues()
 
-      console.log('🎉 全体的な整合性テスト完了')
 
       return true
     } catch (error) {

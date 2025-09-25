@@ -40,7 +40,6 @@ export class DeliveryTransactionSaga {
           .from('duplicate_detection_records')
           .update({ expires_at: new Date().toISOString() })
           .eq('session_id', duplicateCheckData.sessionId);
-        console.log('🔄 重複検出レコード無効化完了');
       }
     });
   }
@@ -75,7 +74,6 @@ export class DeliveryTransactionSaga {
           .single();
 
         if (error) throw error;
-        console.log('✅ 分納記録作成完了:', data);
         return data;
       },
       compensate: async (result) => {
@@ -84,7 +82,6 @@ export class DeliveryTransactionSaga {
             .from('transactions')
             .delete()
             .eq('id', result.id);
-          console.log('🔄 分納記録削除完了:', result.id);
         }
       }
     });
@@ -121,7 +118,6 @@ export class DeliveryTransactionSaga {
           results.push(data);
         }
 
-        console.log('✅ 在庫更新完了:', results.length, '件');
         return { results, originalStocks };
       },
       compensate: async (result) => {
@@ -132,7 +128,6 @@ export class DeliveryTransactionSaga {
               .update({ current_stock: originalStock })
               .eq('id', productId);
           }
-          console.log('🔄 在庫ロールバック完了:', result.originalStocks.length, '件');
         }
       }
     });
@@ -169,7 +164,6 @@ export class DeliveryTransactionSaga {
           .select();
 
         if (error) throw error;
-        console.log('✅ 在庫移動履歴記録完了:', data.length, '件');
         return data;
       },
       compensate: async (result) => {
@@ -179,7 +173,6 @@ export class DeliveryTransactionSaga {
             .from('inventory_movements')
             .delete()
             .in('id', movementIds);
-          console.log('🔄 在庫移動履歴削除完了:', movementIds.length, '件');
         }
       }
     });
@@ -188,14 +181,11 @@ export class DeliveryTransactionSaga {
   // Saga実行
   async execute(): Promise<{ success: boolean; result?: any; error?: string }> {
     try {
-      console.log('🚀 DeliveryTransactionSaga開始:', this.steps.length, 'ステップ');
 
       for (const step of this.steps) {
         try {
-          console.log(`📋 実行中: ${step.name}`);
           const result = await step.execute();
           this.executedSteps.push({ step, result });
-          console.log(`✅ 完了: ${step.name}`);
         } catch (stepError) {
           console.error(`❌ ステップ失敗: ${step.name}`, stepError);
 
@@ -206,7 +196,6 @@ export class DeliveryTransactionSaga {
         }
       }
 
-      console.log('🎉 DeliveryTransactionSaga完了');
       return { success: true, result: this.executedSteps };
 
     } catch (error) {
@@ -220,16 +209,13 @@ export class DeliveryTransactionSaga {
 
   // ロールバック実行
   private async rollback(): Promise<void> {
-    console.log('🔄 ロールバック開始:', this.executedSteps.length, 'ステップ');
 
     // 実行済みステップを逆順で補償
     for (let i = this.executedSteps.length - 1; i >= 0; i--) {
       const { step, result } = this.executedSteps[i];
 
       try {
-        console.log(`🔄 補償中: ${step.name}`);
         await step.compensate(result);
-        console.log(`✅ 補償完了: ${step.name}`);
       } catch (compensateError) {
         console.error(`❌ 補償失敗: ${step.name}`, compensateError);
         // 補償失敗でもロールバック処理は継続
@@ -237,6 +223,5 @@ export class DeliveryTransactionSaga {
     }
 
     this.executedSteps = [];
-    console.log('🔄 ロールバック完了');
   }
 }

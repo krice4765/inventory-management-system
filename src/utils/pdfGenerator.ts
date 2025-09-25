@@ -220,7 +220,6 @@ export class PDFPerformanceMonitor {
       const result = await operation();
       const duration = performance.now() - startTime;
       
-      console.log(`PDF操作完了: ${operationType}, 実行時間: ${duration.toFixed(2)}ms`);
       
       // 5秒以上かかった場合は警告
       if (duration > 5000) {

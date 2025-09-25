@@ -112,19 +112,14 @@ export default function UserManagement() {
 
   // データベースベースの管理者権限チェック（スキーマキャッシュ問題対応版）
   const checkAdminRole = async () => {
-    console.log('🔍 管理者権限チェック開始');
-    console.log('  User ID:', user?.id);
-    console.log('  User Email:', user?.email);
 
     if (!user?.id) {
-      console.log('❌ ユーザーIDがありません');
       setIsAdmin(false);
       setAdminCheckLoading(false);
       return;
     }
 
     try {
-      console.log('📡 user_profilesテーブルにクエリ実行中...');
       const { data: profile, error } = await supabase
         .from('user_profiles')
         .select('role, is_active')
@@ -148,16 +143,10 @@ export default function UserManagement() {
         setIsAdmin(isAdminEmail);
 
         if (isAdminEmail) {
-          console.info('✅ 一時的なメールベース管理者認証が成功しました:', user.email);
         }
       } else {
-        console.log('✅ プロファイル取得成功:', profile);
-        console.log('  Role:', profile?.role);
-        console.log('  Active:', profile?.is_active);
         const isAdminUser = profile?.role === 'admin' && profile?.is_active === true;
-        console.log('  管理者判定:', isAdminUser ? '✅ 管理者' : '❌ 非管理者');
         setIsAdmin(isAdminUser);
-        console.info('✅ データベースベース管理者認証が成功しました');
       }
     } catch (error) {
       console.error('管理者権限チェック失敗:', error);
@@ -168,7 +157,6 @@ export default function UserManagement() {
       setIsAdmin(isAdminEmail);
 
       if (isAdminEmail) {
-        console.info('✅ 例外処理による一時的なメールベース管理者認証が成功しました:', user.email);
       }
     } finally {
       setAdminCheckLoading(false);
@@ -184,21 +172,16 @@ export default function UserManagement() {
   }, [user, authLoading]);
 
   useEffect(() => {
-    console.log('👀 adminCheckLoading:', adminCheckLoading);
-    console.log('👀 isAdmin:', isAdmin);
 
     if (adminCheckLoading) {
-      console.log('⏳ 管理者権限チェック中...');
       return;
     }
 
     if (!isAdmin) {
-      console.log('❌ 管理者権限がないため、エラーメッセージを表示');
       toast.error('管理者権限が必要です');
       return;
     }
 
-    console.log('✅ 管理者権限確認済み、データロード開始');
     loadData();
   }, [isAdmin, adminCheckLoading]);
 
@@ -359,7 +342,6 @@ export default function UserManagement() {
         throw error;
       }
 
-      console.log('Auth ユーザー作成成功:', data.user);
       return data.user;
     } catch (error) {
       console.error('createAuthUser エラー:', error);
@@ -370,7 +352,6 @@ export default function UserManagement() {
   // 承認されたユーザーのプロファイル作成（手動ユーザー作成用）
   const createUserProfile = async (application: UserApplication) => {
     try {
-      console.log(`🔄 ユーザープロファイル準備開始: ${application.email}`);
 
       // ランダムパスワード生成（管理者が手動でユーザー作成する際に使用）
       const randomPassword = generateRandomPassword();
@@ -403,7 +384,6 @@ export default function UserManagement() {
 パスワード: ${randomPassword}
       `;
 
-      console.log(userManualInstructions);
 
       // 手動作成ガイドを表示
       alert(`ユーザーアカウントの手動作成が必要です。
@@ -446,7 +426,6 @@ export default function UserManagement() {
     try {
       const fullName = extractFullNameFromReason(application.requested_reason);
       if (!fullName) {
-        console.log('申請データに名前情報がないため、プロファイル更新をスキップします');
         return;
       }
 
@@ -463,7 +442,6 @@ export default function UserManagement() {
       }
 
       if (existingProfile) {
-        console.log(`🔄 既存ユーザー ${application.email} の名前を「${fullName}」に更新中...`);
 
         const { error: updateError } = await supabase
           .from('user_profiles')
@@ -476,10 +454,8 @@ export default function UserManagement() {
         if (updateError) {
           console.error('プロファイル更新エラー:', updateError);
         } else {
-          console.log('✅ 既存ユーザーの名前を正常に更新しました');
         }
       } else {
-        console.log('対象メールアドレスのユーザープロファイルが見つかりませんでした');
       }
     } catch (error) {
       console.error('プロファイル更新処理エラー:', error);
@@ -494,7 +470,6 @@ export default function UserManagement() {
       // 一意のIDを生成（実際のSupabaseユーザーIDではなく、仮のID）
       const tempUserId = crypto.randomUUID();
 
-      console.log(`🔄 user_profilesレコードを作成中: ${application.email} (${fullName || 'フォールバック名'})`);
 
       const profileData = {
         id: tempUserId,
@@ -522,7 +497,6 @@ export default function UserManagement() {
 
       if (existingUser) {
         // 既存レコードを更新
-        console.log('既存レコードを更新します');
         const { error } = await supabase
           .from('user_profiles')
           .update({
@@ -536,7 +510,6 @@ export default function UserManagement() {
         insertError = error;
       } else {
         // 新規レコードを作成
-        console.log('新規レコードを作成します');
         const { error } = await supabase
           .from('user_profiles')
           .insert([profileData]);
@@ -548,7 +521,6 @@ export default function UserManagement() {
         throw insertError;
       }
 
-      console.log('✅ user_profilesレコードを正常に作成しました');
 
       // ユーザー一覧を更新
       await loadUsers();
@@ -582,7 +554,6 @@ export default function UserManagement() {
       throw invitationError;
     }
 
-    console.log(`招待情報を作成しました: ${application.email}`);
     toast.success('ユーザー招待を送信しました。ユーザーは招待リンクでアカウント作成できます。');
   };
 

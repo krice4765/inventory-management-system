@@ -91,7 +91,6 @@ export class PerformanceService {
       const trends = await this.analyzeTrends();
 
       const executionTime = performance.now() - startTime;
-      console.log(`📊 パフォーマンス分析完了: ${executionTime.toFixed(2)}ms`);
 
       return {
         overall_score: overallScore,
@@ -180,7 +179,6 @@ export class PerformanceService {
         });
       }
 
-      console.log(`📊 クエリパフォーマンス測定完了: ${performanceQueries.length}件`);
       return performanceQueries;
 
     } catch (error) {
@@ -375,7 +373,6 @@ export class PerformanceService {
         }
       }
 
-      console.log(`🌐 ネットワークパフォーマンス測定完了: ${networkMetrics.length}エンドポイント`);
       return networkMetrics;
     } catch (error) {
       console.warn('ネットワークパフォーマンス分析エラー:', error);
@@ -466,7 +463,6 @@ export class PerformanceService {
         optimization_opportunities: optimizationOpportunities
       };
 
-      console.log(`📦 バンドル分析完了: ${bundleAnalysis.total_size_mb.toFixed(1)}MB`);
       return bundleAnalysis;
     } catch (error) {
       console.warn('バンドル分析エラー:', error);
@@ -735,7 +731,6 @@ export class PerformanceService {
     const startTime = performance.now();
 
     try {
-      console.log(`🚀 パフォーマンステスト開始: ${testName}`);
 
       // テスト実行（例：主要ページの読み込みテスト）
       const metrics = await this.collectKeyMetrics();
@@ -806,7 +801,6 @@ export class PerformanceService {
       const activeUsers = 1; // 現在のユーザー
       const activeSessions = 1;
 
-      console.log(`📊 リアルタイムメトリクス収集完了: DB応答${dbResponseTime.toFixed(1)}ms`);
 
       return {
         current_users: activeUsers,

@@ -70,7 +70,6 @@ export default function PurchaseOrderDetail() {
   const [loading, setLoading] = useState(true);
 
   const fetchPurchaseOrderDetail = useCallback(async (orderId: string) => {
-    console.log('🔄 fetchPurchaseOrderDetail実行開始:', orderId);
     try {
       setLoading(true);
 
@@ -90,7 +89,6 @@ export default function PurchaseOrderDetail() {
       let assignedUserName = undefined;
       let assignedUserDepartment = undefined;
       if (orderDetailData.assigned_user_id) {
-        console.log('🔍 担当者ID検索:', orderDetailData.assigned_user_id);
 
         // user_profilesテーブルの主キーはidカラムを使用
         const { data: userData, error: userError } = await supabase
@@ -117,7 +115,6 @@ export default function PurchaseOrderDetail() {
           assignedUserDepartment = userData.department;
         }
 
-        console.log('👤 担当者情報結果:', { name: assignedUserName, department: assignedUserDepartment });
       }
 
       // パートナー情報を別途取得
@@ -136,7 +133,6 @@ export default function PurchaseOrderDetail() {
         }
       }
 
-      console.log('📋 取得した発注書データ:', {
         orderNo: orderDetailData.order_no,
         assignedUser: { name: assignedUserName, department: assignedUserDepartment },
         deliveryDeadline: orderDetailData.delivery_deadline,
@@ -185,7 +181,6 @@ export default function PurchaseOrderDetail() {
       }
 
       // 🔍 デバッグログ: 取得されたtransactionデータを確認
-      console.log('🔍 PurchaseOrderDetail デバッグ:', {
         orderId,
         transactionCount: transactionData?.length || 0,
         transactionData: transactionData?.map(tx => ({
@@ -267,7 +262,6 @@ export default function PurchaseOrderDetail() {
                 };
               }).filter(item => item.quantity > 0); // 数量0の商品は除外
 
-              console.log('📦 発注データから商品情報を推定:', {
                 transactionId: tx.id,
                 totalAmount: tx.total_amount,
                 orderTotalAmount,
@@ -320,7 +314,6 @@ export default function PurchaseOrderDetail() {
         console.warn('⚠️ 発注商品一覧の取得に失敗:', orderItemsError);
         setOrderItems([]);
       } else {
-        console.log('📦 発注商品一覧取得成功:', orderItemsData?.length || 0, '品目');
         setOrderItems(orderItemsData || []);
       }
     } catch (error) {
@@ -337,9 +330,7 @@ export default function PurchaseOrderDetail() {
   }, [fetchPurchaseOrderDetail]);
 
   useEffect(() => {
-    console.log('🚀 PurchaseOrderDetail useEffect:', { id });
     if (id) {
-      console.log('📋 fetchPurchaseOrderDetail開始:', id);
       fetchOrderDetail(id);
     } else {
       console.warn('⚠️ IDが取得できません');

@@ -187,12 +187,10 @@ export default function Products() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      console.log('📦 商品データを動的在庫計算で取得中...');
 
       // 共通ユーティリティを使用してinventory_movementsから動的に在庫計算
       const productsWithDynamicStock = await fetchProductsWithDynamicStock();
 
-      console.log('✅ 商品データ取得完了:', {
         商品数: productsWithDynamicStock.length,
         例: productsWithDynamicStock[0] ? {
           商品名: productsWithDynamicStock[0].product_name,

@@ -32,7 +32,6 @@ class PerformanceMonitor {
     if (duration > this.QUERY_THRESHOLD) {
       console.warn(`🐌 低速クエリ検出: ${name} - ${duration.toFixed(1)}ms (閾値: ${this.QUERY_THRESHOLD}ms)`);
     } else if (isOptimized && duration < this.QUERY_THRESHOLD) {
-      console.log(`⚡ クエリ最適化効果: ${name} - ${duration.toFixed(1)}ms`);
     }
 
     return metric;
@@ -54,7 +53,6 @@ class PerformanceMonitor {
     if (duration > this.RENDER_THRESHOLD) {
       console.warn(`🔄 低速レンダリング検出: ${componentName} - ${duration.toFixed(1)}ms (閾値: ${this.RENDER_THRESHOLD}ms)`);
     } else if (isOptimized && duration < this.RENDER_THRESHOLD) {
-      console.log(`🎨 レンダリング最適化効果: ${componentName} - ${duration.toFixed(1)}ms`);
     }
 
     return metric;
@@ -127,21 +125,18 @@ class PerformanceMonitor {
     const stats = this.getPerformanceStats();
     console.group('📊 パフォーマンス統計 (過去5分)');
 
-    console.log('🔍 クエリ:', {
       '総数': stats.queries.total,
       '低速': stats.queries.slow,
       '最適化済': stats.queries.optimized,
       '平均時間': `${stats.queries.avgDuration.toFixed(1)}ms`
     });
 
-    console.log('🎨 レンダリング:', {
       '総数': stats.renders.total,
       '低速': stats.renders.slow,
       '最適化済': stats.renders.optimized,
       '平均時間': `${stats.renders.avgDuration.toFixed(1)}ms`
     });
 
-    console.log('🌐 API:', {
       '総数': stats.apis.total,
       '低速': stats.apis.slow,
       '平均時間': `${stats.apis.avgDuration.toFixed(1)}ms`
@@ -153,7 +148,6 @@ class PerformanceMonitor {
   // メトリクスをクリア
   clearMetrics() {
     this.metrics = [];
-    console.log('🧹 パフォーマンスメトリクスをクリアしました');
   }
 }
 

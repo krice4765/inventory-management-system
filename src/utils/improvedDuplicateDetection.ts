@@ -63,7 +63,6 @@ export class ImprovedDuplicateDetectionService {
     const expiresAt = new Date(now.getTime() + this.EXPIRY_MINUTES * 60 * 1000);
 
     try {
-      console.log('🔍 重複チェック開始:', {
         hash: operationHash.substring(0, 16) + '...',
         orderId: data.orderId
       });
@@ -91,10 +90,8 @@ export class ImprovedDuplicateDetectionService {
         return await this.fallbackCheckAndRecord(data, operationHash, expiresAt);
       }
 
-      console.log('✅ RPC結果:', result);
 
       if (result && result.is_duplicate) {
-        console.log('🚨 重複操作検出 (RPC):', {
           hash: operationHash.substring(0, 16) + '...',
           orderId: data.orderId
         });
@@ -106,7 +103,6 @@ export class ImprovedDuplicateDetectionService {
         };
       }
 
-      console.log('✅ 新規操作記録 (RPC):', {
         hash: operationHash.substring(0, 16) + '...',
         orderId: data.orderId
       });
@@ -132,7 +128,6 @@ export class ImprovedDuplicateDetectionService {
     operationHash: string;
     duplicateRecord?: DuplicateRecord;
   }> {
-    console.log('⚠️ フォールバック処理を実行');
     const now = new Date();
 
     try {
@@ -153,7 +148,6 @@ export class ImprovedDuplicateDetectionService {
       }
 
       if (existingRecord && existingRecord.length > 0) {
-        console.log('🚨 重複操作検出 (フォールバック):', {
           hash: operationHash.substring(0, 16) + '...',
           existingRecord: existingRecord[0],
           timeDiff: now.getTime() - new Date(existingRecord[0].created_at).getTime()
@@ -189,7 +183,6 @@ export class ImprovedDuplicateDetectionService {
         return { isDuplicate: true, operationHash };
       }
 
-      console.log('✅ 新規操作記録 (フォールバック):', {
         hash: operationHash.substring(0, 16) + '...',
         orderId: data.orderId
       });
@@ -217,7 +210,6 @@ export class ImprovedDuplicateDetectionService {
       if (error) {
         console.error('❌ 期限切れレコードクリーンアップエラー:', error);
       } else {
-        console.log('✅ 期限切れレコードクリーンアップ完了');
       }
     } catch (error) {
       console.error('❌ クリーンアップ処理エラー:', error);
@@ -239,7 +231,6 @@ export class ImprovedDuplicateDetectionService {
       if (error) {
         console.error('❌ セッション操作無効化エラー:', error);
       } else {
-        console.log('✅ セッション操作無効化完了:', sessionId);
       }
     } catch (error) {
       console.error('❌ セッション無効化処理エラー:', error);

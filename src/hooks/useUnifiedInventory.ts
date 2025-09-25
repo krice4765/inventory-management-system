@@ -5,7 +5,6 @@ import { MovementFilters, UnifiedInventoryRecord } from './useOptimizedInventory
 
 // 金額のみ分納レコード取得関数（Phase 1の新機能）
 async function getAmountOnlyTransactions(filters: MovementFilters = {}) {
-  console.log('🔄 金額のみ分納レコード取得開始:', { filters });
 
   try {
     // 分納レコードのみ取得（在庫変動なしの金額のみ分納を想定）
@@ -49,13 +48,11 @@ async function getAmountOnlyTransactions(filters: MovementFilters = {}) {
       throw amountOnlyError;
     }
 
-    console.log('📊 取得した分納データ:', {
       count: amountOnlyData?.length || 0,
       sampleData: amountOnlyData?.slice(0, 2) || []
     });
 
     if (!amountOnlyData || amountOnlyData.length === 0) {
-      console.log('✅ 金額のみ分納レコードなし');
       return [];
     }
 
@@ -178,7 +175,6 @@ async function getAmountOnlyTransactions(filters: MovementFilters = {}) {
              (record.record_type === 'amount_only_transaction' && record.total_amount > 0);
     });
 
-    console.log(`✅ 金額のみ分納レコード取得完了: ${processedRecords.length}件`);
     return processedRecords;
 
   } catch (error) {
@@ -210,7 +206,6 @@ export function useUnifiedInventoryMovements(filters: MovementFilters = {}) {
     queryKey: stableQueryKey,
     enabled: true,
     queryFn: async () => {
-      console.log('🔄 統合在庫履歴データ取得開始:', { filters });
 
       try {
         // Step 1: 既存のinventory_movementsを取得
@@ -347,7 +342,6 @@ export function useUnifiedInventoryMovements(filters: MovementFilters = {}) {
         // 分納回数フィルタ
         if (filters.installmentNo && filters.installmentNo.trim()) {
           const installmentNum = parseInt(filters.installmentNo, 10);
-          console.log('🔍 分納回数フィルタ:', {
             入力値: filters.installmentNo,
             数値変換後: installmentNum,
             isNaN: isNaN(installmentNum)
@@ -361,7 +355,6 @@ export function useUnifiedInventoryMovements(filters: MovementFilters = {}) {
 
               // デバッグ用ログ
               if (record.record_type === 'amount_only_transaction' || record.memo?.includes('分納入力')) {
-                console.log(`分納レコード確認:`, {
                   memo: record.memo?.slice(0, 50),
                   installment_no: record.installment_no,
                   delivery_sequence: record.delivery_sequence,
@@ -373,7 +366,6 @@ export function useUnifiedInventoryMovements(filters: MovementFilters = {}) {
               return matches;
             });
 
-            console.log(`分納回数フィルタ結果: ${beforeCount} → ${filteredRecords.length}件`);
           }
         }
 
@@ -407,7 +399,6 @@ export function useUnifiedInventoryMovements(filters: MovementFilters = {}) {
           }
         });
 
-        console.log(`✅ 統合在庫履歴取得完了:`, {
           total: filteredRecords.length,
           inventory_movements: filteredRecords.filter(r => r.record_type === 'inventory_movement').length,
           amount_only_transactions: filteredRecords.filter(r => r.record_type === 'amount_only_transaction').length

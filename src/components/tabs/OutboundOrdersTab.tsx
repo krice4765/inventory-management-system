@@ -187,7 +187,6 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
           error.message?.includes('Not Found')
         )) {
           // テーブルが存在しない場合はモックデータを返す
-          console.log('outbound_orders table does not exist, returning mock data');
           return mockOutboundOrders;
         }
         if (error) {
@@ -228,14 +227,11 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
         return fullData || [];
       } catch (error: any) {
         // すべてのデータベースエラーをキャッチして安全に処理
-        console.log('Database query failed, using mock data:', error);
 
         // エラーの詳細ログ（開発用）
         if (error?.code) {
-          console.log('Error code:', error.code);
         }
         if (error?.message) {
-          console.log('Error message:', error.message);
         }
 
         return mockOutboundOrders;
@@ -809,7 +805,6 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
           // 在庫引当処理の実装
           try {
             toast.success('在庫引当を実行しました');
-            console.log('在庫引当:', orderId, allocations);
             // 実際の処理はここに実装
           } catch (error) {
             toast.error('在庫引当に失敗しました');
@@ -830,7 +825,6 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
           // 編集保存処理の実装
           try {
             toast.success('出庫オーダーを更新しました');
-            console.log('オーダー更新:', orderId, orderData);
             // 実際の処理はここに実装
           } catch (error) {
             toast.error('オーダー更新に失敗しました');
@@ -851,7 +845,6 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
           // 出荷処理の実装
           try {
             toast.success('出荷処理を完了しました');
-            console.log('出荷処理:', orderId, shippingInfo);
             // 実際の処理はここに実装
           } catch (error) {
             toast.error('出荷処理に失敗しました');
@@ -872,7 +865,6 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
           // 削除処理の実装
           try {
             toast.success('出庫オーダーを削除しました');
-            console.log('オーダー削除:', orderId);
             // 実際の処理はここに実装
           } catch (error) {
             toast.error('オーダー削除に失敗しました');

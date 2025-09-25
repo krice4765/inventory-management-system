@@ -123,7 +123,6 @@ export default function Inventory() {
 
   const fetchData = async () => {
     try {
-      console.log('🔄 在庫データ取得開始...');
       const [productsResult, movementsResult] = await Promise.all([
         supabase.from('products').select('id, product_name, product_code, current_stock').order('product_name'),
         supabase
@@ -133,8 +132,6 @@ export default function Inventory() {
           .limit(50)
       ]);
 
-      console.log('📦 Products結果:', productsResult);
-      console.log('📋 Movements結果:', movementsResult);
 
       if (productsResult.error) {
         console.error('❌ Products取得エラー:', productsResult.error);
@@ -148,7 +145,6 @@ export default function Inventory() {
       const products = productsResult.data || [];
       const movements = movementsResult.data || [];
       
-      console.log('✅ 取得完了:', {
         products: products.length,
         movements: movements.length,
         latestMovement: movements[0]

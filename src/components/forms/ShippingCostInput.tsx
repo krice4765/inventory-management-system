@@ -65,7 +65,6 @@ export const ShippingCostInput: React.FC<ShippingCostInputProps> = ({
       setLastCalculation(result);
       onChange(result.shipping_cost, result.shipping_tax, result);
 
-      console.log('✅ Shipping cost auto-calculated:', result);
     } catch (error) {
       console.error('❌ Shipping calculation failed:', error);
     } finally {

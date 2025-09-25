@@ -63,7 +63,6 @@ export class TaxCalculationEngine {
   }
 
   static calculateTax(request: TaxCalculationRequest): TaxCalculationResponse {
-    console.log('🧮 Tax calculation started:', request);
 
     let subtotal_tax_excluded = 0;
     let tax_8_amount = 0;
@@ -144,7 +143,6 @@ export class TaxCalculationEngine {
       calculated_at: new Date().toISOString(),
     };
 
-    console.log('✅ Tax calculation completed:', result);
     return result;
   }
 
@@ -166,7 +164,6 @@ export class TaxCalculationEngine {
 
 // サーバー側税計算関数を呼び出す
 const calculateTaxOnServer = async (request: TaxCalculationRequest): Promise<TaxCalculationResponse> => {
-  console.log('🔄 Server-side tax calculation:', request);
 
   const { data, error } = await supabase.rpc('calculate_order_tax', {
     order_data: request
@@ -178,7 +175,6 @@ const calculateTaxOnServer = async (request: TaxCalculationRequest): Promise<Tax
     return TaxCalculationEngine.calculateTax(request);
   }
 
-  console.log('✅ Server tax calculation success:', data);
   return data as TaxCalculationResponse;
 };
 
@@ -189,7 +185,6 @@ export function useTaxCalculation() {
   const calculateTaxMutation = useMutation({
     mutationFn: calculateTaxOnServer,
     onSuccess: (data) => {
-      console.log('💰 Tax calculation successful:', data);
     },
     onError: (error) => {
       console.error('❌ Tax calculation error:', error);
@@ -218,7 +213,6 @@ export function useTaxCalculation() {
 export function useBatchTaxCalculation() {
   const batchCalculateMutation = useMutation({
     mutationFn: async (orderIds: string[]) => {
-      console.log('🔄 Batch tax calculation for orders:', orderIds);
 
       const { data, error } = await supabase.rpc('batch_calculate_order_taxes', {
         order_ids: orderIds
@@ -229,7 +223,6 @@ export function useBatchTaxCalculation() {
         throw error;
       }
 
-      console.log('✅ Batch tax calculation completed:', data);
       return data;
     },
   });

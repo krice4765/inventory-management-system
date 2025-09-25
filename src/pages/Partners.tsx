@@ -112,7 +112,6 @@ export default function Partners() {
         }
         
         toast.success('取引先を更新しました');
-        console.log('✅ パートナー更新完了 - 担当者同期:', formData.contact_person);
       } else {
         const { data: newPartner, error } = await supabase
           .from('partners')
@@ -128,7 +127,6 @@ export default function Partners() {
         }
         
         toast.success('取引先を作成しました');
-        console.log('✅ パートナー作成完了 - 担当者同期:', formData.contact_person);
       }
 
       resetForm();
@@ -241,12 +239,10 @@ export default function Partners() {
           console.warn('発注担当者の同期に失敗:', error);
           throw error;
         } else {
-          console.log('発注担当者を同期しました:', partnerData.contact_person);
           // 発注担当者キャッシュを無効化して最新データを反映
           queryClient.invalidateQueries({ queryKey: ['order-managers'] });
         }
       } else {
-        console.log('発注担当者は既に存在します:', partnerData.contact_person);
       }
     } catch (error) {
       console.warn('発注担当者同期エラー:', error);

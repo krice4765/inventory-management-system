@@ -101,11 +101,6 @@ const fetchAvailableOrders = async (
     })
 
     // 診断ログ
-    console.log('仕入先ID:', partnerId)
-    console.log('検索キーワード:', searchKeyword)
-    console.log('取得件数:', finalAvailableOrders.length)
-    console.log('残額計算サンプル:', finalAvailableOrders.slice(0, 2))
-    console.log('============================')
 
     return finalAvailableOrders
 

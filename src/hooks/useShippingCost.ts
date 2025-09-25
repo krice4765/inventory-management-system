@@ -56,7 +56,6 @@ export class ShippingCostCalculator {
     setting: ShippingCostSetting,
     request: ShippingCostRequest
   ): ShippingCostResponse {
-    console.log('🚚 Calculating shipping cost:', { setting, request });
 
     let base_cost = setting.base_cost;
     let weight_based_cost = 0;
@@ -110,14 +109,12 @@ export class ShippingCostCalculator {
       },
     };
 
-    console.log('✅ Shipping cost calculated:', result);
     return result;
   }
 }
 
 // 取引先の送料設定取得
 const getSupplierShippingSettings = async (supplierId: number): Promise<ShippingCostSetting[]> => {
-  console.log('🔄 Fetching shipping settings for supplier:', supplierId);
 
   if (!supplierId) {
     console.warn('⚠️ No supplier ID provided, using default settings');
@@ -137,13 +134,11 @@ const getSupplierShippingSettings = async (supplierId: number): Promise<Shipping
     throw error;
   }
 
-  console.log('✅ Shipping settings fetched:', data?.length || 0);
   return data || [];
 };
 
 // デフォルト送料設定取得
 const getDefaultShippingSettings = async (): Promise<ShippingCostSetting[]> => {
-  console.log('🔄 Fetching default shipping settings');
 
   const { data, error } = await supabase
     .from('shipping_cost_settings')
@@ -158,13 +153,11 @@ const getDefaultShippingSettings = async (): Promise<ShippingCostSetting[]> => {
     throw error;
   }
 
-  console.log('✅ Default shipping settings fetched:', data?.length || 0);
   return data || [];
 };
 
 // 送料計算実行
 const calculateShippingCost = async (request: ShippingCostRequest): Promise<ShippingCostResponse> => {
-  console.log('🔄 Calculating shipping cost:', request);
 
   // 取引先固有の設定を取得
   const supplierSettings = await getSupplierShippingSettings(request.supplier_id);
@@ -189,7 +182,6 @@ const calculateShippingCost = async (request: ShippingCostRequest): Promise<Ship
 
   // 取引先固有の設定がない場合、デフォルト設定を使用
   if (!selectedSetting) {
-    console.log('⚠️ No supplier-specific settings, using default');
     const defaultSettings = await getDefaultShippingSettings();
 
     if (request.shipping_method) {
@@ -249,7 +241,6 @@ export function useShippingCalculation() {
   const calculateMutation = useMutation({
     mutationFn: calculateShippingCost,
     onSuccess: (data) => {
-      console.log('💰 Shipping cost calculation successful:', data);
     },
     onError: (error) => {
       console.error('❌ Shipping cost calculation error:', error);
@@ -278,7 +269,6 @@ export function useAutoShippingInput() {
     try {
       // UUIIDの場合は送料計算をスキップ（デフォルト値を返す）
       if (params.supplierId && isUUID(params.supplierId)) {
-        console.log('🚚 UUID supplier detected, using default shipping calculation');
         return {
           shipping_cost: 500, // デフォルト送料
           shipping_tax: 50,
@@ -298,7 +288,6 @@ export function useAutoShippingInput() {
 
       // NaNチェック
       if (numericSupplierId !== null && isNaN(numericSupplierId)) {
-        console.log('🚚 Invalid numeric supplier ID, using default shipping');
         return {
           shipping_cost: 500,
           shipping_tax: 50,

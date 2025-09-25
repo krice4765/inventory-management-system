@@ -3,9 +3,6 @@ import { supabase } from '../lib/supabase';
 
 // 大型案件の特定・処理システム
 export const processLargeCases = async (caseIds: string[] = ['PO250911013', 'PO250911014', 'PO250911005']) => {
-  console.log('🚨 大型案件緊急処理開始');
-  console.log('=====================================');
-  console.log(`🎯 対象案件: ${caseIds.join(', ')}`);
 
   const results = {
     processed: 0,
@@ -24,7 +21,6 @@ export const processLargeCases = async (caseIds: string[] = ['PO250911013', 'PO2
 
   for (const caseId of caseIds) {
     try {
-      console.log(`\n🔍 ${caseId} の処理開始`);
 
       // 発注書データ取得
       const { data: order, error: orderError } = await supabase
@@ -53,7 +49,6 @@ export const processLargeCases = async (caseIds: string[] = ['PO250911013', 'PO2
       }
 
       if (!installments || installments.length === 0) {
-        console.log(`📝 ${caseId}: 分納データなし - スキップ`);
         continue;
       }
 
@@ -61,11 +56,6 @@ export const processLargeCases = async (caseIds: string[] = ['PO250911013', 'PO2
       const difference = deliveredTotal - order.total_amount;
       const ratio = deliveredTotal / order.total_amount;
 
-      console.log(`📊 ${caseId} 分析結果:`);
-      console.log(`  発注額: ¥${order.total_amount.toLocaleString()}`);
-      console.log(`  分納額: ¥${deliveredTotal.toLocaleString()}`);
-      console.log(`  差額: ¥${difference.toLocaleString()}`);
-      console.log(`  比率: ${ratio.toFixed(3)}`);
 
       let processResult = {
         orderNo: caseId,
@@ -78,21 +68,17 @@ export const processLargeCases = async (caseIds: string[] = ['PO250911013', 'PO2
 
       // 処理方法の決定と実行
       if (Math.abs(difference) < 1) {
-        console.log(`✅ ${caseId}: 既に完全一致`);
         processResult.status = 'success';
         processResult.method = 'already_perfect';
       } else if (order.total_amount === 0) {
-        console.log(`⚠️ ${caseId}: 発注額¥0の異常データ - 調査が必要`);
         processResult.status = 'partial';
         processResult.method = 'needs_investigation';
       } else if (ratio > 1.12 && ratio < 2.5) {
         // 比例削減による修正
-        console.log(`🔧 ${caseId}: 比例削減処理開始 (比率: ${ratio.toFixed(3)})`);
 
         const targetTotal = order.total_amount;
         const reductionFactor = targetTotal / deliveredTotal;
 
-        console.log(`📐 削減係数: ${reductionFactor.toFixed(6)}`);
 
         for (const installment of installments) {
           const newAmount = Math.round(installment.total_amount * reductionFactor);
@@ -107,14 +93,11 @@ export const processLargeCases = async (caseIds: string[] = ['PO250911013', 'PO2
             throw updateError;
           }
 
-          console.log(`  分納${installment.installment_no}: ¥${installment.total_amount.toLocaleString()} → ¥${newAmount.toLocaleString()}`);
         }
 
         const newDeliveredTotal = installments.reduce((sum, inst) => sum + Math.round(inst.total_amount * reductionFactor), 0);
         const newDifference = newDeliveredTotal - order.total_amount;
 
-        console.log(`✅ ${caseId}: 比例削減完了`);
-        console.log(`  修正後差額: ¥${newDifference.toLocaleString()}`);
 
         processResult.status = Math.abs(newDifference) < 100 ? 'success' : 'partial';
         processResult.afterAmount = newDifference;
@@ -122,7 +105,6 @@ export const processLargeCases = async (caseIds: string[] = ['PO250911013', 'PO2
         processResult.method = 'proportional_reduction';
 
       } else {
-        console.log(`⚠️ ${caseId}: 複雑なパターン - 個別調査が必要 (比率: ${ratio.toFixed(3)})`);
         processResult.status = 'partial';
         processResult.method = 'needs_custom_analysis';
       }
@@ -141,18 +123,9 @@ export const processLargeCases = async (caseIds: string[] = ['PO250911013', 'PO2
     }
   }
 
-  console.log('\n🎉 大型案件処理完了');
-  console.log('=====================================');
-  console.log(`📊 処理結果:`);
-  console.log(`  処理済み: ${results.processed}件`);
-  console.log(`  修正完了: ${results.fixed}件`);
-  console.log(`  エラー: ${results.errors}件`);
-  console.log(`  総削減額: ¥${results.totalSavings.toLocaleString()}`);
 
-  console.log('\n📋 詳細結果:');
   results.details.forEach((detail, index) => {
     const statusIcon = detail.status === 'success' ? '✅' : detail.status === 'partial' ? '⚠️' : '❌';
-    console.log(`  ${index + 1}. ${detail.orderNo}: ${statusIcon} ${detail.method} (削減額: ¥${detail.savings.toLocaleString()})`);
   });
 
   return results;
@@ -160,8 +133,6 @@ export const processLargeCases = async (caseIds: string[] = ['PO250911013', 'PO2
 
 // 残存案件の分類分析
 export const classifyRemainingIssues = async () => {
-  console.log('🔍 残存案件分類分析開始');
-  console.log('=====================================');
 
   try {
     // 最新30件の発注書を取得して分析
@@ -214,25 +185,15 @@ export const classifyRemainingIssues = async () => {
       }
     }
 
-    console.log('📊 分類結果:');
-    console.log(`  ✅ 完全一致: ${classification.perfect.length}件`);
-    console.log(`  🔧 税込調整対象: ${classification.taxAdjustment.length}件`);
-    console.log(`  📐 比例削減対象: ${classification.proportionalReduction.length}件`);
-    console.log(`  ⚠️ 発注額¥0: ${classification.zeroAmount.length}件`);
-    console.log(`  🔍 複雑案件: ${classification.complex.length}件`);
 
     // 具体的な案件番号も表示
     if (classification.taxAdjustment.length > 0) {
-      console.log('\n🔧 税込調整対象案件:');
       classification.taxAdjustment.slice(0, 5).forEach((orderNo, index) => {
-        console.log(`  ${index + 1}. ${orderNo}`);
       });
     }
 
     if (classification.proportionalReduction.length > 0) {
-      console.log('\n📐 比例削減対象案件:');
       classification.proportionalReduction.slice(0, 5).forEach((orderNo, index) => {
-        console.log(`  ${index + 1}. ${orderNo}`);
       });
     }
 

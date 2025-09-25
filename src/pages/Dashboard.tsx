@@ -37,7 +37,6 @@ export default function Dashboard() {
   
   // ordersDataの変化を監視
   useEffect(() => {
-    console.log('📊 Dashboard - ordersData changed:', {
       hasData: !!ordersData,
       count: ordersData?.data?.length || 0,
       dataUpdatedAt: new Date(dataUpdatedAt || 0).toLocaleTimeString(),
@@ -85,7 +84,6 @@ export default function Dashboard() {
       await refetchOrders(); // 発注データを強制再取得
       await fetchDashboardStats(); // ダッシュボード統計を再計算
       await fetchWeeklyActivity(); // 週次活動を再取得
-      console.log('🔄 ダッシュボード手動更新完了');
     } catch (error) {
       console.error('❌ ダッシュボード更新エラー:', error);
     } finally {
@@ -137,7 +135,6 @@ export default function Dashboard() {
         .gte('created_at', lastWeekStart.toISOString())
         .lt('created_at', lastWeekEnd.toISOString());
 
-      console.log('📊 週次発注活動取得:', {
         今週の発注数: ordersThisWeek?.length || 0,
         先週の発注数: ordersLastWeek?.length || 0,
         timestamp: new Date().toLocaleTimeString()
@@ -194,7 +191,6 @@ export default function Dashboard() {
           return acc;
         }, {} as Record<string, number>) || {};
         
-        console.log('🔍 データベース直接発注分析（全件版）:', {
           総発注数: ordersCount?.length || 0,
           ステータス別: statusBreakdown,
           直近5件: ordersCount?.slice(0, 5).map(o => ({
@@ -228,7 +224,6 @@ export default function Dashboard() {
       // 発注データはuseOrdersフックから取得（Ordersページとデータ同期）
       const allOrders = ordersData?.data || [];
       
-      console.log('🔍 Dashboard Stats Debug - Detailed:', {
         timestamp: new Date().toISOString(),
         ordersData: !!ordersData,
         dataStructure: ordersData ? Object.keys(ordersData) : null,
@@ -318,7 +313,6 @@ export default function Dashboard() {
         averageDeliveryTime,
       });
       
-      console.log('📊 最終統計情報:', {
         useOrdersの発注数: totalOrders,
         データベース直接の発注数: ordersCount?.length || 0,
         採用した発注数: ordersCount?.length || totalOrders,

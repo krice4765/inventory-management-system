@@ -54,7 +54,6 @@ export const UnifiedInventoryTest: React.FC<UnifiedInventoryTestProps> = ({ onTe
     const startTime = performance.now();
 
     try {
-      console.log('🧪 統合在庫履歴表示テスト開始');
 
       // Step 1: データ取得テスト
       await refetch();
@@ -109,7 +108,6 @@ export const UnifiedInventoryTest: React.FC<UnifiedInventoryTestProps> = ({ onTe
       setTestResults(results);
       onTestComplete?.(results);
 
-      console.log('✅ 統合在庫履歴表示テスト完了', results);
 
     } catch (error) {
       const errorResults = {

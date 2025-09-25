@@ -22,14 +22,12 @@ export class SimplifiedInstallmentService {
     error?: string;
   }> {
     try {
-      console.log('🚀 安全な分納処理開始:', {
         orderId: data.orderId,
         amount: data.amount,
         userId: data.userId
       });
 
       // 🛡️ Phase 1: 分納番号を事前計算
-      console.log('📊 分納番号計算開始');
 
       // 分納番号を安全に取得
       let installmentNumber = 1;
@@ -43,7 +41,6 @@ export class SimplifiedInstallmentService {
           .order('installment_no', { ascending: false })
           .limit(1);
 
-        console.log('🔍 分納番号計算デバッグ:', {
           orderId: data.orderId,
           existingTransactions,
           countError,
@@ -52,15 +49,12 @@ export class SimplifiedInstallmentService {
 
         if (!countError && existingTransactions?.length > 0) {
           installmentNumber = (existingTransactions[0]?.installment_no || 0) + 1;
-          console.log('📊 既存分納あり、次回番号:', installmentNumber);
         } else {
-          console.log('📊 新規発注書、初回分納番号:', installmentNumber);
         }
       } catch (error) {
         console.warn('⚠️ 分納番号計算でエラー、デフォルト値使用:', error);
       }
 
-      console.log('📊 データベース関数による安全な分納作成を試行（パラメータ修正版）');
 
       // パートナーID取得
       const { data: orderData, error: orderError } = await supabase
@@ -104,7 +98,6 @@ export class SimplifiedInstallmentService {
                 return null;
               }).filter(item => item !== null);
 
-            console.log('📦 構築された商品情報:', items);
           }
         }
 
@@ -121,7 +114,6 @@ export class SimplifiedInstallmentService {
 
         // データベース関数が成功した場合
         if (!rpcError && result) {
-          console.log('✅ V3データベース関数による分納作成成功:', {
             result: result,
             transactionId: result.id,
             transactionNo: result.transaction_no,
@@ -135,7 +127,6 @@ export class SimplifiedInstallmentService {
             transactionId: result.id
           };
         } else {
-          console.log('⚠️ V3 RPC関数エラー詳細:', {
             error: rpcError,
             message: rpcError?.message,
             details: rpcError?.details,
@@ -146,10 +137,8 @@ export class SimplifiedInstallmentService {
       }
 
       // V3関数が失敗または使用できない場合はフォールバックに移行
-      console.log('⚠️ V3データベース関数が使用できません。フォールバック処理を実行');
 
       // 🔄 Phase 2: フォールバック - 従来方式（改良版）
-      console.log('📊 使用する分納番号:', installmentNumber);
 
       // UUID v4形式で確実なID生成
       const transactionId = globalThis.crypto.randomUUID();
@@ -189,7 +178,6 @@ export class SimplifiedInstallmentService {
             if (insertError.code === '23505') {
               installmentNumber++;
               retryCount++;
-              console.log(`🔄 重複検出により分納番号を${installmentNumber}に変更して再試行`);
               await new Promise(resolve => setTimeout(resolve, 50 * retryCount));
               continue;
             }
@@ -199,7 +187,6 @@ export class SimplifiedInstallmentService {
 
           // 商品情報がある場合はtransaction_itemsテーブルにも保存
           if (data.quantities && Object.keys(data.quantities).length > 0) {
-            console.log('🔍 商品情報保存開始:', {
               quantities: data.quantities,
               transactionId: transaction.id
             });
@@ -215,7 +202,6 @@ export class SimplifiedInstallmentService {
                 line_total: totalQuantity > 0 ? Math.round((data.amount / totalQuantity) * quantity) : 0
               }));
 
-            console.log('📦 準備された商品データ:', transactionItems);
 
             if (transactionItems.length > 0) {
               // まずは最小限のカラムで試行
@@ -226,7 +212,6 @@ export class SimplifiedInstallmentService {
                 unit_price: item.unit_price
               }));
 
-              console.log('📦 最小限カラムでの挿入試行:', minimalItems);
 
               const { data: insertResult, error: itemsError } = await supabase
                 .from('transaction_items')
@@ -246,7 +231,6 @@ export class SimplifiedInstallmentService {
 
                 // それでも失敗する場合、より基本的なデータで再試行
                 if (itemsError.code === '42703') { // column does not exist
-                  console.log('🔄 基本カラムのみで再試行');
                   const basicItems = transactionItems.map(item => ({
                     transaction_id: item.transaction_id,
                     product_id: item.product_id,
@@ -260,11 +244,9 @@ export class SimplifiedInstallmentService {
                   if (basicError) {
                     console.error('❌ 基本カラムでも挿入失敗:', basicError);
                   } else {
-                    console.log('✅ 基本カラムでの商品情報保存成功');
                   }
                 }
               } else {
-                console.log('✅ 商品情報も正常に保存されました:', {
                   count: transactionItems.length,
                   result: insertResult
                 });
@@ -272,7 +254,6 @@ export class SimplifiedInstallmentService {
             }
           }
 
-          console.log('✅ フォールバック分納処理成功:', {
             transactionId: transaction.id,
             installmentNumber,
             amount: data.amount,
@@ -338,7 +319,6 @@ export class SimplifiedInstallmentService {
         if (deleteError) {
           console.error('❌ 重複削除エラー:', deleteError);
         } else {
-          console.log('🧹 重複分納削除完了:', duplicateIds.length, '件');
         }
       }
     } catch (error) {
@@ -352,7 +332,6 @@ export function useSimplifiedInstallment() {
   const createInstallment = async (data: SimplifiedInstallmentData) => {
     // 🚨 緊急修正: 重複削除を無効化（数量リセットバグの原因）
     // await SimplifiedInstallmentService.cleanupTodaysDuplicates(data.orderId);
-    console.log('🚨 重複削除システムを無効化 - 数量リセットバグ修正のため');
 
     // シンプルな分納処理を実行
     return await SimplifiedInstallmentService.createInstallmentTransaction(data);

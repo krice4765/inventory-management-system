@@ -56,7 +56,6 @@ export const useOrderForDelivery = (orderId: string | null) => {
       const movements = movementsResult.data || [];
       const currentStocks = stockResult.data || [];
 
-      console.log('🔍 分納履歴データ確認:', {
         orderId,
         deliveries: deliveries?.map(d => ({
           id: d.id,
@@ -78,7 +77,6 @@ export const useOrderForDelivery = (orderId: string | null) => {
       );
       
       // 🚨 強化デバッグログ（数量リセットバグ調査）
-      console.log('🔍 分納数量集計デバッグ:', {
         orderId,
         deliveries: deliveries.length,
         deliveryTransactionIds,
@@ -120,7 +118,6 @@ export const useOrderForDelivery = (orderId: string | null) => {
         return acc;
       }, {});
       
-      console.log('📊 商品別分納数量:', deliveredQuantitiesByProduct);
       
       // 現在在庫との整合性チェック
       const stockMap = currentStocks.reduce((acc: { [key: string]: number }, stock) => {
@@ -128,7 +125,6 @@ export const useOrderForDelivery = (orderId: string | null) => {
         return acc;
       }, {});
       
-      console.log('📦 現在在庫状況:', stockMap);
       
       // 仕入先名を取得
       let partnerName = '仕入先未設定';

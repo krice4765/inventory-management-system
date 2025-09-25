@@ -308,8 +308,6 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
         // transaction_type は存在しないため送信しない
       };
 
-      console.log('🚀 [PurchaseOrder] データベース対応送信データ:', orderData);
-      console.log('🚀 [PurchaseOrder] フィールドマッピング確認:', {
         'order_date (DB)': orderData.order_date,
         'delivery_deadline (DB)': orderData.delivery_deadline,
         'memo (DB)': orderData.memo,
@@ -332,7 +330,6 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
         return;
       }
 
-      console.log('✅ [PurchaseOrder] 作成成功:', newOrder);
 
       // **🆕 明細レコードの保存**
       const orderItemsData = items.map(item => {
@@ -347,7 +344,6 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
         };
       });
 
-      console.log('🚀 [OrderItems] 明細保存データ:', orderItemsData);
 
       // 🛡️ 重複商品検証の強化
       const productIds = orderItemsData.map(item => item.product_id);
@@ -381,7 +377,6 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
         // 明細保存失敗時は発注をロールバック
         try {
           await supabase.from('purchase_orders').delete().eq('id', newOrder.id);
-          console.log('🔄 発注ロールバック完了');
         } catch (rollbackError) {
           console.error('❌ 発注ロールバックエラー:', rollbackError);
         }
@@ -389,7 +384,6 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
         throw new Error(`明細保存でエラーが発生しました: ${extractSupabaseError(itemsError)}`);
       }
       
-      console.log('✅ [OrderItems] 明細保存成功:', {
         saved_items: orderItemsData.length,
         order_id: newOrder.id
       });
@@ -419,7 +413,6 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
           }
         });
 
-        console.log('✅ [Cache] 統合キャッシュ同期完了');
       } catch (cacheError) {
         console.warn('⚠️ [Cache] キャッシュ更新エラー:', cacheError);
       }

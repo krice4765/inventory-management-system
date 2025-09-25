@@ -87,7 +87,6 @@ export class PerformanceMonitor {
     const loadTime = performance.now() - startTime;
     this.loadTimes.set(routeName, loadTime);
     
-    console.log(`Route ${routeName} loaded in ${loadTime.toFixed(2)}ms`);
     
     // 200ms を超える場合は警告
     if (loadTime > 200) {

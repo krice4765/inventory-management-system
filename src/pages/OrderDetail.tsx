@@ -120,7 +120,6 @@ export default function OrderDetail() {
       }
 
       // デバッグログを追加
-      console.log('🔍 OrderDetail データ確認:', {
         orderId,
         assigned_user_id: orderDetailData.assigned_user_id,
         assigned_user: assignedUserData,
@@ -150,7 +149,6 @@ export default function OrderDetail() {
       setOrder(orderInfo);
       
       // 🚨 明細データを安全に整形
-      console.log('📋 発注明細データ確認:', {
         order_id: orderDetailData.id,
         order_no: orderDetailData.order_no,
         has_items: !!orderDetailData.purchase_order_items,
@@ -168,7 +166,6 @@ export default function OrderDetail() {
           }))
         : []; // 明細がない場合は空配列
       
-      console.log('📦 整形後の明細データ:', formattedItems);
       
       setItems(formattedItems);
     } catch (error) {

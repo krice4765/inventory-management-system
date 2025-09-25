@@ -38,7 +38,6 @@ export const IntegrationTestDashboard: React.FC<Props> = ({ orderNo = 'PO2509200
     isRepairing
   } = useIntegratedInstallment({
     parentOrderId: order?.id || '',
-    onSuccess: () => console.log('統合操作成功'),
     onError: (error) => console.error('統合操作エラー:', error),
   });
 
@@ -47,7 +46,6 @@ export const IntegrationTestDashboard: React.FC<Props> = ({ orderNo = 'PO2509200
     try {
       const { data, error } = await supabase.rpc(functionName, params);
       if (error) throw error;
-      console.log(`✅ ${functionName}実行結果:`, data);
       alert(`✅ ${functionName}実行完了\n結果: ${JSON.stringify(data, null, 2)}`);
     } catch (error) {
       console.error(`❌ ${functionName}実行エラー:`, error);
@@ -154,7 +152,6 @@ export const IntegrationTestDashboard: React.FC<Props> = ({ orderNo = 'PO2509200
       <InstallmentIntegrationManager
         parentOrderId={order.id}
         onSuccess={() => {
-          console.log('統合分納作成成功');
         }}
       />
 

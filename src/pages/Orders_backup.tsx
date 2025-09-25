@@ -88,7 +88,6 @@ const fetchOrders = async () => {
       
       // デバッグログの追加（詳細化）
       if (order.order_no === 'PO25091003' || order.order_no === 'PO250910002') {
-        console.log(`📊 ステータス判定デバッグ (${order.order_no}):`, {
           ordered_amount,
           delivered_amount,
           remaining_amount,
@@ -142,7 +141,6 @@ export default function Orders() {
     refetchInterval: 10000,      // 10秒間隔に変更（重複を避ける）
     refetchIntervalInBackground: false, // バックグラウンドでは停止
     onSuccess: (data) => {
-      console.log('📊 Orders データ更新完了:', data?.length, '件');
     },
     onError: (err) => {
       console.error('発注データ取得エラー:', err);

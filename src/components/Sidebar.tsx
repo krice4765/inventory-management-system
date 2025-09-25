@@ -78,7 +78,6 @@ export default function Sidebar() {
       // 成功メッセージは表示せず、視覚的フィードバックのみ
     } else {
       // 管理者権限が必要な場合も、toastではなく視覚的な表現のみ
-      console.log('管理者権限が必要です');
     }
   };
 
