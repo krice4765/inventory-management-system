@@ -81,7 +81,7 @@ export function AdvancedFilters({ filters, onFiltersChange, onReset }: AdvancedF
           >
             <option value="all">すべて</option>
             <option value="confirmed">確定のみ</option>
-            <option value="draft">未確定のみ</option>
+            {/* <option value="draft">下書きのみ</option> - 統一ステータスシステムで不要 */}
           </select>
         </div>
 

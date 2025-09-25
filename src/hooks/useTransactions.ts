@@ -45,7 +45,7 @@ export function useUpdateTransactionStatus() {
     onSuccess: (data) => {
       const statusText = data.status === 'confirmed' ? '確定' : 
                         data.status === 'cancelled' ? 'キャンセル' : 
-                        '未確定に戻';
+                        '下書きに戻';
       toast.success(`伝票を${statusText}しました`);
       queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
       queryClient.invalidateQueries({ queryKey: ['purchase-order', data.id] });

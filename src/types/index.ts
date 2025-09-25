@@ -6,7 +6,7 @@ export interface PurchaseOrder {
   order_date: string;
   delivery_deadline: string | null;
   total_amount: number;
-  status: 'active' | 'completed' | 'cancelled';
+  status: '未納品' | '一部納品' | '納品完了' | 'キャンセル';
   memo: string | null;
   created_at: string;
   updated_at: string;
@@ -54,6 +54,9 @@ export interface OrderFormData {
   order_date: string;
   delivery_deadline: string;
   memo: string;
+  assigned_user_id?: string;
+  shipping_cost?: number;
+  shipping_tax_rate?: number;
 }
 
 export interface OrderItem {

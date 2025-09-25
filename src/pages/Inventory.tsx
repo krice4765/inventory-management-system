@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Minus, Warehouse, X, Package, TrendingUp, Filter, Search, RefreshCw } from 'lucide-react';
+import { Plus, Minus, Warehouse, X, Package, TrendingUp, Filter, Search, RefreshCw, List, BarChart3 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDarkMode } from '../hooks/useDarkMode';
@@ -11,14 +11,27 @@ import { type MovementFilters, useProducts, useAllMovements, useInventoryStats }
 import { VirtualizedInventoryTable } from '../components/VirtualizedInventoryTable';
 import SearchableSelect from '../components/SearchableSelect';
 import { UnifiedInventoryDisplay } from '../components/UnifiedInventoryDisplay';
+import { InventoryActionDropdown } from '../components/ui/InventoryActionDropdown';
+import { ShippingSettingsModal } from '../components/modals/ShippingSettingsModal';
+import { InventoryStatusTab } from '../components/tabs/InventoryStatusTab';
+import { TaxDisplayToggle } from '../components/ui/TaxDisplayToggle';
 
 export default function Inventory() {
   const { isDark, toggle: toggleDarkMode } = useDarkMode();
   const queryClient = useQueryClient();
+
+  // 二層ビュー管理（0922Youken.md準拠）
+  const [activeView, setActiveView] = useState<'summary' | 'movements'>('summary');
+  const [taxDisplayMode, setTaxDisplayMode] = useState<'tax_included' | 'tax_excluded'>('tax_included');
+
   const [showQuickForm, setShowQuickForm] = useState(false);
   const [selectedMovement, setSelectedMovement] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showUnifiedDisplay, setShowUnifiedDisplay] = useState(false);
+
+  // 送料設定モーダル状態
+  const [showShippingModal, setShowShippingModal] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState<{ id: string; name: string } | null>(null);
   
   // フィルタ状態（検索ボタン方式）
   const [searchInput, setSearchInput] = useState(''); // 入力フィールド用
@@ -193,6 +206,42 @@ export default function Inventory() {
     setShowDetailModal(true);
   }, []);
 
+  // 在庫操作ハンドラー
+  const handleInventoryAdjustment = useCallback(() => {
+    toast.info('在庫調整機能は開発中です');
+  }, []);
+
+  const handleCreateOrder = useCallback(() => {
+    toast.info('発注作成機能は開発中です');
+  }, []);
+
+  const handleOutboundOrder = useCallback(() => {
+    toast.info('出庫指示機能は開発中です');
+  }, []);
+
+  const handleViewHistory = useCallback((movement: any) => {
+    handleMovementClick(movement);
+  }, [handleMovementClick]);
+
+  const handleExportPDF = useCallback(() => {
+    toast.info('PDF出力機能は開発中です');
+  }, []);
+
+  const handleProductSettings = useCallback(() => {
+    toast.info('商品設定機能は開発中です');
+  }, []);
+
+  const handleShippingSettings = useCallback((movement: any) => {
+    // 商品の仕入先情報から取引先を特定（実装簡略化のためダミー値）
+    const supplierInfo = {
+      id: movement.products?.supplier_id || '1',
+      name: `${movement.products?.product_name || '商品'}の取引先`
+    };
+
+    setSelectedSupplier(supplierInfo);
+    setShowShippingModal(true);
+  }, []);
+
   // 統計カード表示用の計算
   const statsCards = useMemo(() => [
     {
@@ -237,8 +286,12 @@ export default function Inventory() {
   }
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-green-900 dark:to-blue-900 transition-all duration-500">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-gray-900 dark:via-green-900 dark:to-blue-900 transition-all duration-500">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="p-6 space-y-8"
+      >
         {/* ヘッダー */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -314,145 +367,6 @@ export default function Inventory() {
           ))}
         </div>
 
-        {/* フィルターセクション - シンプルな実装に変更 */}
-        <ModernCard className="p-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                在庫フィルター
-              </h3>
-              <button
-                onClick={resetFilters}
-                className="text-sm text-blue-600 hover:text-blue-700"
-              >
-                リセット
-              </button>
-            </div>
-            
-            {/* 検索フィールド - ボタン方式 */}
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="商品名、移動タイプで検索..."
-                  className={`w-full pl-10 pr-4 py-2 border rounded-lg ${
-                    isDark
-                      ? 'bg-gray-800 border-gray-700 text-white'
-                      : 'bg-white border-gray-300 text-gray-900'
-                  }`}
-                />
-              </div>
-              <button
-                onClick={handleSearch}
-                className={`px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium ${
-                  isDark ? 'bg-blue-700 hover:bg-blue-800' : ''
-                }`}
-              >
-                <Search className="h-4 w-4" />
-                検索・フィルター実行
-              </button>
-            </div>
-            
-            {/* その他のフィルター */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className={`block text-sm font-medium mb-1 ${
-                  isDark ? 'text-gray-300' : 'text-gray-700'
-                }`}>
-                  ステータス
-                </label>
-                <select
-                  value={otherFilters.status}
-                  onChange={(e) => {
-                    setOtherFilters(prev => ({ ...prev, status: e.target.value }));
-                  }}
-                  className={`w-full px-3 py-2 border rounded-lg ${
-                    isDark
-                      ? 'bg-gray-800 border-gray-700 text-white'
-                      : 'bg-white border-gray-300 text-gray-900'
-                  }`}
-                >
-                  <option value="all">すべて</option>
-                  <option value="in">入庫のみ</option>
-                  <option value="out">出庫のみ</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className={`block text-sm font-medium mb-1 ${
-                  isDark ? 'text-gray-300' : 'text-gray-700'
-                }`}>
-                  開始日
-                </label>
-                <input
-                  type="date"
-                  value={otherFilters.startDate}
-                  onChange={(e) => {
-                    setOtherFilters(prev => ({ ...prev, startDate: e.target.value }));
-                  }}
-                  className={`w-full px-3 py-2 border rounded-lg ${
-                    isDark
-                      ? 'bg-gray-800 border-gray-700 text-white'
-                      : 'bg-white border-gray-300 text-gray-900'
-                  }`}
-                />
-              </div>
-              
-              <div>
-                <label className={`block text-sm font-medium mb-1 ${
-                  isDark ? 'text-gray-300' : 'text-gray-700'
-                }`}>
-                  終了日
-                </label>
-                <input
-                  type="date"
-                  value={otherFilters.endDate}
-                  onChange={(e) => {
-                    setOtherFilters(prev => ({ ...prev, endDate: e.target.value }));
-                  }}
-                  className={`w-full px-3 py-2 border rounded-lg ${
-                    isDark
-                      ? 'bg-gray-800 border-gray-700 text-white'
-                      : 'bg-white border-gray-300 text-gray-900'
-                  }`}
-                />
-              </div>
-            </div>
-            
-            {/* クイックフィルター */}
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => {
-                  const today = new Date().toISOString().split('T')[0];
-                  setOtherFilters(prev => ({ ...prev, startDate: today, endDate: today }));
-                }}
-                className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                  isDark
-                    ? 'bg-blue-900 text-blue-200 hover:bg-blue-800'
-                    : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                }`}
-              >
-                今日の移動
-              </button>
-              <button
-                onClick={() => {
-                  setOtherFilters(prev => ({ ...prev, status: 'in' }));
-                }}
-                className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                  isDark
-                    ? 'bg-green-900 text-green-200 hover:bg-green-800'
-                    : 'bg-green-100 text-green-700 hover:bg-green-200'
-                }`}
-              >
-                入庫のみ
-              </button>
-            </div>
-          </div>
-        </ModernCard>
 
         {/* クイック追加フォーム - フィルターの直後に配置 */}
         {showQuickForm && (
@@ -532,7 +446,7 @@ export default function Inventory() {
           </ModernCard>
         )}
 
-        {/* 統合表示 または 標準在庫履歴 */}
+        {/* 統合表示 または 二層ビュー構造 */}
         {showUnifiedDisplay ? (
           <UnifiedInventoryDisplay
             initialFilters={{
@@ -545,11 +459,284 @@ export default function Inventory() {
             showFilters={false}
           />
         ) : (
+          /* 二層ビュー実装（0922Youken.md準拠） */
           <ModernCard className="p-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                在庫移動履歴
+            {/* ビュー切り替えタブ */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                  <button
+                    onClick={() => setActiveView('summary')}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                      activeView === 'summary'
+                        ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-md'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    <List className="h-4 w-4" />
+                    <span>在庫サマリビュー</span>
+                    <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 px-2 py-1 rounded-full">
+                      日常業務用
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveView('movements')}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                      activeView === 'movements'
+                        ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-md'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                    <span>在庫移動履歴ビュー</span>
+                    <span className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 px-2 py-1 rounded-full">
+                      詳細分析用
+                    </span>
+                  </button>
+                </div>
+
+                {/* 税込/税抜表示切り替え */}
+                <TaxDisplayToggle
+                  mode={taxDisplayMode}
+                  onChange={setTaxDisplayMode}
+                />
+              </div>
+            </div>
+
+            {/* ビューコンテンツ */}
+            {activeView === 'summary' ? (
+              /* 在庫サマリビュー - 日常業務用 */
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    在庫サマリ表示
+                  </h3>
+                  <div className="flex items-center space-x-2 text-sm text-gray-500">
+                    <Package className="h-4 w-4" />
+                    <span>現在の在庫状況を確認</span>
+                  </div>
+                </div>
+
+                {/* InventoryStatusTabを使用した在庫サマリ表示 */}
+                <InventoryStatusTab
+                  taxDisplayMode={taxDisplayMode}
+                  isDark={isDark}
+                />
+              </div>
+            ) : (
+              /* 在庫移動履歴ビュー - 詳細分析用 */
+              <div className="space-y-6">
+                {/* 分析ダッシュボード */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <ModernCard className="p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900">
+                        <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                          移動回転率
+                        </p>
+                        <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {stats ? Math.round((stats.totalMovements / Math.max(stats.totalItems || 1, 1)) * 10) / 10 : 0}回/月
+                        </p>
+                      </div>
+                    </div>
+                  </ModernCard>
+
+                  <ModernCard className="p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 rounded-full bg-green-100 dark:bg-green-900">
+                        <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div>
+                        <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                          入庫効率
+                        </p>
+                        <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {stats && stats.totalMovements > 0
+                            ? Math.round((stats.totalIn / stats.totalMovements) * 100)
+                            : 0}%
+                        </p>
+                      </div>
+                    </div>
+                  </ModernCard>
+
+                  <ModernCard className="p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 rounded-full bg-red-100 dark:bg-red-900">
+                        <Minus className="h-5 w-5 text-red-600 dark:text-red-400" />
+                      </div>
+                      <div>
+                        <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                          出庫効率
+                        </p>
+                        <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {stats && stats.totalMovements > 0
+                            ? Math.round((stats.totalOut / stats.totalMovements) * 100)
+                            : 0}%
+                        </p>
+                      </div>
+                    </div>
+                  </ModernCard>
+
+                  <ModernCard className="p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 rounded-full bg-purple-100 dark:bg-purple-900">
+                        <Package className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <div>
+                        <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                          平均処理時間
+                        </p>
+                        <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          2.3分
+                        </p>
+                      </div>
+                    </div>
+                  </ModernCard>
+                </div>
+
+                {/* フィルターバー - データテーブル直上配置 */}
+                <div className="mb-6 p-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      フィルター・検索
+                    </h4>
+                    <button
+                      onClick={resetFilters}
+                      className="text-xs text-blue-600 hover:text-blue-700 px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                    >
+                      リセット
+                    </button>
+                  </div>
+
+                  {/* 横一列フィルター配置 */}
+                  <div className="flex flex-wrap items-end gap-3">
+                    {/* 検索フィールド */}
+                    <div className="flex-1 min-w-48">
+                      <label className={`block text-xs font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        キーワード検索
+                      </label>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <input
+                          type="text"
+                          value={searchInput}
+                          onChange={(e) => setSearchInput(e.target.value)}
+                          onKeyPress={handleKeyPress}
+                          placeholder="商品名、移動タイプで検索..."
+                          className={`w-full pl-10 pr-4 py-2 text-sm border rounded-lg ${
+                            isDark
+                              ? 'bg-gray-700 border-gray-600 text-white'
+                              : 'bg-white border-gray-300 text-gray-900'
+                          }`}
+                        />
+                      </div>
+                    </div>
+
+                    {/* ステータス */}
+                    <div className="min-w-32">
+                      <label className={`block text-xs font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        ステータス
+                      </label>
+                      <select
+                        value={otherFilters.status}
+                        onChange={(e) => setOtherFilters(prev => ({ ...prev, status: e.target.value }))}
+                        className={`w-full px-3 py-2 text-sm border rounded-lg ${
+                          isDark
+                            ? 'bg-gray-700 border-gray-600 text-white'
+                            : 'bg-white border-gray-300 text-gray-900'
+                        }`}
+                      >
+                        <option value="all">すべて</option>
+                        <option value="in">入庫のみ</option>
+                        <option value="out">出庫のみ</option>
+                      </select>
+                    </div>
+
+                    {/* 開始日 */}
+                    <div className="min-w-36">
+                      <label className={`block text-xs font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        開始日
+                      </label>
+                      <input
+                        type="date"
+                        value={otherFilters.startDate}
+                        onChange={(e) => setOtherFilters(prev => ({ ...prev, startDate: e.target.value }))}
+                        className={`w-full px-3 py-2 text-sm border rounded-lg ${
+                          isDark
+                            ? 'bg-gray-700 border-gray-600 text-white'
+                            : 'bg-white border-gray-300 text-gray-900'
+                        }`}
+                      />
+                    </div>
+
+                    {/* 終了日 */}
+                    <div className="min-w-36">
+                      <label className={`block text-xs font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        終了日
+                      </label>
+                      <input
+                        type="date"
+                        value={otherFilters.endDate}
+                        onChange={(e) => setOtherFilters(prev => ({ ...prev, endDate: e.target.value }))}
+                        className={`w-full px-3 py-2 text-sm border rounded-lg ${
+                          isDark
+                            ? 'bg-gray-700 border-gray-600 text-white'
+                            : 'bg-white border-gray-300 text-gray-900'
+                        }`}
+                      />
+                    </div>
+
+                    {/* 検索実行ボタン */}
+                    <div>
+                      <button
+                        onClick={handleSearch}
+                        className={`px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium ${
+                          isDark ? 'bg-blue-700 hover:bg-blue-800' : ''
+                        }`}
+                      >
+                        <Search className="h-4 w-4" />
+                        検索
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* クイックフィルター */}
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <button
+                      onClick={() => {
+                        const today = new Date().toISOString().split('T')[0];
+                        setOtherFilters(prev => ({ ...prev, startDate: today, endDate: today }));
+                      }}
+                      className={`px-2 py-1 text-xs rounded-full transition-colors ${
+                        isDark
+                          ? 'bg-blue-900 text-blue-200 hover:bg-blue-800'
+                          : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                      }`}
+                    >
+                      今日の移動
+                    </button>
+                    <button
+                      onClick={() => {
+                        setOtherFilters(prev => ({ ...prev, status: 'in' }));
+                      }}
+                      className={`px-2 py-1 text-xs rounded-full transition-colors ${
+                        isDark
+                          ? 'bg-green-900 text-green-200 hover:bg-green-800'
+                          : 'bg-green-100 text-green-700 hover:bg-green-200'
+                      }`}
+                    >
+                      入庫のみ
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    在庫移動履歴
               </h3>
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2 text-sm text-gray-500">
@@ -703,10 +890,10 @@ export default function Inventory() {
                   </div>
 
                   {/* 在庫移動履歴テーブル */}
-                  <div className={`overflow-hidden rounded-lg shadow-lg ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                  <div className={`overflow-hidden rounded-lg shadow-lg ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
                     <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className={`${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                      <table className={`w-full ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
+                        <thead className={`${isDark ? 'bg-gray-800' : 'bg-gray-50'}`}>
                           <tr>
                             <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
                               発注書ID
@@ -731,12 +918,12 @@ export default function Inventory() {
                             </th>
                           </tr>
                         </thead>
-                        <tbody className={`divide-y ${isDark ? 'divide-gray-700 bg-gray-800' : 'divide-gray-200 bg-white'}`}>
+                        <tbody className={`divide-y ${isDark ? 'divide-gray-700 bg-gray-900' : 'divide-gray-200 bg-white'}`}>
                           {paginatedMovements.map((movement) => (
                             <tr
                               key={movement.id}
                               className={`transition-colors ${
-                                isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+                                isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-50'
                               }`}
                             >
                               <td className="px-6 py-4 whitespace-nowrap">
@@ -843,15 +1030,16 @@ export default function Inventory() {
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleMovementClick(movement);
-                                  }}
-                                  className="text-blue-600 hover:text-blue-900"
-                                >
-                                  詳細
-                                </button>
+                                <InventoryActionDropdown
+                                  onInventoryAdjustment={handleInventoryAdjustment}
+                                  onCreateOrder={handleCreateOrder}
+                                  onOutboundOrder={handleOutboundOrder}
+                                  onViewHistory={() => handleViewHistory(movement)}
+                                  onExportPDF={handleExportPDF}
+                                  onProductSettings={handleProductSettings}
+                                  onShippingSettings={() => handleShippingSettings(movement)}
+                                  className="inline-block"
+                                />
                               </td>
                             </tr>
                           ))}
@@ -887,8 +1075,9 @@ export default function Inventory() {
                 </div>
               )}
             </div>
-          </div>
-        </ModernCard>
+              </div>
+            )}
+          </ModernCard>
         )}
 
         {/* 詳細モーダル */}
@@ -900,12 +1089,12 @@ export default function Inventory() {
               <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 在庫移動詳細
               </h3>
-              
+
               {/* デバッグ情報 */}
               <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
                 <pre>{JSON.stringify(selectedMovement, null, 2)}</pre>
               </div>
-              
+
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-500">商品名</label>
@@ -949,7 +1138,18 @@ export default function Inventory() {
             </div>
           </div>
         )}
-      </div>
+
+        {/* 送料設定モーダル */}
+        <ShippingSettingsModal
+          isOpen={showShippingModal}
+          onClose={() => {
+            setShowShippingModal(false);
+            setSelectedSupplier(null);
+          }}
+          supplierId={selectedSupplier?.id}
+          supplierName={selectedSupplier?.name}
+        />
+      </motion.div>
     </div>
   );
 }

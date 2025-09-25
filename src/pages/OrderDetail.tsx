@@ -14,6 +14,8 @@ interface OrderDetail {
   delivery_deadline?: string;
   order_manager_name?: string;
   order_manager_department?: string;
+  assigned_user_id?: string;
+  assigned_user_name?: string;
   ordered_amount: number;
   delivered_amount: number;
   remaining_amount: number;
@@ -49,7 +51,7 @@ export default function OrderDetail() {
     try {
       setLoading(true);
 
-      // 🚨 納期表示のため直接purchase_ordersテーブルから取得
+      // 🚨 purchase_ordersデータを取得
       const { data: orderDetailData, error } = await supabase
         .from('purchase_orders')
         .select(`
@@ -68,6 +70,17 @@ export default function OrderDetail() {
         `)
         .eq('id', orderId)
         .single();
+
+      // 🚨 assigned_userがある場合、別途user_profilesからデータを取得
+      let assignedUserData = null;
+      if (orderDetailData && orderDetailData.assigned_user_id) {
+        const { data: userData } = await supabase
+          .from('user_profiles')
+          .select('id, full_name')
+          .eq('id', orderDetailData.assigned_user_id)
+          .single();
+        assignedUserData = userData;
+      }
       
       if (error) {
         throw new Error(error.message || 'Failed to fetch order details');
@@ -106,6 +119,14 @@ export default function OrderDetail() {
         progress_status = '未納品';
       }
 
+      // デバッグログを追加
+      console.log('🔍 OrderDetail データ確認:', {
+        orderId,
+        assigned_user_id: orderDetailData.assigned_user_id,
+        assigned_user: assignedUserData,
+        order_no: orderDetailData.order_no
+      });
+
       // 発注基本情報を設定（分納実績反映）
       const orderInfo: OrderDetail = {
         purchase_order_id: orderDetailData.id,
@@ -116,6 +137,8 @@ export default function OrderDetail() {
         delivery_deadline: orderDetailData.delivery_deadline,
         order_manager_name: undefined, // TODO: order_managersテーブルとの関連付け
         order_manager_department: undefined,
+        assigned_user_id: orderDetailData.assigned_user_id,
+        assigned_user_name: assignedUserData?.full_name,
         ordered_amount,
         delivered_amount,
         remaining_amount,
@@ -241,6 +264,18 @@ export default function OrderDetail() {
                     {order.order_manager_department && (
                       <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>({order.order_manager_department})</p>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {order.assigned_user_name && (
+                <div className="flex items-center space-x-3">
+                  <div className={`p-2 rounded-lg ${isDark ? 'bg-indigo-900/20' : 'bg-indigo-50'}`}>
+                    <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <div>
+                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>担当者</p>
+                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{order.assigned_user_name}</p>
                   </div>
                 </div>
               )}

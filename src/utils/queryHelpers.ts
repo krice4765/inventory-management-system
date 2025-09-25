@@ -49,7 +49,7 @@ export const _isValidUUID = (str: string): boolean => {
 };
 
 // 安全なSupabaseクエリ実行 (将来の実装用)
-export const _executeSafeQuery = async <T>(
+export const executeSafeQuery = async <T>(
   queryBuilder: any,
   fallbackData: T[] = []
 ): Promise<T[]> => {

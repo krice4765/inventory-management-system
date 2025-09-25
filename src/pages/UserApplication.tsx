@@ -16,6 +16,7 @@ import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 
 interface ApplicationForm {
+  full_name: string;
   email: string;
   company_name: string;
   department: string;
@@ -25,6 +26,7 @@ interface ApplicationForm {
 
 export default function UserApplication() {
   const [formData, setFormData] = useState<ApplicationForm>({
+    full_name: '',
     email: '',
     company_name: '',
     department: '',
@@ -37,6 +39,12 @@ export default function UserApplication() {
 
   const validateForm = (): boolean => {
     const newErrors: Partial<ApplicationForm> = {};
+
+    if (!formData.full_name) {
+      newErrors.full_name = 'お名前は必須です';
+    } else if (formData.full_name.length < 2) {
+      newErrors.full_name = 'お名前は2文字以上で入力してください';
+    }
 
     if (!formData.email) {
       newErrors.email = 'メールアドレスは必須です';
@@ -116,8 +124,13 @@ export default function UserApplication() {
       }
 
       // 新規申請の送信（明示的にステータスを設定）
+      // full_nameを利用目的の最初に含める形で既存スキーマと互換性を保つ
       const applicationData = {
-        ...formData,
+        email: formData.email,
+        company_name: formData.company_name,
+        department: formData.department,
+        position: formData.position,
+        requested_reason: `【申請者名】${formData.full_name}\n\n【利用目的】\n${formData.requested_reason}`,
         application_status: 'pending',
         created_at: new Date().toISOString()
       };
@@ -271,6 +284,28 @@ export default function UserApplication() {
         </div>
 
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
+          {/* お名前 */}
+          <div>
+            <label htmlFor="full_name" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+              <User className="w-4 h-4 mr-2 text-blue-600" />
+              お名前 <span className="text-red-500 ml-1">*</span>
+            </label>
+            <input
+              type="text"
+              id="full_name"
+              name="full_name"
+              value={formData.full_name}
+              onChange={handleInputChange}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                errors.full_name ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              }`}
+              placeholder="山田 太郎"
+            />
+            {errors.full_name && (
+              <p className="text-red-500 text-sm mt-1">{errors.full_name}</p>
+            )}
+          </div>
+
           {/* メールアドレス */}
           <div>
             <label htmlFor="email" className="flex items-center text-sm font-medium text-gray-700 mb-2">

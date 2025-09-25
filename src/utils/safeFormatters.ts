@@ -126,7 +126,7 @@ export const safeStatusFormat = (status: unknown): string => {
   
   if (!status || status === 'null' || status === 'undefined' || 
       status === 'N/A' || status === '-') {
-    return '未確定';
+    return '下書き';
   }
   
   return statusMap[String(status).toLowerCase()] || String(status);

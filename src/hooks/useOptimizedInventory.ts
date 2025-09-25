@@ -91,7 +91,7 @@ export function useAllMovements(filters: MovementFilters = {}) {
     queryKey: stableQueryKey,
     enabled: true,
     queryFn: async () => {
-      console.log('🔄 全在庫移動データ取得開始:', { filters });
+      // 全在庫移動データ取得開始
 
       try {
         // Step 1: inventory_movementsデータを全件取得（transaction情報付き）
@@ -125,11 +125,7 @@ export function useAllMovements(filters: MovementFilters = {}) {
           // その日の開始時刻（00:00:00）
           const startDate = new Date(`${filters.startDate}T00:00:00`);
           const startDateTime = startDate.toISOString();
-          console.log('📅 開始日フィルター:', {
-            input: filters.startDate,
-            localDate: startDate.toString(),
-            isoString: startDateTime
-          });
+          // 開始日フィルター適用
           movementQuery = movementQuery.gte('created_at', startDateTime);
         }
 
@@ -138,11 +134,7 @@ export function useAllMovements(filters: MovementFilters = {}) {
           const endDate = new Date(`${filters.endDate}T00:00:00`);
           endDate.setDate(endDate.getDate() + 1); // 翌日の00:00:00
           const endDateTime = endDate.toISOString();
-          console.log('📅 終了日フィルター:', {
-            input: filters.endDate,
-            nextDay: endDate.toString(),
-            isoString: endDateTime
-          });
+          // 終了日フィルター適用
           movementQuery = movementQuery.lt('created_at', endDateTime); // ltに変更（未満）
         }
 
@@ -305,7 +297,7 @@ export function useAllMovements(filters: MovementFilters = {}) {
         const filteredMovements = filters.searchTerm && filters.searchTerm.trim()
           ? finalMovements.filter(m => {
               const searchLower = filters.searchTerm!.toLowerCase();
-              const nameMatch = m.products?.name?.toLowerCase().includes(searchLower);
+              const nameMatch = m.products?.product_name?.toLowerCase().includes(searchLower);
               const productNameMatch = m.products?.product_name?.toLowerCase().includes(searchLower);
               const codeMatch = m.products?.product_code?.toLowerCase().includes(searchLower);
               const memoMatch = m.memo?.toLowerCase().includes(searchLower);
@@ -317,8 +309,8 @@ export function useAllMovements(filters: MovementFilters = {}) {
         // 製品名でソートが必要な場合
         if (filters.sortBy === 'product_name') {
           filteredMovements.sort((a, b) => {
-            const nameA = a.products?.name || a.products?.product_name || '';
-            const nameB = b.products?.name || b.products?.product_name || '';
+            const nameA = a.products?.product_name || '';
+            const nameB = b.products?.product_name || '';
             return filters.sortOrder === 'asc'
               ? nameA.localeCompare(nameB)
               : nameB.localeCompare(nameA);
@@ -588,7 +580,7 @@ export function useInfiniteMovements(filters: MovementFilters = {}) {
         const filteredMovements = filters.searchTerm && filters.searchTerm.trim()
           ? movements.filter((m, idx) => {
               const searchLower = filters.searchTerm!.toLowerCase();
-              const nameMatch = m.products?.name?.toLowerCase().includes(searchLower);
+              const nameMatch = m.products?.product_name?.toLowerCase().includes(searchLower);
               const productNameMatch = m.products?.product_name?.toLowerCase().includes(searchLower);
               const codeMatch = m.products?.product_code?.toLowerCase().includes(searchLower);
               const memoMatch = m.memo?.toLowerCase().includes(searchLower);
@@ -599,7 +591,7 @@ export function useInfiniteMovements(filters: MovementFilters = {}) {
               if (idx < 5) {
                 console.log(`🔍 フィルタ処理中[${idx}]:`, {
                   product_name: m.products?.product_name,
-                  name: m.products?.name,
+                  name: m.products?.product_name,
                   searchTerm: filters.searchTerm,
                   nameMatch,
                   productNameMatch,
@@ -618,7 +610,7 @@ export function useInfiniteMovements(filters: MovementFilters = {}) {
           元の件数: movements.length,
           フィルタ後: filteredMovements.length,
           検索対象: movements.slice(0, 3).map(m => ({ 
-            name: m.products?.name, 
+            name: m.products?.product_name, 
             product_name: m.products?.product_name, 
             code: m.products?.product_code,
             memo: m.memo
@@ -628,10 +620,10 @@ export function useInfiniteMovements(filters: MovementFilters = {}) {
             const result = {
               index: idx,
               product_name: m.products?.product_name,
-              name: m.products?.name,
+              name: m.products?.product_name,
               code: m.products?.product_code,
               memo: m.memo,
-              includes_name: m.products?.name ? m.products.name.toLowerCase().includes(searchLower) : false,
+              includes_name: m.products?.product_name ? m.products.product_name.toLowerCase().includes(searchLower) : false,
               includes_product_name: m.products?.product_name ? m.products.product_name.toLowerCase().includes(searchLower) : false,
               includes_code: m.products?.product_code ? m.products.product_code.toLowerCase().includes(searchLower) : false,
               includes_memo: m.memo ? m.memo.toLowerCase().includes(searchLower) : false
@@ -644,8 +636,8 @@ export function useInfiniteMovements(filters: MovementFilters = {}) {
         // 製品名でソートが必要な場合
         if (filters.sortBy === 'product_name') {
           filteredMovements.sort((a, b) => {
-            const nameA = a.products?.name || a.products?.product_name || '';
-            const nameB = b.products?.name || b.products?.product_name || '';
+            const nameA = a.products?.product_name || '';
+            const nameB = b.products?.product_name || '';
             return filters.sortOrder === 'asc' 
               ? nameA.localeCompare(nameB)
               : nameB.localeCompare(nameA);

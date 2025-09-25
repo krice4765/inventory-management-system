@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Plus, FileText, Calendar, Search, X, Filter, Package, AlertCircle, TrendingUp, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useDeliveryModal } from '../stores/deliveryModal.store';
 import { DeliveryModal } from '../components/DeliveryModal';
@@ -9,14 +9,36 @@ import { DeliveryModal } from '../components/DeliveryModal';
 import { ModernCard } from '../components/ui/ModernCard';
 import { useOrders, useAllOrders, useInfiniteOrders, usePartners, type OrderFilters, type PurchaseOrder } from '../hooks/useOptimizedOrders';
 import SearchableSelect from '../components/SearchableSelect';
+import { getFirstProductName, formatQuantitySummary } from '../hooks/useOrderDetail';
+import { TaxDisplayToggle } from '../components/ui/TaxDisplayToggle';
+import { UnifiedStatusBadge, StatusWithProgress, StatusStatsDisplay } from '../components/ui/UnifiedStatusBadge';
+import { UnifiedOrderStatus, StatusStatsUtils, StatusFilterUtils } from '../utils/statusUtils';
+import { QuantitySummaryDisplay } from '../components/display/QuantitySummaryDisplay';
+import { AssignedUserDisplay } from '../components/display/AssignedUserDisplay';
+import { useOutboundManagement, type OutboundOrder } from '../hooks/useOutboundManagement';
+import { OutboundOrdersTab } from '../components/tabs/OutboundOrdersTab';
+import { useNavigate } from 'react-router-dom';
+
+// タブ定義
+type OrdersTab = 'orders' | 'outbound';
+
+const ORDERS_TABS = [
+  { id: 'orders' as const, label: '発注管理', icon: FileText },
+  { id: 'outbound' as const, label: '出庫管理', icon: TrendingUp }
+] as const;
 
 export default function Orders() {
   const { isDark } = useDarkMode();
   const openDeliveryModal = useDeliveryModal((state) => state.open);
-  
+
+  // タブ状態
+  const [activeTab, setActiveTab] = useState<OrdersTab>('orders');
+
+  const navigate = useNavigate();
+
   // フィルタ状態（クライアントサイド検索用）
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'undelivered' | 'partial' | 'completed' | 'cancelled'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | UnifiedOrderStatus>('all');
   const [dateRangeFilter, setDateRangeFilter] = useState<'all' | 'today' | 'week' | 'month' | 'overdue'>('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -29,9 +51,24 @@ export default function Orders() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(20);
 
-  // 全件データを使用（クライアントサイドページネーション）
+  const [taxDisplayMode, setTaxDisplayMode] = useState<'tax_included' | 'tax_excluded'>('tax_included');
+
+  // 発注管理データ（従来通り）
   const { data: allOrdersData, isLoading, error, refetch, isFetching } = useAllOrders({});
   const { data: partners = [] } = usePartners();
+
+  // 出庫管理データ（新規）
+  const {
+    outboundOrders,
+    isLoading: isOutboundLoading,
+    createOutboundOrder,
+    updateOutboundOrder,
+    deleteOutboundOrder,
+    allocateStock,
+    processShipment,
+    error: outboundError,
+    refetch: refetchOutbound
+  } = useOutboundManagement();
   
   // 全件データ
   const allOrders = allOrdersData?.data || [];
@@ -49,24 +86,9 @@ export default function Orders() {
           (order.partners?.partner_code?.toLowerCase() || '').includes(searchTerm.toLowerCase())
         );
 
-        // ステータスフィルタ（納品進捗ベース）
-        let matchesStatus = true;
-        if (statusFilter !== 'all') {
-          switch (statusFilter) {
-            case 'undelivered':
-              matchesStatus = order.delivery_progress === 0;
-              break;
-            case 'partial':
-              matchesStatus = order.delivery_progress > 0 && order.delivery_progress < 100;
-              break;
-            case 'completed':
-              matchesStatus = order.delivery_progress >= 100;
-              break;
-            case 'cancelled':
-              matchesStatus = order.status === 'cancelled';
-              break;
-          }
-        }
+        // ステータスフィルタ（統一ステータスシステム使用）
+        const matchesStatus = statusFilter === 'all' ||
+          StatusFilterUtils.filterByStatus([order], statusFilter).length > 0;
 
         // 仕入先フィルタ
         const matchesPartner = !partnerIdFilter || order.partner_id === partnerIdFilter;
@@ -155,31 +177,35 @@ export default function Orders() {
   const stats = useMemo(() => {
     const allOrdersForStats = allOrders; // 同じデータソースを使用
     const now = new Date();
+    const statusStats = StatusStatsUtils.calculateStatusStats(orders);
+
     return {
       totalOrders: allOrdersForStats.length, // 全件数を使用（52件）
       totalAmount: allOrdersForStats.reduce((sum, o) => sum + o.total_amount, 0),
       // delivery_progress >= 100 が納品完了の条件
       deliveredOrders: allOrdersForStats.filter(o => o.delivery_progress >= 100).length,
-      overdueOrders: allOrdersForStats.filter(o => 
+      overdueOrders: allOrdersForStats.filter(o =>
         new Date(o.delivery_deadline) < now && o.delivery_progress < 100
       ).length,
-      draftOrders: allOrdersForStats.filter(o => o.status === 'draft').length,
-      
-      // フィルタリング後の納品状況別統計
-      completed: orders.filter(order => order.delivery_progress >= 100).length,
-      partial: orders.filter(order => order.delivery_progress > 0 && order.delivery_progress < 100).length,
-      undelivered: orders.filter(order => order.delivery_progress === 0).length,
+
+      // 統一ステータス統計（分離管理）
+      undelivered: statusStats.undelivered,
+      partial: statusStats.partial,
+      completed: statusStats.completed,
+      cancelled: statusStats.cancelled,
     };
   }, [allOrders, orders]); // ordersも依存に追加
 
   // ページネーション計算（フィルタリング結果に基づく）
   const filteredTotalCount = orders.length; // フィルタリング後の件数
   const totalPages = Math.ceil(filteredTotalCount / pageSize);
-  
-  // 現在ページがフィルタリング後の総ページ数を超えている場合、1ページ目に戻す
-  if (currentPage > totalPages && totalPages > 0) {
-    setCurrentPage(1);
-  }
+
+  // 現在ページがフィルタリング後の総ページ数を超えている場合、1ページ目に戻す（useEffectで処理）
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
 
   // ページネーション適用済みの表示データ
   const paginatedOrders = useMemo(() => {
@@ -273,25 +299,42 @@ export default function Orders() {
     return 'bg-gray-300';
   };
 
+  // 第1商品名取得（0922Youken.md要件対応）
+  const getFirstProductName = (order: PurchaseOrder): string => {
+    if (order.first_product?.length > 0) {
+      const firstProduct = order.first_product[0];
+      return firstProduct.product_name?.product_name || '商品名取得中...';
+    }
+    return '商品なし';
+  };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen p-6 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500">
-        <div className="max-w-7xl mx-auto">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="p-6 space-y-8"
+        >
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
             <span className="text-lg text-gray-700 dark:text-gray-300 font-medium">
               発注データを読み込み中...
             </span>
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen p-6 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500">
-        <div className="max-w-7xl mx-auto">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="p-6 space-y-8"
+        >
           <div className="text-center py-12">
             <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
@@ -307,81 +350,331 @@ export default function Orders() {
               再試行
             </button>
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="p-6 space-y-8"
+      >
         {/* ヘッダー */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="p-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 shadow-lg">
-              <FileText className="h-8 w-8 text-white" />
+              {(() => {
+                const currentTab = ORDERS_TABS.find(tab => tab.id === activeTab);
+                const IconComponent = currentTab?.icon;
+                return IconComponent ? <IconComponent className="h-8 w-8 text-white" /> : <FileText className="h-8 w-8 text-white" />;
+              })()}
             </div>
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                発注管理
+                {activeTab === 'orders' ? '発注管理' : '出庫管理'}
               </h1>
               <p className="text-gray-600 dark:text-gray-400 font-medium">
-                仕入先への発注・納期管理・分納入荷処理
+                {activeTab === 'orders'
+                  ? '仕入先への発注・納期管理・分納入荷処理'
+                  : '在庫引当・出庫指示・出荷管理'
+                }
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
+            {/* 出庫管理タブの場合のアクションボタン */}
+            {activeTab === 'outbound' && (
+              <button
+                onClick={() => navigate('/outbound-orders/new')}
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+              >
+                <Plus className="h-4 w-4" />
+                <span>出庫指示作成</span>
+              </button>
+            )}
             <button
-              onClick={() => refetch()}
-              disabled={isFetching}
+              onClick={() => activeTab === 'orders' ? refetch() : refetchOutbound()}
+              disabled={activeTab === 'orders' ? isFetching : isOutboundLoading}
               className={`p-2 rounded-lg transition-colors ${
-                isFetching
+                (activeTab === 'orders' ? isFetching : isOutboundLoading)
                   ? 'text-gray-400 cursor-not-allowed'
                   : isDark
                     ? 'text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700'
                     : 'text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-100'
               }`}
             >
-              <RefreshCw className={`h-5 w-5 ${isFetching ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-5 w-5 ${(activeTab === 'orders' ? isFetching : isOutboundLoading) ? 'animate-spin' : ''}`} />
             </button>
-            
-            <Link
-              to="/orders/new"
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-              <span>新規発注</span>
-            </Link>
+
+            {activeTab === 'orders' && (
+              <Link
+                to="/orders/new"
+                className="group relative flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <div className="flex items-center justify-center w-5 h-5 bg-white bg-opacity-20 rounded-full group-hover:bg-opacity-30 transition-all duration-300">
+                  <Plus className="h-3 w-3" />
+                </div>
+                <span className="font-semibold text-base">新規発注</span>
+                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 rounded-xl transition-opacity duration-300" />
+              </Link>
+            )}
+
           </div>
         </div>
 
-        {/* 統計カード */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {statsCards.map((stat, index) => (
-            <ModernCard key={index} className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={`text-sm font-medium ${
-                    isDark ? 'text-gray-400' : 'text-gray-600'
-                  }`}>
-                    {stat.title}
-                  </p>
-                  <p className={`text-2xl font-bold ${
-                    isDark ? 'text-white' : 'text-gray-900'
-                  }`}>
-                    {stat.value}
-                  </p>
-                </div>
-                <div className={`p-3 rounded-full bg-${stat.color}-100`}>
-                  {stat.icon}
-                </div>
-              </div>
-            </ModernCard>
-          ))}
+        {/* タブナビゲーション */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="flex">
+            {ORDERS_TABS.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <motion.button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 flex items-center justify-center px-6 py-4 text-sm font-medium transition-all duration-200 relative ${
+                    isActive
+                      ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                  }`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Icon className="w-5 h-5 mr-2" />
+                  <span>{tab.label}</span>
+                  {isActive && (
+                    <motion.div
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400"
+                      layoutId="activeTab"
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  )}
+                </motion.button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* フィルターセクション */}
+        {/* タブコンテンツ */}
+        {activeTab === 'orders' && (
+          <>
+            {/* 発注管理統計カード */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              {/* 未納品 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.4, ease: 'easeOut' }}
+                whileHover={{
+                  scale: 1.02,
+                  transition: { duration: 0.2 }
+                }}
+                className={`
+                  relative group overflow-hidden rounded-xl p-6 cursor-pointer
+                  transition-all duration-300 ease-out
+                  ${isDark
+                    ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover:border-gray-600'
+                    : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg'
+                  }
+                `}
+              >
+                {/* 背景の装飾エフェクト */}
+                <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-orange-100 dark:bg-orange-900" />
+
+                {/* アクセントライン */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-orange-500" />
+
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className={`text-sm font-medium tracking-wide uppercase ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                      未納品
+                    </div>
+                    <div className="w-3 h-3 rounded-full bg-orange-500 shadow-sm" />
+                  </div>
+
+                  <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} group-hover:scale-105 transition-transform duration-200`}>
+                    {stats?.undelivered || 0}
+                  </div>
+
+                  {/* プログレスインジケーター */}
+                  <div className="mt-4">
+                    <div className={`h-1 rounded-full overflow-hidden ${
+                      isDark ? 'bg-gray-700' : 'bg-gray-200'
+                    }`}>
+                      <motion.div
+                        className="h-full bg-orange-500"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(100, ((stats?.undelivered || 0) / Math.max(1, stats?.totalOrders || 1)) * 100)}%` }}
+                        transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* 一部納品 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.4, ease: 'easeOut', delay: 0.1 }}
+                whileHover={{
+                  scale: 1.02,
+                  transition: { duration: 0.2 }
+                }}
+                className={`
+                  relative group overflow-hidden rounded-xl p-6 cursor-pointer
+                  transition-all duration-300 ease-out
+                  ${isDark
+                    ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover:border-gray-600'
+                    : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg'
+                  }
+                `}
+              >
+                {/* 背景の装飾エフェクト */}
+                <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-blue-100 dark:bg-blue-900" />
+
+                {/* アクセントライン */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-blue-500" />
+
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className={`text-sm font-medium tracking-wide uppercase ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                      一部納品
+                    </div>
+                    <div className="w-3 h-3 rounded-full bg-blue-500 shadow-sm" />
+                  </div>
+
+                  <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} group-hover:scale-105 transition-transform duration-200`}>
+                    {stats?.partial || 0}
+                  </div>
+
+                  {/* プログレスインジケーター */}
+                  <div className="mt-4">
+                    <div className={`h-1 rounded-full overflow-hidden ${
+                      isDark ? 'bg-gray-700' : 'bg-gray-200'
+                    }`}>
+                      <motion.div
+                        className="h-full bg-blue-500"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(100, ((stats?.partial || 0) / Math.max(1, stats?.totalOrders || 1)) * 100)}%` }}
+                        transition={{ duration: 1, delay: 0.3, ease: 'easeOut' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* 納品完了 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.4, ease: 'easeOut', delay: 0.2 }}
+                whileHover={{
+                  scale: 1.02,
+                  transition: { duration: 0.2 }
+                }}
+                className={`
+                  relative group overflow-hidden rounded-xl p-6 cursor-pointer
+                  transition-all duration-300 ease-out
+                  ${isDark
+                    ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover:border-gray-600'
+                    : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg'
+                  }
+                `}
+              >
+                {/* 背景の装飾エフェクト */}
+                <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-green-100 dark:bg-green-900" />
+
+                {/* アクセントライン */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-green-500" />
+
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className={`text-sm font-medium tracking-wide uppercase ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                      納品完了
+                    </div>
+                    <div className="w-3 h-3 rounded-full bg-green-500 shadow-sm" />
+                  </div>
+
+                  <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} group-hover:scale-105 transition-transform duration-200`}>
+                    {stats?.completed || 0}
+                  </div>
+
+                  {/* プログレスインジケーター */}
+                  <div className="mt-4">
+                    <div className={`h-1 rounded-full overflow-hidden ${
+                      isDark ? 'bg-gray-700' : 'bg-gray-200'
+                    }`}>
+                      <motion.div
+                        className="h-full bg-green-500"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(100, ((stats?.completed || 0) / Math.max(1, stats?.totalOrders || 1)) * 100)}%` }}
+                        transition={{ duration: 1, delay: 0.4, ease: 'easeOut' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* キャンセル */}
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.4, ease: 'easeOut', delay: 0.3 }}
+                whileHover={{
+                  scale: 1.02,
+                  transition: { duration: 0.2 }
+                }}
+                className={`
+                  relative group overflow-hidden rounded-xl p-6 cursor-pointer
+                  transition-all duration-300 ease-out
+                  ${isDark
+                    ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover:border-gray-600'
+                    : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg'
+                  }
+                `}
+              >
+                {/* 背景の装飾エフェクト */}
+                <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-red-100 dark:bg-red-900" />
+
+                {/* アクセントライン */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-red-500" />
+
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className={`text-sm font-medium tracking-wide uppercase ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                      キャンセル
+                    </div>
+                    <div className="w-3 h-3 rounded-full bg-red-500 shadow-sm" />
+                  </div>
+
+                  <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} group-hover:scale-105 transition-transform duration-200`}>
+                    {stats?.cancelled || 0}
+                  </div>
+
+                  {/* プログレスインジケーター */}
+                  <div className="mt-4">
+                    <div className={`h-1 rounded-full overflow-hidden ${
+                      isDark ? 'bg-gray-700' : 'bg-gray-200'
+                    }`}>
+                      <motion.div
+                        className="h-full bg-red-500"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(100, ((stats?.cancelled || 0) / Math.max(1, stats?.totalOrders || 1)) * 100)}%` }}
+                        transition={{ duration: 1, delay: 0.5, ease: 'easeOut' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* フィルターセクション */}
         <ModernCard className="p-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -684,12 +977,19 @@ export default function Orders() {
                         ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
                         : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
                     }`}>
-                      {filteredTotalCount === 0 
-                        ? '🔍 検索結果: 該当なし' 
+                      {filteredTotalCount === 0
+                        ? '🔍 検索結果: 該当なし'
                         : `🔍 検索結果: ${filteredTotalCount}件`
                       }
                     </div>
                   )}
+
+                  {/* 税表示切り替えコントロール */}
+                  <TaxDisplayToggle
+                    taxDisplayMode={taxDisplayMode}
+                    onToggle={setTaxDisplayMode}
+                    size="sm"
+                  />
                 </div>
                 <div className="flex items-center space-x-2 text-sm text-gray-500">
                   <FileText className="h-4 w-4" />
@@ -770,49 +1070,6 @@ export default function Orders() {
                   </div>
                 </div>
               )}
-              
-              {/* 納品状況別統計（改善されたレイアウト） */}
-              <div className={`grid grid-cols-3 gap-4 p-4 rounded-lg border ${
-                isDark 
-                  ? 'bg-gray-800/30 border-gray-700' 
-                  : 'bg-white border-gray-200 shadow-sm'
-              }`}>
-                <div className="flex items-center justify-center space-x-3 p-3 rounded-lg bg-red-50 dark:bg-red-900/20">
-                  <div className="w-4 h-4 bg-red-500 rounded-full shadow-sm"></div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-                      {stats?.undelivered || 0}
-                    </div>
-                    <div className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                      未納品
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-center space-x-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-                  <div className="w-4 h-4 bg-blue-500 rounded-full shadow-sm"></div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      {stats?.partial || 0}
-                    </div>
-                    <div className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                      一部納品
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-center space-x-3 p-3 rounded-lg bg-green-50 dark:bg-green-900/20">
-                  <div className="w-4 h-4 bg-green-500 rounded-full shadow-sm"></div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                      {stats?.completed || 0}
-                    </div>
-                    <div className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                      納品完了
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
 
             {filteredTotalCount === 0 ? (
@@ -833,150 +1090,295 @@ export default function Orders() {
               </div>
             ) : (
               <div className="space-y-4">
-                {paginatedOrders.map((order) => (
-                  <motion.div
-                    key={order.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`rounded-lg border p-6 transition-all duration-200 hover:shadow-md ${
-                      isDark 
-                        ? 'bg-gray-800 border-gray-700 hover:border-gray-600' 
-                        : 'bg-white border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      {/* 発注基本情報 */}
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <h4 className={`font-semibold text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            {order.order_no}
-                          </h4>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                            order.status === 'confirmed' ? 'bg-blue-100 text-blue-800' :
-                            order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {order.status === 'completed' ? '納品完了' :
-                             order.status === 'confirmed' ? '確定済み' :
-                             order.status === 'cancelled' ? 'キャンセル' : '未確定'}
-                          </span>
-                        </div>
-                        
-                        <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                          <div className="flex items-center space-x-2 mb-1">
-                            <span className="font-medium">仕入先:</span>
-                            <span>{order.partners.name}</span>
-                          </div>
-                          <div className="flex items-center space-x-2 mb-1">
-                            <span className="font-medium">発注日:</span>
-                            <span>{new Date(order.created_at).toLocaleDateString('ja-JP')}</span>
-                          </div>
-                          <div className="flex items-center space-x-2 mb-1">
-                            <Calendar className="h-4 w-4" />
-                            <span>納期: {new Date(order.delivery_deadline).toLocaleDateString('ja-JP')}</span>
-                            {order.is_overdue && (
-                              <AlertCircle className="h-4 w-4 text-red-500" />
-                            )}
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <span className="font-medium">発注額:</span>
-                            <span className="font-semibold">¥{order.total_amount.toLocaleString()}</span>
-                          </div>
-                        </div>
-                      </div>
+                {/* 新しいテーブル形式の発注一覧 */}
+                <div className="overflow-x-auto">
+                <table className={`w-full min-w-full table-auto ${
+                  isDark ? 'bg-gray-900' : 'bg-white'
+                }`}>
+                  <thead className={`${
+                    isDark ? 'bg-gray-800' : 'bg-gray-50'
+                  }`}>
+                    <tr>
+                      <th className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider ${
+                        isDark ? 'text-gray-300' : 'text-gray-500'
+                      }`} style={{width: '15%'}}>
+                        仕入先
+                      </th>
+                      <th className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider ${
+                        isDark ? 'text-gray-300' : 'text-gray-500'
+                      }`} style={{width: '12%'}}>
+                        発注番号
+                      </th>
+                      <th className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider ${
+                        isDark ? 'text-gray-300' : 'text-gray-500'
+                      }`} style={{width: '9%'}}>
+                        納期日
+                      </th>
+                      <th className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider ${
+                        isDark ? 'text-gray-300' : 'text-gray-500'
+                      }`} style={{width: '14%'}}>
+                        商品名
+                      </th>
+                      <th className={`px-3 py-2 text-right text-xs font-medium uppercase tracking-wider ${
+                        isDark ? 'text-gray-300' : 'text-gray-500'
+                      }`} style={{width: '10%'}}>
+                        数量合計
+                      </th>
+                      <th className={`px-6 py-2 text-center text-xs font-medium uppercase tracking-wider ${
+                        isDark ? 'text-gray-300' : 'text-gray-500'
+                      }`} style={{width: '12%'}}>
+                        担当者
+                      </th>
+                      <th className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider ${
+                        isDark ? 'text-gray-300' : 'text-gray-500'
+                      }`} style={{width: '8%'}}>
+                        発注日
+                      </th>
+                      <th className={`px-3 py-2 text-center text-xs font-medium uppercase tracking-wider ${
+                        isDark ? 'text-gray-300' : 'text-gray-500'
+                      }`} style={{width: '10%'}}>
+                        ステータス
+                      </th>
+                      <th className={`px-3 py-2 text-center text-xs font-medium uppercase tracking-wider ${
+                        isDark ? 'text-gray-300' : 'text-gray-500'
+                      }`} style={{width: '11%'}}>
+                        操作
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className={`${isDark ? 'bg-gray-900' : 'bg-white'} divide-y ${
+                    isDark ? 'divide-gray-700' : 'divide-gray-200'
+                  }`}>
+                    {paginatedOrders.map((order) => {
+                      // 納期緊急度判定（7日以内をJST基準で赤色表示）
+                      const deliveryDate = new Date(order.delivery_deadline);
+                      const today = new Date();
+                      const daysUntilDelivery = Math.ceil((deliveryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                      const isUrgent = daysUntilDelivery <= 7 && daysUntilDelivery >= 0;
 
-                      {/* 分納進捗情報 */}
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                            分納進捗
-                          </span>
-                          <span className={`text-sm font-medium ${
-                            getProgressStatus(order) === '納品完了' ? 'text-green-600' :
-                            getProgressStatus(order) === '一部納品' ? 'text-blue-600' :
-                            order.is_overdue ? 'text-red-600' :
-                            isDark ? 'text-gray-400' : 'text-gray-600'
-                          }`}>
-                            {getProgressStatus(order)}{order.is_overdue && order.delivery_progress < 100 ? ' (納期遅れ)' : ''}
-                          </span>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(order)}`}
-                              style={{ width: `${Math.min(order.delivery_progress, 100)}%` }}
-                            ></div>
-                          </div>
-                          
-                          <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                            <div className="flex justify-between">
-                              <span>納品済: ¥{order.delivered_amount.toLocaleString()}</span>
-                              <span>{order.delivery_progress.toFixed(1)}%</span>
+                      return (
+                        <motion.tr
+                          key={order.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`transition-all duration-200 ${
+                            isDark
+                              ? 'hover:bg-gray-800'
+                              : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          {/* 仕入先 */}
+                          <td className={`px-3 py-2 text-sm ${
+                            isDark ? 'text-gray-300' : 'text-gray-900'
+                          }`} style={{width: '15%'}}>
+                            <div>
+                              <div className="font-medium text-sm truncate">{order.partners.name}</div>
+                              <div className={`text-xs ${
+                                isDark ? 'text-gray-400' : 'text-gray-500'
+                              }`}>
+                                {order.partners.partner_code}
+                              </div>
                             </div>
-                            <div className="flex justify-between">
-                              <span>残り: ¥{order.remaining_amount.toLocaleString()}</span>
-                              <span>分納回数: {order.delivery_count}回</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                          </td>
 
-                      {/* アクション */}
-                      <div className="flex flex-col justify-between space-y-3">
-                        <div className="space-y-2">
-                          {order.latest_delivery_date && (
-                            <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                              最終分納: {new Date(order.latest_delivery_date).toLocaleString('ja-JP')}
+                          {/* 発注番号（クリックで明細確認モーダル） */}
+                          <td className={`px-3 py-2 whitespace-nowrap text-sm font-medium ${
+                            isDark ? 'text-white' : 'text-gray-900'
+                          }`} style={{width: '12%'}}>
+                            <Link
+                              to={`/purchase-orders/${order.id}`}
+                              className="text-blue-600 hover:text-blue-800 transition-colors"
+                              title="クリックで発注明細を確認"
+                            >
+                              {order.order_no}
+                            </Link>
+                          </td>
+
+                          {/* 納期日 */}
+                          <td className={`px-3 py-2 whitespace-nowrap text-sm ${
+                            isUrgent
+                              ? 'text-red-600 font-semibold'
+                              : order.is_overdue
+                                ? 'text-red-500 font-medium'
+                                : isDark ? 'text-gray-300' : 'text-gray-900'
+                          }`} style={{width: '9%'}}>
+                            <div className="text-xs">
+                              {new Date(order.delivery_deadline).toLocaleDateString('ja-JP')}
+                              {(isUrgent || order.is_overdue) && (
+                                <AlertCircle className="h-3 w-3 text-red-500 inline ml-1" />
+                              )}
                             </div>
-                          )}
-                        </div>
-                        
-                        <div className="flex space-x-2">
-                          {/* 分納登録ボタン */}
-                          <button
-                            onClick={() => openDeliveryModal(order.id, 'partial')}
-                            disabled={order.status === 'cancelled' || order.delivery_progress >= 100}
-                            className={`flex-1 px-2 py-2 text-xs rounded-md transition-colors ${
-                              (order.status !== 'cancelled' && order.delivery_progress < 100)
-                                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            }`}
-                          >
-                            分納登録
-                          </button>
-                          
-                          {/* 全納登録ボタン */}
-                          <button
-                            onClick={() => openDeliveryModal(order.id, 'full')}
-                            disabled={order.status === 'cancelled' || order.delivery_progress >= 100}
-                            className={`flex-1 px-2 py-2 text-xs rounded-md transition-colors ${
-                              (order.status !== 'cancelled' && order.delivery_progress < 100)
-                                ? 'bg-green-600 text-white hover:bg-green-700'
-                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            }`}
-                          >
-                            全納登録
-                          </button>
-                          <Link
-                            to={`/orders/${order.id}`}
-                            className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                          >
-                            詳細
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
+                          </td>
+
+                          {/* 商品名（第1商品名のみ表示、クリック→明細確認モーダル） */}
+                          <td className={`px-3 py-2 text-sm ${
+                            isDark ? 'text-gray-300' : 'text-gray-900'
+                          }`} style={{width: '14%'}}>
+                            <div className="truncate">
+                              <Link
+                                to={`/purchase-orders/${order.id}`}
+                                className="text-left truncate hover:text-blue-600 transition-colors"
+                                title="クリックで全明細を確認"
+                              >
+                                {getFirstProductName(order)}
+                              </Link>
+                            </div>
+                          </td>
+
+                          {/* 数量合計（税込/税抜表示統一対応） */}
+                          <td className={`px-3 py-2 whitespace-nowrap text-sm text-right ${
+                            isDark ? 'text-gray-300' : 'text-gray-900'
+                          }`} style={{width: '10%'}}>
+                            {/* 実際の商品明細データ表示 */}
+                            <QuantitySummaryDisplay orderId={order.id} totalAmount={order.total_amount} />
+                          </td>
+
+                          {/* 発注担当者 */}
+                          <td className={`px-6 py-2 whitespace-nowrap text-sm text-center ${
+                            isDark ? 'text-gray-300' : 'text-gray-900'
+                          }`} style={{width: '12%'}}>
+                            {/* 実際の担当者データ表示 */}
+                            <AssignedUserDisplay userId={order.assigned_user_id} />
+                          </td>
+
+                          {/* 発注日 */}
+                          <td className={`px-3 py-2 whitespace-nowrap text-sm ${
+                            isDark ? 'text-gray-300' : 'text-gray-900'
+                          }`} style={{width: '8%'}}>
+                            <div className="text-xs">
+                              {new Date(order.created_at).toLocaleDateString('ja-JP')}
+                            </div>
+                          </td>
+
+                          {/* ステータス（4種類統一：未納品/一部納品/納品完了/キャンセル） */}
+                          <td className="px-3 py-2 whitespace-nowrap text-center" style={{width: '10%'}}>
+                            {(() => {
+                              // モダンなステータス表示（Inventory/Outboundページの色合いを参考）
+                              const getOrderStatusDisplay = () => {
+                                if (order.status === 'cancelled') {
+                                  return {
+                                    label: 'キャンセル',
+                                    textColor: 'text-red-800 dark:text-red-200',
+                                    bgColor: 'bg-red-100 dark:bg-red-900',
+                                    progressColor: 'bg-red-500'
+                                  };
+                                }
+
+                                if (order.delivery_progress >= 100) {
+                                  return {
+                                    label: '納品完了',
+                                    textColor: 'text-green-800 dark:text-green-200',
+                                    bgColor: 'bg-green-100 dark:bg-green-900',
+                                    progressColor: 'bg-green-500'
+                                  };
+                                }
+
+                                if (order.delivery_progress > 0) {
+                                  return {
+                                    label: '一部納品',
+                                    textColor: 'text-blue-800 dark:text-blue-200',
+                                    bgColor: 'bg-blue-100 dark:bg-blue-900',
+                                    progressColor: 'bg-blue-500'
+                                  };
+                                }
+
+                                return {
+                                  label: '未納品',
+                                  textColor: 'text-orange-800 dark:text-orange-200',
+                                  bgColor: 'bg-orange-100 dark:bg-orange-900',
+                                  progressColor: 'bg-orange-500'
+                                };
+                              };
+
+                              const statusDisplay = getOrderStatusDisplay();
+
+                              return (
+                                <div className="flex items-center space-x-3">
+                                  {/* モダンなステータスバッジ */}
+                                  <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-semibold ${statusDisplay.bgColor} ${statusDisplay.textColor} transition-all duration-200 hover:shadow-sm`}>
+                                    {statusDisplay.label}
+                                  </span>
+
+                                  {/* 進捗表示（キャンセル以外） */}
+                                  {order.status !== 'cancelled' && (
+                                    <div className="flex items-center space-x-2">
+                                      <span className={`text-xs font-medium ${
+                                        isDark ? 'text-gray-400' : 'text-gray-600'
+                                      }`}>
+                                        進捗
+                                      </span>
+                                      <span className={`text-xs font-semibold ${statusDisplay.textColor}`}>
+                                        {order.delivery_progress.toFixed(1)}%
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </td>
+
+                          {/* 操作 */}
+                          <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-center" style={{width: '11%'}}>
+                            <div className="flex justify-center space-x-1">
+                              <button
+                                onClick={() => openDeliveryModal(order.id, 'partial')}
+                                disabled={order.status === 'cancelled' || order.delivery_progress >= 100}
+                                className={`px-1 py-0.5 text-xs rounded transition-colors ${
+                                  (order.status !== 'cancelled' && order.delivery_progress < 100)
+                                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                }`}
+                              >
+                                分納
+                              </button>
+                              <button
+                                onClick={() => openDeliveryModal(order.id, 'full')}
+                                disabled={order.status === 'cancelled' || order.delivery_progress >= 100}
+                                className={`px-1 py-0.5 text-xs rounded transition-colors ${
+                                  (order.status !== 'cancelled' && order.delivery_progress < 100)
+                                    ? 'bg-green-600 text-white hover:bg-green-700'
+                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                }`}
+                              >
+                                全納
+                              </button>
+                            </div>
+                          </td>
+                        </motion.tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                </div>
               </div>
             )}
           </div>
         </ModernCard>
-      </div>
+        </>
+        )}
+
+        {/* 出庫管理タブ */}
+        {activeTab === 'outbound' && (
+          <OutboundOrdersTab
+            outboundOrders={outboundOrders || []}
+            isLoading={isOutboundLoading}
+            error={outboundError}
+            createOutboundOrder={createOutboundOrder}
+            updateOutboundOrder={updateOutboundOrder}
+            deleteOutboundOrder={deleteOutboundOrder}
+            allocateStock={allocateStock}
+            processShipment={processShipment}
+            taxDisplayMode={taxDisplayMode}
+            isDark={isDark}
+          />
+        )}
+
+
+      </motion.div>
 
       <DeliveryModal />
+
+
     </div>
   );
 }

@@ -199,6 +199,7 @@ export interface AddInstallmentParams {
   status?: TransactionStatus;
   dueDate?: string;
   memo?: string;
+  quantities?: { [productId: string]: number };
 }
 
 export interface InstallmentResult {
@@ -215,6 +216,69 @@ export interface InstallmentResult {
 }
 
 export async function addPurchaseInstallment(params: AddInstallmentParams): Promise<InstallmentResult> {
+  // 商品情報が含まれている場合はcreate_installment_v3を使用
+  if (params.quantities && Object.keys(params.quantities).length > 0) {
+    // 発注商品情報を取得してitems配列を構築
+    const { data: orderItems, error: itemsError } = await supabase
+      .from('purchase_order_items')
+      .select(`
+        id, product_id, quantity, unit_price, total_amount
+      `)
+      .eq('purchase_order_id', params.parentOrderId);
+
+    if (itemsError) throw itemsError;
+
+    // 選択された商品情報を構築
+    const items = Object.entries(params.quantities)
+      .filter(([productId, quantity]) => quantity > 0)
+      .map(([_productId, quantity]) => {
+        const orderItem = orderItems?.find(item => item.product_id === productId);
+        if (orderItem) {
+          // 実際の分納単価を計算（分納金額 / 総数量）
+          const totalSelectedQuantity = Object.values(params.quantities).reduce((sum: number, qty: number) => sum + qty, 0);
+          const actualUnitPrice = Math.round(params.amount / totalSelectedQuantity);
+          return {
+            product_id: productId,
+            quantity: quantity,
+            unit_price: actualUnitPrice,
+            total_amount: actualUnitPrice * quantity
+          };
+        }
+        return null;
+      }).filter(item => item !== null);
+
+    // V3関数で商品情報付き分納を作成
+    const { data, error } = await supabase.rpc('create_installment_v3', {
+      p_parent_order_id: params.parentOrderId,
+      p_partner_id: null, // 発注から自動取得
+      p_transaction_date: new Date().toISOString().split('T')[0],
+      p_due_date: params.dueDate || new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
+      p_total_amount: params.amount,
+      p_memo: params.memo || '',
+      p_items: items.length > 0 ? items : null
+    });
+
+    if (error) throw error;
+    if (!data || !data.success) {
+      throw new Error(data?.error || '商品情報付き分納の作成に失敗しました');
+    }
+
+    // V3結果をInstallmentResult形式に変換
+    return {
+      id: data.id,
+      parent_order_id: params.parentOrderId,
+      installment_no: data.installment_no,
+      transaction_no: data.transaction_no,
+      status: params.status || 'draft',
+      total_amount: params.amount,
+      memo: params.memo || null,
+      transaction_date: new Date().toISOString().split('T')[0],
+      due_date: params.dueDate || new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
+      created_at: data.created_at
+    } as InstallmentResult;
+  }
+
+  // 既存のV2関数を使用（商品情報なし）
   const { data, error } = await supabase.rpc('add_purchase_installment_v2', {
     p_parent_order_id: params.parentOrderId,
     p_amount: params.amount,
@@ -229,6 +293,5 @@ export async function addPurchaseInstallment(params: AddInstallmentParams): Prom
     throw new Error('分納の追加に失敗しました');
   }
 
-  // 統一されたadd_purchase_installment関数の戻り値形式に対応
   return data as InstallmentResult;
 }

@@ -4,7 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 
 import { useAddInstallmentModal } from '../stores/addInstallmentModal.store'
-import { useOrderForInstallment } from '../hooks/useOrderForInstallment'
+import { useOrderWithProducts } from '../hooks/useOrderWithProducts'
 import { useAddInstallment } from '../hooks/useTransactions'
 import { InstallmentProgress } from './InstallmentProgress'
 
@@ -13,6 +13,8 @@ interface InstallmentFormData {
   status: 'draft' | 'confirmed'
   dueDate?: string
   memo?: string
+  quantities: { [productId: string]: number }
+  includeProducts: boolean
 }
 
 const createInstallmentSchema = (maxAmount: number) =>
@@ -34,13 +36,19 @@ const createInstallmentSchema = (maxAmount: number) =>
       .string()
       .max(200, '備考は200文字以内で入力してください')
       .optional(),
+    quantities: yup
+      .object()
+      .optional(),
+    includeProducts: yup
+      .boolean()
+      .optional(),
   })
 
 export const AddInstallmentModal = () => {
   const { isOpen, selectedOrderId, close } = useAddInstallmentModal()
   const addInstallmentMutation = useAddInstallment()
   
-  const { data: orderData, isLoading, isError, error, refetch } = useOrderForInstallment(selectedOrderId)
+  const { data: orderData, isLoading, isError, error, refetch } = useOrderWithProducts(selectedOrderId)
   
   // モーダルが開いたときに最新のデータを取得
   React.useEffect(() => {
@@ -56,21 +64,34 @@ export const AddInstallmentModal = () => {
 
   const form = useForm<InstallmentFormData>({
     resolver: orderData ? yupResolver(createInstallmentSchema(orderData.remaining_amount)) : undefined,
-    defaultValues: { 
-      amount: orderData?.remaining_amount || 0, 
+    defaultValues: {
+      amount: orderData?.remaining_amount || 0,
       status: 'draft',
       dueDate: defaultDueDateString,
-      memo: '' 
+      memo: '',
+      quantities: {},
+      includeProducts: true  // 商品情報を常に含めるようにデフォルト値をtrueに変更
     },
     mode: 'onChange',
   })
 
-  // 残額が変わったときにデフォルト金額を更新
+  // 残額が変わったときにデフォルト金額と商品数量を更新
   React.useEffect(() => {
     if (orderData && orderData.remaining_amount > 1) {
       form.setValue('amount', orderData.remaining_amount, { shouldValidate: true })
+
+      // 全残額の場合は、すべての商品の未納品数量を設定
+      const remainingQuantities: { [productId: string]: number } = {}
+      orderData.products.forEach(product => {
+        const remainingQty = product.quantity - product.delivered_quantity
+        if (remainingQty > 0) {
+          remainingQuantities[product.product_id] = remainingQty
+        }
+      })
+      form.setValue('quantities', remainingQuantities, { shouldValidate: true })
     } else if (orderData && orderData.remaining_amount === 0) {
       form.setValue('amount', 0, { shouldValidate: true })
+      form.setValue('quantities', {}, { shouldValidate: true })
     }
   }, [orderData, form])
   
@@ -81,7 +102,9 @@ export const AddInstallmentModal = () => {
         amount: 0,
         status: 'draft',
         dueDate: defaultDueDateString,
-        memo: ''
+        memo: '',
+        quantities: {},
+        includeProducts: true  // リセット時も商品情報を含める
       })
     }
   }, [isOpen, form, defaultDueDateString])
@@ -91,6 +114,35 @@ export const AddInstallmentModal = () => {
     if (!orderData) return
     const amount = Math.floor(orderData.remaining_amount * percentage)
     form.setValue('amount', amount, { shouldValidate: true })
+  }
+
+  // 商品数量変更ハンドラ
+  const handleQuantityChange = (productId: string, quantity: number) => {
+    const currentQuantities = form.getValues('quantities') || {}
+    const newQuantities = { ...currentQuantities, [productId]: quantity }
+    form.setValue('quantities', newQuantities, { shouldValidate: true })
+
+    // 商品情報が選択されている場合、金額を自動計算
+    if (form.getValues('includeProducts')) {
+      const totalAmount = Object.entries(newQuantities)
+        .filter(([_, qty]) => qty > 0)
+        .reduce((sum, [productId, qty]) => {
+          const product = orderData?.products.find(p => p.product_id === productId)
+          return sum + (product ? product.unit_price * qty : 0)
+        }, 0)
+
+      if (totalAmount > 0) {
+        form.setValue('amount', totalAmount, { shouldValidate: true })
+      }
+    }
+  }
+
+  // 商品情報含有モード切り替え
+  const toggleProductMode = (include: boolean) => {
+    form.setValue('includeProducts', include, { shouldValidate: true })
+    if (!include) {
+      form.setValue('quantities', {}, { shouldValidate: true })
+    }
   }
 
   const handleSubmit = async (data: InstallmentFormData) => {
@@ -120,6 +172,7 @@ export const AddInstallmentModal = () => {
         status: data.status,
         dueDate: data.dueDate,
         memo: data.memo,
+        quantities: data.includeProducts ? data.quantities : undefined,
       })
       
       form.reset()
@@ -235,17 +288,85 @@ export const AddInstallmentModal = () => {
                   </div>
                 </div>
 
+                {/* 商品情報選択モード */}
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                  <label className="flex items-center mb-3">
+                    <input
+                      type="checkbox"
+                      checked={form.watch('includeProducts')}
+                      onChange={(e) => toggleProductMode(e.target.checked)}
+                      className="mr-2"
+                    />
+                    <span className="font-medium text-gray-700">商品情報を指定して分納</span>
+                  </label>
+
+                  {form.watch('includeProducts') && orderData && (
+                    <div className="space-y-3">
+                      <p className="text-sm text-gray-600 mb-3">
+                        分納する商品と数量を指定してください。金額は自動計算されます。
+                      </p>
+                      {orderData.products.map(product => (
+                        <div key={product.product_id} className="flex items-center justify-between bg-white p-3 rounded border">
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">
+                              {product.product_name}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {product.product_code} - ¥{product.unit_price.toLocaleString()} / 個
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              発注数量: {product.quantity}個
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm text-gray-600">数量:</span>
+                            <input
+                              type="number"
+                              min="0"
+                              max={product.quantity}
+                              value={form.watch('quantities')?.[product.product_id] || 0}
+                              onChange={(e) => handleQuantityChange(product.product_id, parseInt(e.target.value) || 0)}
+                              className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                            />
+                            <span className="text-sm text-gray-600">個</span>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* 商品選択時の合計表示 */}
+                      {Object.values(form.watch('quantities') || {}).some(qty => qty > 0) && (
+                        <div className="bg-blue-50 p-3 rounded border border-blue-200">
+                          <p className="text-sm text-blue-700 font-medium">
+                            選択商品合計: ¥{Object.entries(form.watch('quantities') || {})
+                              .filter(([_, qty]) => qty > 0)
+                              .reduce((sum, [productId, qty]) => {
+                                const product = orderData.products.find(p => p.product_id === productId)
+                                return sum + (product ? product.unit_price * qty : 0)
+                              }, 0).toLocaleString()}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 {/* 分納金額入力 */}
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     分納金額 <span className="text-red-500">*</span>
+                    {form.watch('includeProducts') && (
+                      <span className="text-sm text-blue-600 ml-2">(商品選択時は自動計算)</span>
+                    )}
                   </label>
                   <input
                     type="number"
                     step="1"
                     {...form.register('amount', { valueAsNumber: true })}
+                    disabled={form.watch('includeProducts')}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       form.formState.errors.amount ? 'border-red-300' : 'border-gray-300'
+                    } ${
+                      form.watch('includeProducts') ? 'bg-gray-100 cursor-not-allowed' : ''
                     }`}
                     placeholder="0"
                   />
@@ -269,7 +390,7 @@ export const AddInstallmentModal = () => {
                         {...form.register('status')}
                         className="mr-2"
                       />
-                      <span className="text-sm">未確定</span>
+                      <span className="text-sm">下書き</span>
                     </label>
                     <label className="flex items-center">
                       <input

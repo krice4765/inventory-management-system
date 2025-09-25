@@ -1,0 +1,42 @@
+素晴らしい！制約の修正が成功しました。'initial'値が使用可能になりました。
+
+● ✅ 制約修正完了！
+
+  新しい制約で許可される値（10種類）:
+  - 既存データ対応: 'in', 'out'
+  - Day 7-8 新仕様: 'purchase', 'sale', 'adjustment', 'transfer', 'return', 'loss', 'initial', 'outbound'
+
+  テスト確認: 'initial'値は使用可能 ✅
+
+  🚀 初期データ投入実行
+
+  これで元の初期在庫移動記録作成クエリを実行できます：
+
+  -- 初期在庫移動記録の作成（existing stock）
+  INSERT INTO inventory_movements (
+      product_id,
+      movement_type,
+      quantity,
+      unit_cost,
+      reference_type,
+      memo,
+      is_confirmed,
+      created_by
+  )
+  SELECT
+      p.id,
+      'initial',
+      COALESCE(p.current_stock, 0),
+      COALESCE(p.standard_price, 0),
+      'initial_migration',
+      'Day 7-8 初期在庫データ移行',
+      true,
+      (SELECT id FROM auth.users LIMIT 1)
+  FROM products p
+  WHERE COALESCE(p.current_stock, 0) > 0
+  AND NOT EXISTS (
+      SELECT 1 FROM inventory_movements im
+      WHERE im.product_id = p.id AND im.movement_type = 'initial'
+  );
+
+  このクエリを実行して、初期在庫データの投入を完了してください。エラーが解決されているはずです！

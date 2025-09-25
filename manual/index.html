@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>統合業務管理システム 操作マニュアル</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            color: white;
+            margin: -20px -20px 40px -20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+        }
+
+        .toc h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc li {
+            margin: 8px 0;
+        }
+
+        .toc a {
+            color: #555;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .toc a:hover {
+            color: #667eea;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 4px solid #667eea;
+        }
+
+        .section h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section h3 {
+            color: #444;
+            font-size: 1.3em;
+            margin: 25px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .icon {
+            font-size: 1.2em;
+            margin-right: 10px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .feature-card h4 {
+            color: #28a745;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .feature-card p {
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-item h4 {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .stat-item .value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .workflow {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .workflow h4 {
+            color: #d63031;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .workflow ol {
+            color: #2d3436;
+            padding-left: 20px;
+        }
+
+        .workflow li {
+            margin: 8px 0;
+            font-weight: 500;
+        }
+
+        .alert {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+
+        .alert.info {
+            background: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+            border-left-color: #17a2b8;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+            border-left-color: #28a745;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 500;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .screenshot {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .screenshot img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .screenshot p {
+            margin-top: 10px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📊 統合業務管理システム</h1>
+            <p>Web UI 操作マニュアル v2.0</p>
+        </header>
+
+        <div class="toc">
+            <h2>📖 目次</h2>
+            <ul>
+                <li><a href="#overview">システム概要</a></li>
+                <li><a href="#login">ログイン・認証</a></li>
+                <li><a href="#dashboard">ダッシュボード</a></li>
+                <li><a href="#products">商品管理</a></li>
+                <li><a href="#inventory">在庫管理</a></li>
+                <li><a href="#orders">発注管理</a></li>
+                <li><a href="#partners">取引先管理</a></li>
+                <li><a href="#advanced">高度な機能</a></li>
+                <li><a href="#workflow">完全な作業例</a></li>
+                <li><a href="#troubleshooting">困った時の解決方法</a></li>
+            </ul>
+        </div>
+
+        <section id="overview" class="section">
+            <h2><span class="icon">🏢</span>このシステムについて</h2>
+            <p>このシステムは、会社の商品・在庫・注文・取引先をまとめて管理できるWebサイトです。</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>📦 商品管理</h4>
+                    <p>商品の登録や値段の設定、在庫の最低ラインを決めることができます</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📈 在庫管理</h4>
+                    <p>今ある商品の数を確認したり、商品の出入りを記録できます</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🛒 発注管理</h4>
+                    <p>商品を注文したり、少しずつ納品されるときの管理ができます</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🤝 取引先管理</h4>
+                    <p>商品を仕入れる会社や売る相手の連絡先を管理できます</p>
+                </div>
+            </div>
+
+            <div class="alert info">
+                <strong>💡 便利な点:</strong> すべての情報は自動で更新されるので、いつでも最新の状態を見ることができます。
+            </div>
+
+            <h3>🌟 実際の使い方の例</h3>
+            <div class="workflow">
+                <h4>📋 お店を運営する場合の一日の流れ</h4>
+                <ol>
+                    <li><strong>朝</strong>: ダッシュボードで昨日の売上と在庫不足をチェック</li>
+                    <li><strong>午前</strong>: 在庫が少ない商品があれば取引先に発注</li>
+                    <li><strong>午後</strong>: 商品が届いたら分納入力で在庫を更新</li>
+                    <li><strong>夕方</strong>: 売れた商品を出庫処理で在庫から減らす</li>
+                    <li><strong>夜</strong>: ダッシュボードで今日の結果を確認</li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="login" class="section">
+            <h2><span class="icon">🔐</span>ログイン・はじめ方</h2>
+
+            <h3>ログインの手順</h3>
+            <div class="workflow">
+                <h4>🚀 最初にやること</h4>
+                <ol>
+                    <li>インターネットでこのシステムのサイトを開く</li>
+                    <li>「ログイン」ボタンを押す</li>
+                    <li>あなたのメールアドレスとパスワードを入力</li>
+                    <li>「ログイン」ボタンを押して中に入る</li>
+                </ol>
+            </div>
+
+            <div class="alert">
+                <strong>⚠️ 大切なこと:</strong> パスワードは8文字以上で、数字とアルファベットを混ぜて作ってください。
+            </div>
+
+            <h3>🔑 パスワードを忘れた時</h3>
+            <div class="workflow">
+                <h4>パスワードの作り直し</h4>
+                <ol>
+                    <li>ログイン画面で「パスワードを忘れた方」をクリック</li>
+                    <li>メールアドレスを入力</li>
+                    <li>送られてきたメールのリンクをクリック</li>
+                    <li>新しいパスワードを設定</li>
+                </ol>
+            </div>
+
+            <h3>安全な機能</h3>
+            <ul>
+                <li>✅ 安全なログインシステム</li>
+                <li>✅ 時間が経つと自動でログアウト</li>
+                <li>✅ パスワードの作り直しができる</li>
+                <li>✅ 不正アクセスを防ぐ仕組み</li>
+            </ul>
+        </section>
+
+        <section id="dashboard" class="section">
+            <h2><span class="icon">📊</span>ダッシュボード</h2>
+            <p>ログイン後、最初に表示される画面です。システム全体の概要をリアルタイムで確認できます。</p>
+
+            <h3>表示される情報</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h4>📋 総発注数</h4>
+                    <div class="value">当月作成した発注の件数</div>
+                </div>
+                <div class="stat-item">
+                    <h4>🔄 進行中発注</h4>
+                    <div class="value">まだ完了していない分納案件数</div>
+                </div>
+                <div class="stat-item">
+                    <h4>⚠️ 低在庫アラート</h4>
+                    <div class="value">在庫不足の商品数</div>
+                </div>
+                <div class="stat-item">
+                    <h4>💰 今月の取引額</h4>
+                    <div class="value">当月の取引総額</div>
+                </div>
+            </div>
+
+            <h3>分納進捗KPI</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>📈 完了率</h4>
+                    <p>全発注に対する完了案件の割合（進捗バー表示）</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📦 アクティブ発注</h4>
+                    <p>現在進行中の発注案件数</p>
+                </div>
+                <div class="feature-card">
+                    <h4>💰 月間分納金額</h4>
+                    <p>当月の分納実績金額</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📅 平均分納日数</h4>
+                    <p>発注から初回分納までの平均日数</p>
+                </div>
+            </div>
+
+            <h3>週次活動比較</h3>
+            <p>各機能での今週と先週の活動件数を比較表示します。</p>
+
+            <div class="alert success">
+                <strong>🔄 リアルタイム更新:</strong> 「更新」ボタンをクリックすると最新データを取得できます。
+            </div>
+        </section>
+
+        <section id="products" class="section">
+            <h2><span class="icon">📦</span>商品管理</h2>
+
+            <h3>主な機能</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>➕ 商品登録</h4>
+                    <p>新しい商品の基本情報、価格、在庫レベルを登録</p>
+                </div>
+                <div class="feature-card">
+                    <h4>✏️ 商品編集</h4>
+                    <p>既存商品の情報更新、価格変更、在庫設定変更</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🔍 商品検索</h4>
+                    <p>商品名、コード、カテゴリでの高速検索</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📊 在庫状況</h4>
+                    <p>リアルタイム在庫数、最小在庫レベルアラート</p>
+                </div>
+            </div>
+
+            <h3>商品を登録する手順</h3>
+            <div class="workflow">
+                <h4>📝 新しい商品を追加する</h4>
+                <ol>
+                    <li>左のメニューから「商品管理」をクリック</li>
+                    <li>「新しい商品を追加」ボタンをクリック</li>
+                    <li>商品の基本情報を入力（商品名、商品番号、説明）</li>
+                    <li>値段を設定（仕入れ値段、売値）</li>
+                    <li>在庫の情報を設定（今ある数、最低限必要な数）</li>
+                    <li>「保存」ボタンを押して完了</li>
+                </ol>
+            </div>
+
+            <h3>📋 実際の例：「コピー用紙A4」を登録する場合</h3>
+            <div class="workflow">
+                <h4>入力する内容の例</h4>
+                <ol>
+                    <li><strong>商品名</strong>: コピー用紙A4</li>
+                    <li><strong>商品番号</strong>: COPY-A4-001</li>
+                    <li><strong>説明</strong>: 白色A4サイズのコピー用紙500枚入り</li>
+                    <li><strong>仕入れ値段</strong>: 400円</li>
+                    <li><strong>売値</strong>: 500円</li>
+                    <li><strong>今ある数</strong>: 50箱</li>
+                    <li><strong>最低限必要な数</strong>: 10箱</li>
+                </ol>
+            </div>
+
+            <div class="alert">
+                <strong>📋 必ず入力すること:</strong> 商品名、商品番号、売値、最低限必要な数は必ず入力してください。
+            </div>
+        </section>
+
+        <section id="inventory" class="section">
+            <h2><span class="icon">📈</span>在庫管理</h2>
+
+            <h3>機能概要</h3>
+            <p>リアルタイムでの在庫追跡と入出庫履歴管理を行います。</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>📊 在庫一覧</h4>
+                    <p>全商品の現在庫数、在庫評価額の一覧表示</p>
+                </div>
+                <div class="feature-card">
+                    <h4>⚡ クイック移動</h4>
+                    <p>入庫・出庫・移動・調整の高速処理</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📋 移動履歴</h4>
+                    <p>全ての在庫移動の詳細履歴と追跡</p>
+                </div>
+                <div class="feature-card">
+                    <h4>⚠️ アラート管理</h4>
+                    <p>低在庫・過剰在庫のアラート機能</p>
+                </div>
+            </div>
+
+            <h3>在庫を動かす方法</h3>
+            <div class="workflow">
+                <h4>📦 在庫の増減をする手順</h4>
+                <ol>
+                    <li>左のメニューから「在庫管理」をクリック</li>
+                    <li>動かしたい商品を選ぶ</li>
+                    <li>「クイック移動」ボタンをクリック</li>
+                    <li>何をするかを選ぶ（入庫/出庫/移動/調整）</li>
+                    <li>数と理由を入力</li>
+                    <li>「実行」ボタンを押して完了</li>
+                </ol>
+            </div>
+
+            <h3>📋 実際の例：商品が売れた時の処理</h3>
+            <div class="workflow">
+                <h4>コピー用紙A4を5箱売った場合</h4>
+                <ol>
+                    <li>在庫管理画面で「コピー用紙A4」を探す</li>
+                    <li>その行の「クイック移動」ボタンをクリック</li>
+                    <li>「出庫」を選ぶ</li>
+                    <li>数量に「5」と入力</li>
+                    <li>理由に「販売のため」と入力</li>
+                    <li>「実行」ボタンを押す</li>
+                    <li>在庫が50箱から45箱に自動で変わる</li>
+                </ol>
+            </div>
+
+            <div class="alert info">
+                <strong>🔄 便利な機能:</strong> 在庫を動かすと、すぐにダッシュボードの数字も変わります。
+            </div>
+        </section>
+
+        <section id="orders" class="section">
+            <h2><span class="icon">🛒</span>発注管理</h2>
+
+            <h3>発注システムの特徴</h3>
+            <p>分納対応の高度な発注管理システムです。</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>📋 発注書作成</h4>
+                    <p>取引先別の発注書作成、複数商品対応</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🔄 分納管理</h4>
+                    <p>部分納入対応、進捗率自動計算</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📊 進捗追跡</h4>
+                    <p>リアルタイム分納状況、完了率表示</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📦 分納入力</h4>
+                    <p>部分的な商品受入処理、在庫自動更新</p>
+                </div>
+            </div>
+
+            <h3>注文を作る手順</h3>
+            <div class="workflow">
+                <h4>📝 新しい注文を作る</h4>
+                <ol>
+                    <li>「発注管理」→「新規発注」をクリック</li>
+                    <li>注文先の会社を選ぶ</li>
+                    <li>注文する商品を追加（商品・数・値段）</li>
+                    <li>いつまでに欲しいかと支払い方法を決める</li>
+                    <li>「発注書作成」で注文完了</li>
+                    <li>注文番号が自動でつく</li>
+                </ol>
+            </div>
+
+            <h3>📋 実際の例：コピー用紙100箱を注文する場合</h3>
+            <div class="workflow">
+                <h4>A商事からコピー用紙を注文</h4>
+                <ol>
+                    <li>「発注管理」→「新規発注」をクリック</li>
+                    <li>取引先で「A商事」を選ぶ</li>
+                    <li>「商品を追加」をクリック</li>
+                    <li>「コピー用紙A4」を選んで、数量「100」、単価「400」と入力</li>
+                    <li>納期を「2024年10月1日」に設定</li>
+                    <li>支払い条件を「月末締め翌月末払い」に設定</li>
+                    <li>「発注書作成」ボタンを押す</li>
+                    <li>「PO240920001」のような注文番号ができる</li>
+                </ol>
+            </div>
+
+            <h3>商品が届いた時の処理</h3>
+            <div class="workflow">
+                <h4>📦 少しずつ届く商品の管理</h4>
+                <ol>
+                    <li>発注一覧から届いた注文を選ぶ</li>
+                    <li>「分納入力」ボタンをクリック</li>
+                    <li>実際に届いた商品と数を確認して入力</li>
+                    <li>届いた日を設定</li>
+                    <li>「分納実行」で処理完了</li>
+                    <li>在庫と進み具合が自動で更新される</li>
+                </ol>
+            </div>
+
+            <h3>📋 実際の例：コピー用紙が30箱だけ先に届いた場合</h3>
+            <div class="workflow">
+                <h4>100箱注文のうち30箱が先に到着</h4>
+                <ol>
+                    <li>発注一覧で「PO240920001」を探してクリック</li>
+                    <li>「分納入力」ボタンをクリック</li>
+                    <li>商品「コピー用紙A4」の分納数量に「30」と入力</li>
+                    <li>分納日を今日の日付に設定</li>
+                    <li>「分納実行」ボタンを押す</li>
+                    <li>在庫が自動で30箱増える</li>
+                    <li>注文の進み具合が30%と表示される</li>
+                </ol>
+            </div>
+
+            <div class="alert success">
+                <strong>✅ 便利な機能:</strong> 商品が届くと在庫も自動で増えて、注文がどれくらい進んでいるかも自動で計算されます。
+            </div>
+        </section>
+
+        <section id="partners" class="section">
+            <h2><span class="icon">🤝</span>取引先管理</h2>
+
+            <h3>取引先機能</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🏢 基本情報管理</h4>
+                    <p>会社名、住所、連絡先、担当者情報</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📋 取引履歴</h4>
+                    <p>過去の発注履歴、取引金額統計</p>
+                </div>
+                <div class="feature-card">
+                    <h4>💰 支払条件</h4>
+                    <p>支払サイト、支払方法、与信管理</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📊 取引分析</h4>
+                    <p>取引先別売上、利益率分析</p>
+                </div>
+            </div>
+
+            <h3>取引先登録手順</h3>
+            <div class="workflow">
+                <h4>🏢 新規取引先登録</h4>
+                <ol>
+                    <li>「取引先管理」メニューをクリック</li>
+                    <li>「新しい取引先を追加」をクリック</li>
+                    <li>基本情報を入力（会社名、住所、電話番号）</li>
+                    <li>担当者情報を入力</li>
+                    <li>取引条件を設定（支払サイト、与信限度額）</li>
+                    <li>「保存」ボタンで登録完了</li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="advanced" class="section">
+            <h2><span class="icon">⚙️</span>高度な機能</h2>
+
+            <h3>システム設定</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🌙 ダークモード</h4>
+                    <p>目に優しいダークテーマへの切り替え</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🔄 リアルタイム同期</h4>
+                    <p>複数ユーザー間でのデータ即座同期</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📱 レスポンシブ</h4>
+                    <p>PC・タブレット・スマートフォン対応</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🚀 高速検索</h4>
+                    <p>インクリメンタル検索、フィルタ機能</p>
+                </div>
+            </div>
+
+            <h3>パフォーマンス機能</h3>
+            <ul>
+                <li>✅ 仮想化テーブル（大量データ対応）</li>
+                <li>✅ 無限スクロール</li>
+                <li>✅ キャッシュ最適化</li>
+                <li>✅ 遅延ローディング</li>
+            </ul>
+
+            <div class="alert info">
+                <strong>💡 Tips:</strong> 大量データでもスムーズに動作するよう最適化されています。
+            </div>
+        </section>
+
+        <section id="workflow" class="section">
+            <h2><span class="icon">🌟</span>完全な作業例</h2>
+            <p>実際の業務の流れに沿って、システムの使い方を説明します。</p>
+
+            <h3>🏪 例：文房具店の1日の業務</h3>
+            <div class="workflow">
+                <h4>📅 月曜日の朝：週の始まり</h4>
+                <ol>
+                    <li><strong>8:00 システムにログイン</strong>
+                        <br>→ メールアドレスとパスワードでログイン
+                    </li>
+                    <li><strong>8:05 ダッシュボードで状況確認</strong>
+                        <br>→ 低在庫アラートで「ボールペン」が3本しかないことを発見
+                        <br>→ 今月の売上と進行中の注文数をチェック
+                    </li>
+                    <li><strong>8:10 在庫確認</strong>
+                        <br>→ 在庫管理で「ボールペン」の詳細を確認
+                        <br>→ 最低10本必要なのに3本しかない状態
+                    </li>
+                    <li><strong>8:15 緊急発注</strong>
+                        <br>→ 発注管理→新規発注で「文具商事」にボールペン50本を注文
+                        <br>→ 納期を「明日」に設定
+                    </li>
+                </ol>
+            </div>
+
+            <div class="workflow">
+                <h4>📅 火曜日の午後：商品到着</h4>
+                <ol>
+                    <li><strong>14:00 商品到着</strong>
+                        <br>→ ボールペン30本が先に届く（残り20本は明日）
+                    </li>
+                    <li><strong>14:05 分納入力</strong>
+                        <br>→ 発注一覧から昨日の注文を選択
+                        <br>→ 分納入力で「30本」と入力
+                        <br>→ 在庫が3本から33本に自動更新
+                    </li>
+                    <li><strong>14:10 売上処理</strong>
+                        <br>→ お客様がボールペン5本購入
+                        <br>→ 在庫管理で出庫処理「5本 販売のため」
+                        <br>→ 在庫が33本から28本に変更
+                    </li>
+                </ol>
+            </div>
+
+            <div class="workflow">
+                <h4>📅 水曜日の朝：残り商品到着と新規取引先</h4>
+                <ol>
+                    <li><strong>9:00 残り商品到着</strong>
+                        <br>→ ボールペン20本が到着
+                        <br>→ 分納入力で「20本」と入力
+                        <br>→ 注文の進捗が100%完了に
+                    </li>
+                    <li><strong>9:30 新しい取引先登録</strong>
+                        <br>→ 新しい文具メーカー「ABC文具」と取引開始
+                        <br>→ 取引先管理で会社情報と支払い条件を登録
+                    </li>
+                    <li><strong>10:00 新商品登録</strong>
+                        <br>→ ABC文具から新しいマーカーペンが入荷予定
+                        <br>→ 商品管理で「蛍光マーカー黄色」を登録
+                        <br>→ 仕入れ値150円、売値200円、最低在庫5本で設定
+                    </li>
+                </ol>
+            </div>
+
+            <h3>💡 この例で学べること</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>📊 状況把握</h4>
+                    <p>ダッシュボードで問題を早期発見</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🚨 迅速対応</h4>
+                    <p>在庫不足を即座に注文で解決</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📦 自動連携</h4>
+                    <p>分納入力で在庫が自動更新</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🔄 リアルタイム</h4>
+                    <p>すべての操作が即座に反映</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="troubleshooting" class="section">
+            <h2><span class="icon">🔧</span>困った時の解決方法</h2>
+
+            <h3>よくある問題と解決方法</h3>
+
+            <div class="workflow">
+                <h4>🔄 ページが読み込まれない</h4>
+                <ol>
+                    <li>ブラウザのページ更新（F5キー）</li>
+                    <li>ブラウザキャッシュのクリア</li>
+                    <li>インターネット接続確認</li>
+                    <li>ブラウザの再起動</li>
+                </ol>
+            </div>
+
+            <div class="workflow">
+                <h4>🔐 ログインできない</h4>
+                <ol>
+                    <li>メールアドレス・パスワードの再確認</li>
+                    <li>Caps Lockの確認</li>
+                    <li>パスワードリセット機能の利用</li>
+                    <li>管理者への連絡</li>
+                </ol>
+            </div>
+
+            <div class="workflow">
+                <h4>📊 データが表示されない</h4>
+                <ol>
+                    <li>「更新」ボタンをクリック</li>
+                    <li>フィルタ設定の確認</li>
+                    <li>権限設定の確認</li>
+                    <li>システム管理者への報告</li>
+                </ol>
+            </div>
+
+            <h3>推奨ブラウザ</h3>
+            <ul>
+                <li>✅ Google Chrome（最新版）</li>
+                <li>✅ Mozilla Firefox（最新版）</li>
+                <li>✅ Microsoft Edge（最新版）</li>
+                <li>✅ Safari（最新版）</li>
+            </ul>
+
+            <div class="alert">
+                <strong>⚠️ 注意:</strong> Internet Explorer はサポートされていません。
+            </div>
+
+            <h3>サポート情報</h3>
+            <p>問題が解決しない場合は、以下の情報を含めてサポートチームまでご連絡ください：</p>
+            <ul>
+                <li>発生した日時</li>
+                <li>使用ブラウザとバージョン</li>
+                <li>エラーメッセージ（スクリーンショット推奨）</li>
+                <li>操作手順</li>
+            </ul>
+        </section>
+
+        <footer class="footer">
+            <p>📧 サポート: Krice4765104@gmail.com | 📞 電話: 08041381004</p>
+            <p>© 2024 統合業務管理システム. All rights reserved.</p>
+            <p><small>最終更新: 2025年9月20日 | Version 2.0</small></p>
+        </footer>
+    </div>
+</body>
+</html>

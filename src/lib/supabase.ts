@@ -556,7 +556,7 @@ export class SupabaseHelper {
       return undefined;
     },
 
-    // 🚨 強化版発注一覧取得API（未確定フィルター完全対応）
+    // 🚨 強化版発注一覧取得API（下書きフィルター完全対応）
     async getPurchaseOrdersStable(params?: {
       q?: string;
       status?: 'all' | 'draft' | 'confirmed' | 'completed';
@@ -571,10 +571,10 @@ export class SupabaseHelper {
         .order('created_at', { ascending: false })
         .limit(limit);
 
-      // 🚨 強化されたステータスフィルター（未確定対応）
+      // 🚨 強化されたステータスフィルター（下書き対応）
       if (params?.status && params.status !== 'all') {
         if (params.status === 'draft') {
-          // 未確定 = confirmed以外のすべて
+          // 下書き = confirmed以外のすべて
           query = query.neq('status', 'confirmed');
         } else {
           query = query.eq('status', params.status);
@@ -783,53 +783,6 @@ export class SupabaseHelper {
 
 export const db = SupabaseHelper;
 
-// WebUIコンソール用グローバル変数設定（本番環境完全対応版）
-if (typeof window !== 'undefined') {
-  const setupGlobals = () => {
-    (window as any).supabase = supabase;
-    (window as any).__supabase = supabase; // エイリアス
-    (window as any).__db = db;
-    console.log('✅ window.supabase グローバル変数設定完了');
-    console.log('✅ window.__db ヘルパークラス設定完了');
-    console.log('🎯 WebUIコンソールでのデータ操作が可能になりました');
-  };
+// WebUIコンソール用グローバル変数設定（本番環境では削除済み）
 
-  // 即座実行
-  setupGlobals();
-
-  // DOM読み込み完了後の再設定（確実性向上）
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupGlobals, { once: true });
-  }
-
-  // 本番環境対策の遅延実行（バンドル読み込み順対策）
-  setTimeout(setupGlobals, 100);
-  setTimeout(setupGlobals, 1000);
-
-  // 統合接続テスト（遅延実行）
-  setTimeout(async () => {
-    try {
-      const { count, error } = await supabase
-        .from('purchase_orders')
-        .select('count', { count: 'exact', head: true });
-
-      if (error) {
-        console.error('❌ Supabase接続テストエラー:', error.message);
-      } else {
-        console.log('✅ Supabase接続テスト成功');
-        console.log(`📊 発注データ件数: ${count || 0}件`);
-        console.log('🚀 システム準備完了');
-        
-        // 自動診断実行
-        db.runDiagnostics().then(result => {
-          if (result.success) {
-            console.log('🎯 システム診断完了！');
-            console.log('📋 window.__db.runDiagnostics() で詳細確認可能');
-          }
-        }).catch(e => console.warn('⚠️ 診断例外:', e));
-      }
-    } catch (testError) {
-      console.error('❌ 接続テスト実行エラー:', testError);
-    }
-  }, 1500);
-}
+// 統合接続テスト（本番環境では削除済み）

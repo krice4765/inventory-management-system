@@ -15,7 +15,9 @@ export interface PurchaseOrder {
   status: 'draft' | 'confirmed' | 'completed' | 'cancelled';
   created_at: string;
   updated_at: string;
+  assigned_user_id?: string;
   partners: Partner;
+  first_product?: Array<{ product_name: { product_name: string } }>;
   // 計算フィールド
   delivered_amount: number;
   remaining_amount: number;
@@ -41,7 +43,6 @@ const getOrdersWithDeliveryProgress = async (
   page: number,
   filters: OrderFilters = {}
 ) => {
-  console.log('🔄 発注データ取得開始:', { page, filters });
 
   // メインクエリ - JOINとサブクエリで一度に取得
   let query = supabase
@@ -55,9 +56,13 @@ const getOrdersWithDeliveryProgress = async (
       status,
       created_at,
       updated_at,
+      assigned_user_id,
       partners!purchase_orders_partner_id_fkey (
         name,
         partner_code
+      ),
+      first_product:purchase_order_items(
+        product_name:products(product_name)
       )
     `)
     .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
@@ -65,11 +70,9 @@ const getOrdersWithDeliveryProgress = async (
   // フィルタ適用
   if (filters.searchTerm) {
     const searchTerm = filters.searchTerm.trim();
-    console.log('🔍 検索条件:', { searchTerm, filters });
     if (searchTerm) {
       // シンプルな発注番号検索のみ（安全な実装）
       query = query.ilike('order_no', `%${searchTerm}%`);
-      console.log('🔍 検索クエリ適用:', `order_no.ilike.%${searchTerm}%`);
     }
   }
 
@@ -117,17 +120,7 @@ const getOrdersWithDeliveryProgress = async (
     throw error;
   }
 
-  // データベースの実際の発注数をログ出力
-  console.log('🔍 SQLクエリ結果詳細:', {
-    取得件数: orders?.length || 0,
-    totalCount: count,
-    最新発注: orders?.slice(0, 2).map(o => ({ 
-      id: o.id.substring(0, 8), 
-      orderNo: o.order_no, 
-      createdAt: o.created_at 
-    })),
-    timestamp: new Date().toLocaleTimeString()
-  });
+  // データベースの実際の発注数をログ出力（削除済み）
 
   if (!orders || orders.length === 0) {
     return {
@@ -182,12 +175,6 @@ const getOrdersWithDeliveryProgress = async (
     };
   });
 
-  console.log('✅ 発注データ処理完了:', {
-    page,
-    orders: ordersWithProgress.length,
-    hasDeliveries: deliveries?.length || 0,
-  });
-
   return {
     data: ordersWithProgress,
     nextCursor: orders.length === PAGE_SIZE ? page + 1 : undefined,
@@ -210,12 +197,10 @@ export function useInfiniteOrders(filters: OrderFilters = {}) {
 
 // 統計用全件発注データ取得（ダッシュボード専用）
 export function useAllOrders(filters: OrderFilters = {}) {
-  console.log('🔄 useAllOrders called with filters:', filters);
   
   return useQuery({
     queryKey: ['orders-all', JSON.stringify(filters)],
     queryFn: async () => {
-      console.log('🔄 useAllOrders queryFn executing...');
       
       // ページ制限なしで全件取得するための特別な実装
       let query = supabase
@@ -229,9 +214,13 @@ export function useAllOrders(filters: OrderFilters = {}) {
           status,
           created_at,
           updated_at,
+          assigned_user_id,
           partners!purchase_orders_partner_id_fkey (
             name,
             partner_code
+          ),
+          first_product:purchase_order_items(
+            product_name:products(product_name)
           )
         `);
 
@@ -287,10 +276,7 @@ export function useAllOrders(filters: OrderFilters = {}) {
         throw error;
       }
 
-      console.log('🔍 全発注データ取得結果:', {
-        取得件数: orders?.length || 0,
-        timestamp: new Date().toLocaleTimeString()
-      });
+      // Debug log removed
 
       // 分納実績を一括取得（必要に応じて）
       if (!orders || orders.length === 0) {
@@ -343,7 +329,6 @@ export function useAllOrders(filters: OrderFilters = {}) {
         };
       });
 
-      console.log('✅ 全発注データ処理完了:', ordersWithProgress.length);
 
       return {
         data: ordersWithProgress,
@@ -359,17 +344,11 @@ export function useAllOrders(filters: OrderFilters = {}) {
 
 // ページネーション対応の発注データ取得（一覧表示用）
 export function useOrders(filters: OrderFilters = {}) {
-  console.log('🔄 useOrders called with filters:', filters);
   
   return useQuery({
     queryKey: ['orders-page', JSON.stringify(filters)], // JSON文字列化でキー統一
     queryFn: async () => {
-      console.log('🔄 useOrders queryFn executing...');
       const result = await getOrdersWithDeliveryProgress(0, filters);
-      console.log('✅ useOrders queryFn result:', { 
-        count: result.data?.length || 0,
-        timestamp: new Date().toLocaleTimeString()
-      });
       return result;
     },
     staleTime: 0, // キャッシュ無効化で確実な更新
@@ -434,16 +413,7 @@ export function useOrderStats(filters: OrderFilters = {}) {
         return acc;
       }, {} as Record<string, number>) || {};
       
-      console.log('📊 発注ステータス分析:', {
-        totalCount: count,
-        dataLength: orders?.length || 0,
-        statusBreakdown: statusCounts,
-        latestOrders: orders?.slice(0, 3).map(o => ({ 
-          id: o.id.substring(0, 8),
-          status: o.status,
-          created_at: o.created_at 
-        }))
-      });
+      // Debug log removed
 
       const now = new Date();
       const stats = {

@@ -32,9 +32,9 @@ export function useTransactionsByPartner(
       
       // 🚨 強化されたフィルター条件（memo_actionの指示通り）
       if (filters) {
-        // ステータスフィルター（未確定対応）
+        // ステータスフィルター（下書き対応）
         if (filters.status === 'unconfirmed') {
-          searchParams.status = 'draft'; // 未確定 → draft
+          searchParams.status = 'draft'; // 下書き → draft
         } else if (filters.status === 'confirmed') {
           searchParams.status = 'confirmed';
         } else if (filters.status && filters.status !== 'all') {

@@ -136,6 +136,7 @@ function App() {
                           }
                         />
 
+
                         {/* 低優先度ルート（遅延ローディング） */}
                         <Route
                           path="/partners"
@@ -178,6 +179,24 @@ function App() {
                           element={
                             <Suspense fallback={<LazyLoadingSpinner message="新規受注画面を読み込み中..." />}>
                               <LazyComponents.OrderNew />
+                            </Suspense>
+                          }
+                        />
+
+                        <Route
+                          path="/outbound-orders"
+                          element={
+                            <Suspense fallback={<LazyLoadingSpinner message="出庫指示管理を読み込み中..." />}>
+                              <LazyComponents.OutboundOrders />
+                            </Suspense>
+                          }
+                        />
+
+                        <Route
+                          path="/outbound-orders/new"
+                          element={
+                            <Suspense fallback={<LazyLoadingSpinner message="新規出庫指示作成を読み込み中..." />}>
+                              <LazyComponents.OutboundOrderNew />
                             </Suspense>
                           }
                         />

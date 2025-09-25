@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Package, Warehouse, Users, FileText, LogOut, Sparkles, Menu, X, BarChart3, Shield, Settings, UserCog } from 'lucide-react';
+import { Home, Package, Warehouse, Users, FileText, LogOut, Sparkles, Menu, X, BarChart3, Shield, Settings, UserCog, TrendingDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -27,7 +27,7 @@ export default function Sidebar() {
         .from('user_profiles')
         .select('role, is_active')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.warn('Sidebar: データベース権限チェック失敗、フォールバック認証を使用:', error.message);

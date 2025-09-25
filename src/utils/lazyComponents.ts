@@ -16,6 +16,14 @@ export const Orders = lazy(() =>
   import('../pages/Orders').then(module => ({ default: module.default }))
 );
 
+export const OutboundOrders = lazy(() =>
+  import('../pages/OutboundOrders').then(module => ({ default: module.default }))
+);
+
+export const OutboundOrderNew = lazy(() =>
+  import('../pages/OutboundOrderNew').then(module => ({ default: module.default }))
+);
+
 // 低優先度コンポーネント（管理画面・詳細画面）
 export const Partners = lazy(() =>
   import('../pages/Partners').then(module => ({ default: module.default }))
@@ -63,4 +71,29 @@ export const UserManagement = lazy(() =>
 
 export const UserApplication = lazy(() =>
   import('../pages/UserApplication').then(module => ({ default: module.default }))
+);
+
+// モーダルコンポーネント
+export const ModernOutboundOrderDetailModal = lazy(() =>
+  import('../components/modals/ModernOutboundOrderDetailModal').then(module => ({ default: module.default }))
+);
+
+export const InventoryAllocationModal = lazy(() =>
+  import('../components/modals/InventoryAllocationModal').then(module => ({ default: module.default }))
+);
+
+export const OutboundOrderEditModal = lazy(() =>
+  import('../components/modals/OutboundOrderEditModal').then(module => ({ default: module.default }))
+);
+
+export const ModernShippingProcessModal = lazy(() =>
+  import('../components/modals/ModernShippingProcessModal').then(module => ({ default: module.default }))
+);
+
+export const ModernDeleteConfirmationModal = lazy(() =>
+  import('../components/modals/ModernDeleteConfirmationModal').then(module => ({ default: module.default }))
+);
+
+export const CreateOutboundOrderModal = lazy(() =>
+  import('../components/modals/CreateOutboundOrderModal').then(module => ({ default: module.default }))
 );

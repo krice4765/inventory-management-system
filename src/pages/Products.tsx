@@ -1,172 +1,209 @@
-import { useState, useEffect, useMemo } from 'react';
-import { supabase } from '../lib/supabase';
-import { Plus, Edit, Trash2, Package, RefreshCw, Filter, Sparkles } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { UniversalFilters } from '../components/shared/UniversalFilters';
-import { safeYenFormat } from '../utils/safeFormatters';
-import { useDarkMode } from '../hooks/useDarkMode';
-import { motion } from 'framer-motion';
-import { ModernCard } from '../components/ui/ModernCard';
-
-interface Product {
-  id: string;
-  product_name: string;
-  product_code: string;
-  category: string;
-  standard_price: number;  // 🚨 修正: purchase_price → standard_price
-  selling_price: number;
-  current_stock: number;
-  min_stock_level: number;
-  created_at: string;
-}
+import { useState, useEffect, useMemo } from "react";
+import { supabase } from "../lib/supabase";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Package,
+  RefreshCw,
+  Filter,
+  Sparkles,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import { UniversalFilters } from "../components/shared/UniversalFilters";
+import { safeYenFormat } from "../utils/safeFormatters";
+import { useDarkMode } from "../hooks/useDarkMode";
+import { motion } from "framer-motion";
+import { ModernCard } from "../components/ui/ModernCard";
+import {
+  useProductTaxCategories,
+  TaxCategory,
+} from "../hooks/useTaxCalculation";
+import { fetchProductsWithDynamicStock, ProductWithDynamicStock } from "../utils/inventoryCalculation";
 
 export default function Products() {
   const { isDark, toggle: toggleDarkMode } = useDarkMode();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductWithDynamicStock[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState<ProductWithDynamicStock | null>(null);
   const [filters, setFilters] = useState({
-    searchKeyword: '',
-    status: 'all',
-    startDate: '',
-    endDate: '',
-    category: '',
-    priceRange: '',
-    stockRange: ''
+    searchKeyword: "",
+    status: "all",
+    startDate: "",
+    endDate: "",
+    category: "",
+    priceRange: "",
+    stockRange: "",
   });
 
+  const { taxCategories, updateTaxCategory } = useProductTaxCategories();
+
   const [formData, setFormData] = useState({
-    product_name: '',
-    product_code: '',
-    category: '',
-    standard_price: '',  // 🚨 修正: purchase_price → standard_price
-    selling_price: '',
-    current_stock: '',
-    min_stock_level: '',
+    product_name: "",
+    product_code: "",
+    category: "",
+    standard_price: "", // 🚨 修正: purchase_price → standard_price
+    selling_price: "",
+    current_stock: "",
+    min_stock_level: "",
+    tax_category: "standard_10" as TaxCategory,
   });
 
   useEffect(() => {
     fetchProducts();
-    
+
     // 在庫データの定期的な自動更新（30秒間隔）
     const interval = setInterval(fetchProducts, 30000);
-    
+
     // ウィンドウフォーカス時の自動更新
     const handleFocus = () => fetchProducts();
-    window.addEventListener('focus', handleFocus);
-    
+    window.addEventListener("focus", handleFocus);
+
     return () => {
       clearInterval(interval);
-      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener("focus", handleFocus);
     };
   }, []);
 
   // フィルター適用された商品リスト
   const filteredProducts = useMemo(() => {
     try {
-      return products.filter(product => {
-      // 検索キーワードフィルター
-      if (filters.searchKeyword) {
-        const keyword = filters.searchKeyword.toLowerCase();
-        const searchFields = [
-          product.product_name,
-          product.product_code,
-          product.category
-        ].join(' ').toLowerCase();
-        
-        if (!searchFields.includes(keyword)) return false;
-      }
+      return products.filter((product) => {
+        // 検索キーワードフィルター
+        if (filters.searchKeyword) {
+          const keyword = filters.searchKeyword.toLowerCase();
+          const searchFields = [
+            product.product_name,
+            product.product_code,
+            product.category,
+          ]
+            .join(" ")
+            .toLowerCase();
 
-      // ステータスフィルター
-      if (filters.status && filters.status !== 'all') {
-        if (filters.status === 'low-stock' && product.current_stock >= product.min_stock_level) return false;
-        if (filters.status === 'out-of-stock' && product.current_stock > 0) return false;
-      }
-
-      // 日付フィルター
-      if (filters.startDate) {
-        const productDate = new Date(product.created_at).toISOString().split('T')[0];
-        if (productDate < filters.startDate) return false;
-      }
-      if (filters.endDate) {
-        const productDate = new Date(product.created_at).toISOString().split('T')[0];
-        if (productDate > filters.endDate) return false;
-      }
-
-      // カテゴリフィルター
-      if (filters.category && filters.category.trim() !== '' && filters.category !== 'all' && product.category !== filters.category) return false;
-      
-      // 価格帯フィルター
-      if (filters.priceRange && filters.priceRange.trim() !== '' && filters.priceRange !== 'all') {
-        const price = product.selling_price;
-        switch (filters.priceRange) {
-          case 'under-1000':
-            if (price >= 1000) return false;
-            break;
-          case '1000-5000':
-            if (price < 1000 || price >= 5000) return false;
-            break;
-          case '5000-10000':
-            if (price < 5000 || price >= 10000) return false;
-            break;
-          case 'over-10000':
-            if (price < 10000) return false;
-            break;
+          if (!searchFields.includes(keyword)) return false;
         }
-      }
-      
-      // 在庫数フィルター
-      if (filters.stockRange && filters.stockRange.trim() !== '' && filters.stockRange !== 'all') {
-        const stock = product.current_stock;
-        switch (filters.stockRange) {
-          case 'zero':
-            if (stock !== 0) return false;
-            break;
-          case 'low':
-            if (stock > product.min_stock_level) return false;
-            break;
-          case 'normal':
-            if (stock <= product.min_stock_level || stock > 100) return false;
-            break;
-          case 'high':
-            if (stock <= 100) return false;
-            break;
-        }
-      }
 
-      return true;
+        // ステータスフィルター
+        if (filters.status && filters.status !== "all") {
+          if (
+            filters.status === "low-stock" &&
+            product.current_stock >= product.min_stock_level
+          )
+            return false;
+          if (filters.status === "out-of-stock" && product.current_stock > 0)
+            return false;
+        }
+
+        // 日付フィルター
+        if (filters.startDate) {
+          const productDate = new Date(product.created_at)
+            .toISOString()
+            .split("T")[0];
+          if (productDate < filters.startDate) return false;
+        }
+        if (filters.endDate) {
+          const productDate = new Date(product.created_at)
+            .toISOString()
+            .split("T")[0];
+          if (productDate > filters.endDate) return false;
+        }
+
+        // カテゴリフィルター
+        if (
+          filters.category &&
+          filters.category.trim() !== "" &&
+          filters.category !== "all" &&
+          product.category !== filters.category
+        )
+          return false;
+
+        // 価格帯フィルター
+        if (
+          filters.priceRange &&
+          filters.priceRange.trim() !== "" &&
+          filters.priceRange !== "all"
+        ) {
+          const price = product.selling_price;
+          switch (filters.priceRange) {
+            case "under-1000":
+              if (price >= 1000) return false;
+              break;
+            case "1000-5000":
+              if (price < 1000 || price >= 5000) return false;
+              break;
+            case "5000-10000":
+              if (price < 5000 || price >= 10000) return false;
+              break;
+            case "over-10000":
+              if (price < 10000) return false;
+              break;
+          }
+        }
+
+        // 在庫数フィルター
+        if (
+          filters.stockRange &&
+          filters.stockRange.trim() !== "" &&
+          filters.stockRange !== "all"
+        ) {
+          const stock = product.current_stock;
+          switch (filters.stockRange) {
+            case "zero":
+              if (stock !== 0) return false;
+              break;
+            case "low":
+              if (stock > product.min_stock_level) return false;
+              break;
+            case "normal":
+              if (stock <= product.min_stock_level || stock > 100) return false;
+              break;
+            case "high":
+              if (stock <= 100) return false;
+              break;
+          }
+        }
+
+        return true;
       });
     } catch (error) {
-      console.error('Filter error:', error);
+      console.error("Filter error:", error);
       return products; // エラーが発生した場合は全ての商品を返す
     }
   }, [products, filters]);
 
   const handleFiltersReset = () => {
     setFilters({
-      searchKeyword: '',
-      status: 'all', 
-      startDate: '',
-      endDate: '',
-      category: '',
-      priceRange: '',
-      stockRange: ''
+      searchKeyword: "",
+      status: "all",
+      startDate: "",
+      endDate: "",
+      category: "",
+      priceRange: "",
+      stockRange: "",
     });
   };
 
   const fetchProducts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
+      setLoading(true);
+      console.log('📦 商品データを動的在庫計算で取得中...');
 
-      if (error) throw error;
-      setProducts(data || []);
+      // 共通ユーティリティを使用してinventory_movementsから動的に在庫計算
+      const productsWithDynamicStock = await fetchProductsWithDynamicStock();
+
+      console.log('✅ 商品データ取得完了:', {
+        商品数: productsWithDynamicStock.length,
+        例: productsWithDynamicStock[0] ? {
+          商品名: productsWithDynamicStock[0].product_name,
+          現在庫: productsWithDynamicStock[0].current_stock
+        } : 'データなし'
+      });
+
+      setProducts(productsWithDynamicStock);
     } catch (error) {
-      console.error('Products fetch error:', error);
-      toast.error('商品データの取得に失敗しました');
+      console.error("Products fetch error:", error);
+      toast.error("商品データの取得に失敗しました");
     } finally {
       setLoading(false);
     }
@@ -174,84 +211,82 @@ export default function Products() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const productData = {
-        product_name: formData.product_name,  // 🚨 修正: name → product_name
+        product_name: formData.product_name, // 🚨 修正: name → product_name
         product_code: formData.product_code,
         category: formData.category,
-        standard_price: parseFloat(formData.standard_price),  // 🚨 修正: purchase_price → standard_price
+        standard_price: parseFloat(formData.standard_price), // 🚨 修正: purchase_price → standard_price
         selling_price: parseFloat(formData.selling_price),
         current_stock: parseInt(formData.current_stock),
         min_stock_level: parseInt(formData.min_stock_level),
+        tax_category: formData.tax_category,
       };
 
       if (editingProduct) {
         const { error } = await supabase
-          .from('products')
+          .from("products")
           .update(productData)
-          .eq('id', editingProduct.id);
+          .eq("id", editingProduct.id);
 
         if (error) throw error;
-        toast.success('商品を更新しました');
+        toast.success("商品を更新しました");
       } else {
-        const { error } = await supabase
-          .from('products')
-          .insert([productData]);
+        const { error } = await supabase.from("products").insert([productData]);
 
         if (error) throw error;
-        toast.success('商品を作成しました');
+        toast.success("商品を作成しました");
       }
 
       resetForm();
       fetchProducts();
     } catch (error) {
-      console.error('Product save error:', error);
-      toast.error('商品の保存に失敗しました');
+      console.error("Product save error:", error);
+      toast.error("商品の保存に失敗しました");
     }
   };
 
-  const handleEdit = (product: Product) => {
+  const handleEdit = (product: ProductWithDynamicStock) => {
     setEditingProduct(product);
     setFormData({
       product_name: product.product_name,
       product_code: product.product_code,
       category: product.category,
-      standard_price: product.standard_price.toString(),  // 🚨 修正: purchase_price → standard_price
+      standard_price: product.standard_price.toString(), // 🚨 修正: purchase_price → standard_price
       selling_price: product.selling_price.toString(),
       current_stock: product.current_stock.toString(),
       min_stock_level: product.min_stock_level.toString(),
+      tax_category: (product.tax_category as TaxCategory) || ("standard_10" as TaxCategory),
     });
     setShowForm(true);
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('この商品を削除しますか？')) return;
+    if (!confirm("この商品を削除しますか？")) return;
 
     try {
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from("products").delete().eq("id", id);
 
       if (error) throw error;
-      toast.success('商品を削除しました');
+      toast.success("商品を削除しました");
       fetchProducts();
     } catch (error) {
-      console.error('Product delete error:', error);
-      toast.error('商品の削除に失敗しました');
+      console.error("Product delete error:", error);
+      toast.error("商品の削除に失敗しました");
     }
   };
 
   const resetForm = () => {
     setFormData({
-      product_name: '',
-      product_code: '',
-      category: '',
-      standard_price: '',  // 🚨 修正: purchase_price → standard_price
-      selling_price: '',
-      current_stock: '',
-      min_stock_level: '',
+      product_name: "",
+      product_code: "",
+      category: "",
+      standard_price: "", // 🚨 修正: purchase_price → standard_price
+      selling_price: "",
+      current_stock: "",
+      min_stock_level: "",
+      tax_category: "standard_10" as TaxCategory,
     });
     setEditingProduct(null);
     setShowForm(false);
@@ -266,7 +301,7 @@ export default function Products() {
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
             className="rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent"
           />
-          <motion.span 
+          <motion.span
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="ml-4 text-lg font-medium text-gray-700 dark:text-gray-300"
@@ -280,14 +315,14 @@ export default function Products() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
         className="p-6 space-y-8"
       >
         {/* ヘッダー */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -304,7 +339,9 @@ export default function Products() {
               <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 商品管理
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 font-medium">商品マスターの登録・管理</p>
+              <p className="text-gray-600 dark:text-gray-400 font-medium">
+                商品マスターの登録・管理
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -332,7 +369,7 @@ export default function Products() {
               whileHover={{ scale: 1.1, rotate: 5 }}
               whileTap={{ scale: 0.9 }}
             >
-              {isDark ? '☀️' : '🌙'}
+              {isDark ? "☀️" : "🌙"}
             </motion.button>
           </div>
         </motion.div>
@@ -348,7 +385,9 @@ export default function Products() {
               <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
                 <Filter className="w-5 h-5 text-white" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">フィルター設定</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                フィルター設定
+              </h3>
             </div>
             <UniversalFilters
               filters={filters}
@@ -376,22 +415,29 @@ export default function Products() {
                   <Sparkles className="w-6 h-6 text-white" />
                 </motion.div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {editingProduct ? '商品編集' : '新規商品作成'}
+                  {editingProduct ? "商品編集" : "新規商品作成"}
                 </h2>
               </div>
-              <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <form
+                onSubmit={handleSubmit}
+                className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+              >
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: 0.1 }}
                 >
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">商品名</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    商品名
+                  </label>
                   <input
                     type="text"
                     required
                     className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm hover:shadow-md"
                     value={formData.product_name}
-                    onChange={(e) => setFormData({ ...formData, product_name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, product_name: e.target.value })
+                    }
                   />
                 </motion.div>
                 <motion.div
@@ -399,13 +445,17 @@ export default function Products() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: 0.15 }}
                 >
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">商品コード</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    商品コード
+                  </label>
                   <input
                     type="text"
                     required
                     className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm hover:shadow-md"
                     value={formData.product_code}
-                    onChange={(e) => setFormData({ ...formData, product_code: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, product_code: e.target.value })
+                    }
                   />
                 </motion.div>
                 <motion.div
@@ -413,13 +463,17 @@ export default function Products() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: 0.2 }}
                 >
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">カテゴリ</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    カテゴリ
+                  </label>
                   <input
                     type="text"
                     required
                     className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm hover:shadow-md"
                     value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, category: e.target.value })
+                    }
                   />
                 </motion.div>
                 <motion.div
@@ -427,13 +481,20 @@ export default function Products() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: 0.25 }}
                 >
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">仕入単価</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    仕入単価
+                  </label>
                   <input
                     type="number"
                     required
                     className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm hover:shadow-md"
                     value={formData.standard_price}
-                    onChange={(e) => setFormData({ ...formData, standard_price: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        standard_price: e.target.value,
+                      })
+                    }
                   />
                 </motion.div>
                 <motion.div
@@ -441,13 +502,20 @@ export default function Products() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: 0.3 }}
                 >
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">販売単価</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    販売単価
+                  </label>
                   <input
                     type="number"
                     required
                     className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm hover:shadow-md"
                     value={formData.selling_price}
-                    onChange={(e) => setFormData({ ...formData, selling_price: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        selling_price: e.target.value,
+                      })
+                    }
                   />
                 </motion.div>
                 <motion.div
@@ -455,13 +523,20 @@ export default function Products() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: 0.35 }}
                 >
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">現在在庫</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    現在在庫
+                  </label>
                   <input
                     type="number"
                     required
                     className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm hover:shadow-md"
                     value={formData.current_stock}
-                    onChange={(e) => setFormData({ ...formData, current_stock: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        current_stock: e.target.value,
+                      })
+                    }
                   />
                 </motion.div>
                 <motion.div
@@ -470,14 +545,46 @@ export default function Products() {
                   transition={{ duration: 0.3, delay: 0.4 }}
                   className="lg:col-span-1"
                 >
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">最小在庫レベル</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    最小在庫レベル
+                  </label>
                   <input
                     type="number"
                     required
                     className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm hover:shadow-md"
                     value={formData.min_stock_level}
-                    onChange={(e) => setFormData({ ...formData, min_stock_level: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        min_stock_level: e.target.value,
+                      })
+                    }
                   />
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.4 }}
+                >
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    税区分
+                  </label>
+                  <select
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm hover:shadow-md"
+                    value={formData.tax_category}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        tax_category: e.target.value as TaxCategory,
+                      })
+                    }
+                  >
+                    {taxCategories.map((category) => (
+                      <option key={category.value} value={category.value}>
+                        {category.label}
+                      </option>
+                    ))}
+                  </select>
                 </motion.div>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -500,7 +607,7 @@ export default function Products() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {editingProduct ? '更新' : '作成'}
+                    {editingProduct ? "更新" : "作成"}
                   </motion.button>
                 </motion.div>
               </form>
@@ -528,6 +635,9 @@ export default function Products() {
                     <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                       在庫
                     </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                      税区分
+                    </th>
                     <th className="px-6 py-4 text-right text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                       操作
                     </th>
@@ -535,8 +645,8 @@ export default function Products() {
                 </thead>
                 <tbody className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm divide-y divide-gray-200/50 dark:divide-gray-700/50">
                   {filteredProducts.map((product, index) => (
-                    <motion.tr 
-                      key={product.id} 
+                    <motion.tr
+                      key={product.id}
                       className="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-all duration-200"
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -552,33 +662,90 @@ export default function Products() {
                             <Package className="h-6 w-6 text-white" />
                           </motion.div>
                           <div className="ml-4">
-                            <div className="text-sm font-bold text-gray-900 dark:text-white">{product.product_name}</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">{product.product_code}</div>
-                            <div className="text-xs text-blue-600 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md mt-1 inline-block">{product.category}</div>
+                            <div className="text-sm font-bold text-gray-900 dark:text-white">
+                              {product.product_name}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                              {product.product_code}
+                            </div>
+                            <div className="text-xs text-blue-600 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md mt-1 inline-block">
+                              {product.category}
+                            </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="space-y-1">
-                          <div className="text-sm font-semibold text-gray-900 dark:text-white">仕入価格: <span className="text-green-600 dark:text-green-400">{safeYenFormat(product.standard_price)}</span></div>
-                          <div className="text-sm font-medium text-purple-600 dark:text-purple-400">販売: {safeYenFormat(product.selling_price)}</div>
+                          <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                            仕入価格:{" "}
+                            <span className="text-green-600 dark:text-green-400">
+                              {safeYenFormat(product.standard_price)}
+                            </span>
+                          </div>
+                          <div className="text-sm font-medium text-purple-600 dark:text-purple-400">
+                            販売: {safeYenFormat(product.selling_price)}
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">現在:</span>
-                            <span className={`text-sm font-bold px-2 py-1 rounded-lg ${
-                              product.current_stock <= product.min_stock_level
-                                ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400'
-                                : 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-                            }`}>
+                            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                              現在:
+                            </span>
+                            <span
+                              className={`text-sm font-bold px-2 py-1 rounded-lg ${
+                                product.current_stock <= product.min_stock_level
+                                  ? "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400"
+                                  : "bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400"
+                              }`}
+                            >
                               {product.current_stock}
                             </span>
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                             最小: {product.min_stock_level}
                           </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <select
+                            className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1 bg-white/80 dark:bg-gray-700/80 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                            value={product.tax_category}
+                            onChange={(e) => {
+                              const newTaxCategory = e.target
+                                .value as TaxCategory;
+                              updateTaxCategory(product.id, newTaxCategory);
+                              // 商品データを即座に更新
+                              setProducts((prev) =>
+                                prev.map((p) =>
+                                  p.id === product.id
+                                    ? {
+                                        ...p,
+                                        tax_category: newTaxCategory,
+                                        tax_category_updated_at:
+                                          new Date().toISOString(),
+                                      }
+                                    : p,
+                                ),
+                              );
+                            }}
+                          >
+                            {taxCategories.map((category) => (
+                              <option
+                                key={category.value}
+                                value={category.value}
+                              >
+                                {category.label}
+                              </option>
+                            ))}
+                          </select>
+                          {product.tax_category_updated_at && (
+                            <span className="text-xs text-blue-600 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md">
+                              更新済
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">

@@ -231,7 +231,7 @@ export const INSTALLMENT_CONFIG = {
 
 /** 分納ステータスの日本語表示マッピング */
 export const INSTALLMENT_STATUS_LABELS: Record<InstallmentStatus, string> = {
-  draft: '未確定',
+  draft: '下書き',
   confirmed: '確定',
   cancelled: 'キャンセル',
   completed: '完了',

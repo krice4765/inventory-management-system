@@ -54,7 +54,14 @@ const ensureUserProfile = async (user: User) => {
       const newProfile = {
         id: user.id,
         email: user.email || '',
-        full_name: applicationData?.email?.split('@')[0] || user.email?.split('@')[0] || 'ユーザー',
+        full_name: (() => {
+          // 申請データから名前を抽出
+          if (applicationData?.requested_reason) {
+            const match = applicationData.requested_reason.match(/【申請者名】(.+?)(?:\n|$)/);
+            if (match) return match[1].trim();
+          }
+          return applicationData?.email?.split('@')[0] || user.email?.split('@')[0] || 'ユーザー';
+        })(),
         company_name: applicationData?.company_name || null,
         department: applicationData?.department || null,
         position: applicationData?.position || null,
@@ -68,7 +75,10 @@ const ensureUserProfile = async (user: User) => {
 
       const { error: insertError } = await supabase
         .from('user_profiles')
-        .insert([newProfile]);
+        .upsert([newProfile], {
+          onConflict: 'id',
+          ignoreDuplicates: false
+        });
 
       if (insertError) {
         // 重複キー制約エラーの場合は既存のプロファイルが作成されたということなので警告レベル

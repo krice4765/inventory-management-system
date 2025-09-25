@@ -8,7 +8,8 @@ import { PurchaseTransactionForm } from '../components/transactions/PurchaseTran
 import { PurchaseOrderForm } from '../components/transactions/PurchaseOrderForm';
 import { getStatusDisplay, createDefaultFilters } from '../utils/format';
 import type { TransactionFilters } from '../utils/format';
-import { ModernStatsBar } from '../components/ModernStatsBar';
+import { StatusStatsDisplay } from '../components/ui/UnifiedStatusBadge';
+import { StatusStatsUtils } from '../utils/statusUtils';
 import { ModernAdvancedFilters } from '../components/ModernAdvancedFilters';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { AddInstallmentModal } from '../components/AddInstallmentModal';
@@ -470,7 +471,13 @@ const { data: partners, isLoading: partnersLoading, error: partnersError } = use
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <ModernStatsBar items={transactions} />
+            <StatusStatsDisplay
+              stats={StatusStatsUtils.calculateStatusStats(transactions)}
+              type="count"
+              layout="grid"
+              showIcons={true}
+              className="p-4"
+            />
           </motion.div>
         )}
 

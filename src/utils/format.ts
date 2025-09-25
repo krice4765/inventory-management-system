@@ -105,7 +105,7 @@ export const getStatusDisplay = (status?: TransactionStatus) => {
     case 'draft':
     default:
       return {
-        label: '未確定',
+        label: '下書き',
         className: 'bg-yellow-100 text-yellow-800',
       };
   }

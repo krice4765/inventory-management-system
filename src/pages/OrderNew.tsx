@@ -5,6 +5,10 @@ import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { useDarkMode } from '../hooks/useDarkMode';
 import SearchableSelect from '../components/SearchableSelect';
+import { AssignedUserSelect } from '../components/forms/AssignedUserSelect';
+import { ShippingCostInput } from '../components/forms/ShippingCostInput';
+import { useAssignedUsers } from '../hooks/useAssignedUsers';
+import { useAutoShippingInput } from '../hooks/useShippingCost';
 import type { Partner, Product, OrderFormData, OrderItem } from '../types';
 
 export default function OrderNew() {
@@ -15,11 +19,20 @@ export default function OrderNew() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
+  // 担当者管理フック
+  const { assignedUsers, isLoading: isLoadingUsers } = useAssignedUsers();
+
+  // 送料自動計算フック
+  const { autoCalculateShipping } = useAutoShippingInput();
+
   const [formData, setFormData] = useState<OrderFormData>({
     partner_id: '',
     order_date: new Date().toISOString().split('T')[0],
     delivery_deadline: '',
     memo: '',
+    assigned_user_id: '',
+    shipping_cost: 0,
+    shipping_tax_rate: 0.1,
   });
 
   const [items, setItems] = useState<OrderItem[]>([
@@ -151,6 +164,50 @@ export default function OrderNew() {
     setItems(items.filter((_, i) => i !== index));
   };
 
+  // 担当者変更ハンドラー
+  const handleAssignedUserChange = (userId: string | null) => {
+    setFormData(prev => ({
+      ...prev,
+      assigned_user_id: userId || ''
+    }));
+  };
+
+  // 送料自動計算（取引先変更時）
+  const handlePartnerChange = async (partnerId: string) => {
+    setFormData(prev => ({ ...prev, partner_id: partnerId }));
+
+    // 送料自動計算
+    if (partnerId && items.some(item => item.product_id)) {
+      try {
+        const orderValue = getTotalAmount();
+        const totalWeight = items.reduce((sum, item) => {
+          const product = products.find(p => p.id === item.product_id);
+          return sum + (product?.weight_kg || 0) * item.quantity;
+        }, 0);
+
+        const shippingResult = await autoCalculateShipping({
+          supplierId: partnerId,
+          orderValue,
+          totalWeight,
+          shippingMethod: 'standard'
+        });
+
+        setFormData(prev => ({
+          ...prev,
+          shipping_cost: shippingResult.shipping_cost,
+          shipping_tax_rate: shippingResult.calculation_details.effective_tax_rate
+        }));
+
+        if (shippingResult.is_free_shipping) {
+          toast.success('送料無料が適用されました');
+        }
+      } catch (error) {
+        console.warn('送料自動計算に失敗:', error);
+        // エラーが発生してもフォーム操作は継続
+      }
+    }
+  };
+
   const getTotalAmount = () => {
     return items.reduce((sum, item) => {
       const amount = isNaN(item.total_amount) ? 0 : item.total_amount;
@@ -164,7 +221,8 @@ export default function OrderNew() {
   };
 
   const getGrandTotal = () => {
-    return getTotalAmount() + getTaxAmount();
+    const shippingCost = formData.shipping_cost || 0;
+    return getTotalAmount() + getTaxAmount() + shippingCost;
   };
 
   const sanitizeRow = (row: OrderItem) => {
@@ -188,6 +246,11 @@ export default function OrderNew() {
 
     if (!formData.delivery_deadline) {
       toast.error('納期を設定してください');
+      return;
+    }
+
+    if (!formData.assigned_user_id) {
+      toast.error('発注担当者を選択してください');
       return;
     }
 
@@ -238,9 +301,12 @@ export default function OrderNew() {
         total_amount: grandTotal,
         status: 'active',
         memo: formData.memo,
+        assigned_user_id: formData.assigned_user_id || null,
+        shipping_cost: formData.shipping_cost || 0,
+        shipping_tax_rate: formData.shipping_tax_rate || 0.1,
       };
 
-      // 🚨 ULTIMATE FIX: RPC関数を使用してSupabaseライブラリのバグを完全回避（デフォルト値なし版）
+      // 🚨 ULTIMATE FIX: RPC関数を使用してSupabaseライブラリのバグを完全回避（送料・担当者情報を含む）
       const { data: orderResponse, error: orderError } = await supabase.rpc('create_purchase_order', {
         p_order_no: orderNo,
         p_partner_id: formData.partner_id,
@@ -248,7 +314,10 @@ export default function OrderNew() {
         p_delivery_deadline: formData.delivery_deadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30日後
         p_total_amount: grandTotal,
         p_status: 'active',
-        p_memo: formData.memo || ''
+        p_memo: formData.memo || '',
+        p_assigned_user_id: formData.assigned_user_id || null,
+        p_shipping_cost: formData.shipping_cost || 0,
+        p_shipping_tax_rate: formData.shipping_tax_rate || 0.1
       });
 
       if (orderError) throw orderError;
@@ -333,7 +402,7 @@ export default function OrderNew() {
                   description: `コード: ${partner.partner_code} | ${partner.partner_type === 'supplier' ? '仕入先' : '仕入先・顧客'}`
                 }))}
                 value={formData.partner_id}
-                onChange={(value) => setFormData({ ...formData, partner_id: value })}
+                onChange={handlePartnerChange}
                 placeholder="仕入先を選択"
                 required
                 darkMode={isDark}
@@ -370,6 +439,44 @@ export default function OrderNew() {
                 value={formData.memo}
                 onChange={(e) => setFormData({ ...formData, memo: e.target.value })}
                 placeholder="備考を入力"
+              />
+            </div>
+
+            {/* 担当者選択 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                発注担当者 <span className="text-red-500">*</span>
+              </label>
+              <AssignedUserSelect
+                value={formData.assigned_user_id}
+                onChange={handleAssignedUserChange}
+                users={assignedUsers}
+                isLoading={isLoadingUsers}
+                placeholder="担当者を選択してください"
+                required
+              />
+            </div>
+
+            {/* 送料入力 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                送料設定
+              </label>
+              <ShippingCostInput
+                supplierId={formData.partner_id}
+                orderValue={getTotalAmount()}
+                totalWeight={items.reduce((sum, item) => {
+                  const product = products.find(p => p.id === item.product_id);
+                  return sum + (product?.weight_kg || 0) * item.quantity;
+                }, 0)}
+                value={formData.shipping_cost}
+                onChange={(shippingCost, shippingTax) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    shipping_cost: shippingCost,
+                    shipping_tax_rate: shippingTax / shippingCost || 0.1
+                  }));
+                }}
               />
             </div>
           </div>
@@ -548,6 +655,10 @@ export default function OrderNew() {
                 <div className="flex justify-between text-sm">
                   <span>消費税 (10%):</span>
                   <span>¥{getTaxAmount().toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>送料:</span>
+                  <span>¥{(formData.shipping_cost || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold border-t border-gray-300 dark:border-gray-600 pt-2">
                   <span>合計:</span>

@@ -90,7 +90,7 @@ export function useCreateInstallment(): CreateInstallmentHookState {
         // 成功時の処理
         const data = result.data;
         toast.success(
-          `分納を${data.status === 'confirmed' ? '確定で' : '未確定で'}作成しました（¥${data.total_amount.toLocaleString()}）`
+          `分納を${data.status === 'confirmed' ? '確定で' : '下書きで'}作成しました（¥${data.total_amount.toLocaleString()}）`
         );
         
         // 関連するクエリキャッシュを無効化
