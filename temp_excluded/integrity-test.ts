@@ -15,6 +15,7 @@ export class IntegrityTester {
 
       if (error) throw error
 
+      console.log(`✅ ${tableName}テーブル構造:`, {
         columns: data.column_count,
         details: data.columns
       })
@@ -36,6 +37,7 @@ export class IntegrityTester {
 
       if (error) throw error
 
+      console.log('🔧 整合性修正結果:', {
         success: data.success,
         totalFixed: data.total_fixed,
         orderFixes: data.order_fixes,

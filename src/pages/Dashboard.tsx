@@ -37,11 +37,7 @@ export default function Dashboard() {
   
   // ordersDataの変化を監視
   useEffect(() => {
-      hasData: !!ordersData,
-      count: ordersData?.data?.length || 0,
-      dataUpdatedAt: new Date(dataUpdatedAt || 0).toLocaleTimeString(),
-      timestamp: new Date().toLocaleTimeString()
-    });
+    // Data monitoring logic here if needed
   }, [ordersData, dataUpdatedAt]);
   const [stats, setStats] = useState<DashboardStats>({
     totalProducts: 0,

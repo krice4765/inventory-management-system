@@ -292,10 +292,6 @@ export class EnhancedInstallmentService {
     dueDate?: string
   ): Promise<InstallmentWithInventoryResult> {
     try {
-        parentOrderId,
-        amount,
-        inventoryItemsCount: inventoryItems.length
-      });
 
       const { data, error } = await supabase.rpc('create_installment_with_inventory', {
         p_parent_order_id: parentOrderId,
@@ -316,10 +312,6 @@ export class EnhancedInstallmentService {
 
       const result = data[0];
 
-        transaction_id: result.transaction_id,
-        installment_no: result.installment_no,
-        inventory_count: result.inventory_movement_ids?.length || 0
-      });
 
       return {
         transaction_id: result.transaction_id,
@@ -352,9 +344,6 @@ export class EnhancedInstallmentService {
         throw new Error(`統合分納履歴の取得に失敗しました: ${error.message}`);
       }
 
-        order_id: orderId,
-        installment_count: data?.length || 0
-      });
 
       return data || [];
     } catch (error) {
