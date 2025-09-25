@@ -45,7 +45,6 @@ class TaxDisplayCache {
       const expiry = Date.now() + CACHE_DURATION;
       localStorage.setItem(LOCAL_STORAGE_KEY, preference);
       localStorage.setItem(LOCAL_STORAGE_EXPIRY_KEY, expiry.toString());
-      console.log('💾 Tax display preference cached:', preference);
     } catch (error) {
       console.warn('⚠️ Local cache write error:', error);
     }
@@ -55,7 +54,6 @@ class TaxDisplayCache {
     try {
       localStorage.removeItem(LOCAL_STORAGE_KEY);
       localStorage.removeItem(LOCAL_STORAGE_EXPIRY_KEY);
-      console.log('🗑️ Tax display cache cleared');
     } catch (error) {
       console.warn('⚠️ Local cache clear error:', error);
     }
@@ -73,7 +71,6 @@ class TaxDisplayCache {
 
 // サーバー側設定取得関数
 const getTaxDisplayPreference = async (userId?: string): Promise<TaxDisplayMode> => {
-  console.log('🔄 Fetching tax display preference for user:', userId);
 
   // PostgreSQL関数を使用してハイブリッド設定を取得
   if (userId) {
@@ -82,7 +79,6 @@ const getTaxDisplayPreference = async (userId?: string): Promise<TaxDisplayMode>
     });
 
     if (!error && data) {
-      console.log('✅ Server tax display preference:', data);
       return data as TaxDisplayMode;
     }
 
@@ -102,7 +98,6 @@ const getTaxDisplayPreference = async (userId?: string): Promise<TaxDisplayMode>
         .limit(1);
 
       if (userSettings && userSettings.length > 0) {
-        console.log('✅ User-specific tax preference:', userSettings[0].tax_display_preference);
         return userSettings[0].tax_display_preference as TaxDisplayMode;
       }
     }
@@ -116,7 +111,6 @@ const getTaxDisplayPreference = async (userId?: string): Promise<TaxDisplayMode>
       .limit(1);
 
     if (orgSettings && orgSettings.length > 0) {
-      console.log('✅ Organization tax preference:', orgSettings[0].tax_display_preference);
       return orgSettings[0].tax_display_preference as TaxDisplayMode;
     }
   } catch (error) {
@@ -124,7 +118,6 @@ const getTaxDisplayPreference = async (userId?: string): Promise<TaxDisplayMode>
   }
 
   // デフォルト設定
-  console.log('✅ Using default tax preference: tax_included');
   return 'tax_included';
 };
 
@@ -133,7 +126,6 @@ const updateUserTaxDisplayPreference = async (
   userId: string,
   preference: TaxDisplayMode
 ): Promise<TaxDisplaySetting> => {
-  console.log('🔄 Updating user tax display preference:', { userId, preference });
 
   // 既存のユーザー設定を確認
   const { data: existingSettings } = await supabase
@@ -156,7 +148,6 @@ const updateUserTaxDisplayPreference = async (
       .single();
 
     if (error) throw error;
-    console.log('✅ Tax display preference updated:', data);
     return data;
   } else {
     // 新規作成
@@ -171,7 +162,6 @@ const updateUserTaxDisplayPreference = async (
       .single();
 
     if (error) throw error;
-    console.log('✅ Tax display preference created:', data);
     return data;
   }
 };
@@ -217,7 +207,6 @@ export function useTaxDisplaySetting() {
   const updateLocalPreference = (preference: TaxDisplayMode) => {
     setLocalPreference(preference);
     TaxDisplayCache.set(preference);
-    console.log('💾 Local tax display preference updated:', preference);
   };
 
   // サーバー設定更新
@@ -229,7 +218,6 @@ export function useTaxDisplaySetting() {
       return updateUserTaxDisplayPreference(currentUser.id, preference);
     },
     onSuccess: (data) => {
-      console.log('✅ Server tax display preference updated:', data);
       // キャッシュを更新
       queryClient.setQueryData(['tax-display-preference', currentUser?.id], data.tax_display_preference);
     },
@@ -247,7 +235,6 @@ export function useTaxDisplaySetting() {
     if (currentUser) {
       try {
         await updateServerPreferenceMutation.mutateAsync({ preference });
-        console.log('🔄 Tax display preference synchronized with server');
       } catch (error) {
         console.warn('⚠️ Server sync failed, keeping local preference:', error);
       }

@@ -317,7 +317,6 @@ export function useAllMovements(filters: MovementFilters = {}) {
           });
         }
 
-        console.log(`✅ 全在庫移動取得完了: ${filteredMovements.length}件`);
 
         // デバッグ: 実際のデータの日付を確認
         if (filteredMovements.length > 0) {
@@ -327,12 +326,10 @@ export function useAllMovements(filters: MovementFilters = {}) {
             date_only: new Date(m.created_at).toLocaleDateString('ja-JP'),
             product_name: m.products?.product_name
           }));
-          console.log('📊 取得データサンプル（日付確認）:', sampleDates);
         }
 
         // デバッグ: フィルター適用状況を確認
         if (filters.startDate || filters.endDate) {
-          console.log('🔍 日付フィルター適用状況:', {
             startDate: filters.startDate,
             endDate: filters.endDate,
             originalCount: movementsData.length,
@@ -397,7 +394,6 @@ export function useInfiniteMovements(filters: MovementFilters = {}) {
     queryKey: stableQueryKey,
     enabled: true, // 常にクエリを実行（空検索でも全件表示）
     queryFn: async ({ pageParam = 0 }) => {
-      console.log('🔄 在庫移動データ取得開始:', { page: pageParam, filters });
       
       try {
         // Step 1: inventory_movementsデータを取得
@@ -527,8 +523,6 @@ export function useInfiniteMovements(filters: MovementFilters = {}) {
                   delivery_type: delivery_type
                 };
               });
-              console.log('✅ 取引記録取得成功:', transactionsData.length, '件');
-              console.log('✅ 発注書情報取得成功:', orderData.length, '件');
             }
           } catch (err) {
             console.error('❌ 取引記録テーブルアクセスエラー:', err);
@@ -563,7 +557,6 @@ export function useInfiniteMovements(filters: MovementFilters = {}) {
           };
           
           // デバッグ: データ構造を確認
-          console.log('🔍 Movement data structure:', {
             movement_id: movement.id,
             transaction_id: movement.transaction_id,
             product_found: !!product,
@@ -589,7 +582,6 @@ export function useInfiniteMovements(filters: MovementFilters = {}) {
               
               // 詳細マッチング情報を出力（最初の5件のみ）
               if (idx < 5) {
-                console.log(`🔍 フィルタ処理中[${idx}]:`, {
                   product_name: m.products?.product_name,
                   name: m.products?.product_name,
                   searchTerm: filters.searchTerm,
@@ -605,7 +597,6 @@ export function useInfiniteMovements(filters: MovementFilters = {}) {
             })
           : movements;
         
-        console.log('🔍 検索フィルタ適用結果:', {
           searchTerm: filters.searchTerm,
           元の件数: movements.length,
           フィルタ後: filteredMovements.length,
@@ -628,7 +619,6 @@ export function useInfiniteMovements(filters: MovementFilters = {}) {
               includes_code: m.products?.product_code ? m.products.product_code.toLowerCase().includes(searchLower) : false,
               includes_memo: m.memo ? m.memo.toLowerCase().includes(searchLower) : false
             };
-            console.log(`🔍 マッチング詳細[${idx}]:`, result);
             return result;
           }) : '検索なし'
         });
@@ -644,8 +634,6 @@ export function useInfiniteMovements(filters: MovementFilters = {}) {
           });
         }
 
-        console.log(`✅ 在庫移動取得完了: ${filteredMovements.length}件`);
-        console.log('📊 取引詳細サマリー:', {
           total_movements: filteredMovements.length,
           with_transaction_id: filteredMovements.filter(m => m.transaction_id).length,
           with_transaction_details: filteredMovements.filter(m => m.transaction_details).length,

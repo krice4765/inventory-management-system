@@ -3,11 +3,9 @@ import { supabase } from '../lib/supabase';
 
 // システム健全性の定期チェック
 export const performHealthCheck = async () => {
-  console.log('🏥 システム健全性チェック開始');
 
   try {
     const checkTime = new Date();
-    console.log(`🕐 チェック時刻: ${checkTime.toLocaleString('ja-JP')}`);
 
     // 最新30件の発注書を確認
     const { data: orders, error } = await supabase
@@ -22,11 +20,9 @@ export const performHealthCheck = async () => {
     }
 
     if (!orders || orders.length === 0) {
-      console.log('📝 データなし');
       return { status: 'no_data' };
     }
 
-    console.log(`📊 チェック対象: ${orders.length}件`);
 
     const healthMetrics = {
       perfect: 0,
@@ -118,12 +114,6 @@ export const performHealthCheck = async () => {
     const issueCount = healthMetrics.minor + healthMetrics.major + healthMetrics.critical;
     healthMetrics.averageExcess = issueCount > 0 ? Math.round(healthMetrics.totalExcess / issueCount) : 0;
 
-    console.log('📋 健全性チェック結果:');
-    console.log(`  完全一致: ${healthMetrics.perfect}件 (${Math.round((healthMetrics.perfect / totalChecked) * 100)}%)`);
-    console.log(`  軽微問題: ${healthMetrics.minor}件`);
-    console.log(`  重要問題: ${healthMetrics.major}件`);
-    console.log(`  重篤問題: ${healthMetrics.critical}件`);
-    console.log(`  システム健全性: ${healthyRate}%`);
 
     // アラート判定
     let alertLevel = 'healthy';
@@ -143,19 +133,15 @@ export const performHealthCheck = async () => {
       alertMessage = `✅ システム健全性良好 (${healthyRate}%)`;
     }
 
-    console.log(`🏥 総合判定: ${alertMessage}`);
 
     // 新規問題がある場合は詳細表示
     if (healthMetrics.newIssues > 0) {
-      console.log('🚨 新規問題詳細:');
       issues.filter(issue => issue.isNew).forEach((issue, index) => {
-        console.log(`  ${index + 1}. ${issue.orderNo}: ${issue.severity} (過剰額: ¥${issue.excess.toLocaleString()})`);
       });
     }
 
     // 最近修正されたものがある場合
     if (healthMetrics.recentlyFixed > 0) {
-      console.log(`🎉 最近修正された発注書: ${healthMetrics.recentlyFixed}件`);
     }
 
     return {
@@ -180,7 +166,6 @@ export const performHealthCheck = async () => {
 
 // 新規過剰分納の早期発見
 export const detectNewExcessiveInstallments = async () => {
-  console.log('🔍 新規過剰分納検出');
 
   try {
     // 過去24時間に作成された分納を確認
@@ -208,11 +193,9 @@ export const detectNewExcessiveInstallments = async () => {
     }
 
     if (!recentTransactions || recentTransactions.length === 0) {
-      console.log('📝 過去24時間に新規分納はありません');
       return { status: 'no_new_transactions' };
     }
 
-    console.log(`📊 過去24時間の新規分納: ${recentTransactions.length}件`);
 
     // 発注書別にグループ化
     const orderGroups = new Map();
@@ -268,16 +251,12 @@ export const detectNewExcessiveInstallments = async () => {
         });
       }
 
-      console.log(`  ${orderNo}: 新規分納¥${newInstallmentTotal.toLocaleString()} (比率: ${ratio.toFixed(3)})`);
     }
 
-    console.log(`🚨 要注意案件: ${potentialIssues.length}件`);
 
     if (potentialIssues.length > 0) {
-      console.log('🔍 詳細:');
       potentialIssues.forEach((issue, index) => {
         const icon = issue.severity === 'critical' ? '🔴' : issue.severity === 'warning' ? '⚠️' : '👀';
-        console.log(`  ${index + 1}. ${icon} ${issue.orderNo}: 比率${issue.ratio.toFixed(3)} (新規分納: ¥${issue.newInstallmentAmount.toLocaleString()})`);
       });
     }
 
@@ -299,7 +278,6 @@ export const detectNewExcessiveInstallments = async () => {
 
 // 修正候補の自動特定
 export const identifyAutoCorrectionCandidates = async () => {
-  console.log('🤖 自動修正候補の特定');
 
   try {
     // 税込調整候補を特定
@@ -372,24 +350,18 @@ export const identifyAutoCorrectionCandidates = async () => {
       }
     }
 
-    console.log(`📊 税込調整候補: ${taxAdjustmentCandidates.length}件`);
-    console.log(`🔧 比例削減候補: ${proportionalCandidates.length}件`);
 
     // 高信頼度の候補を表示
     const highConfidenceTax = taxAdjustmentCandidates.filter(c => c.confidence === 'high');
     const highConfidenceProportional = proportionalCandidates.filter(c => c.confidence === 'high');
 
     if (highConfidenceTax.length > 0) {
-      console.log('🎯 高信頼度税込調整候補:');
       highConfidenceTax.slice(0, 3).forEach((candidate, index) => {
-        console.log(`  ${index + 1}. ${candidate.orderNo}: ¥${candidate.currentAmount.toLocaleString()} → ¥${candidate.suggestedAmount.toLocaleString()}`);
       });
     }
 
     if (highConfidenceProportional.length > 0) {
-      console.log('🔧 高信頼度比例削減候補:');
       highConfidenceProportional.slice(0, 3).forEach((candidate, index) => {
-        console.log(`  ${index + 1}. ${candidate.orderNo}: 過剰額 ¥${candidate.excessAmount.toLocaleString()}`);
       });
     }
 
@@ -411,7 +383,6 @@ export const identifyAutoCorrectionCandidates = async () => {
 
 // 統合監視レポート
 export const generateMonitoringReport = async () => {
-  console.log('📊 統合監視レポート生成');
 
   try {
     // 各種チェックを並行実行
@@ -423,40 +394,24 @@ export const generateMonitoringReport = async () => {
 
     const reportTime = new Date().toLocaleString('ja-JP');
 
-    console.log('📋 ========== 統合監視レポート ==========');
-    console.log(`🕐 レポート作成時刻: ${reportTime}`);
-    console.log('');
 
     // 健全性状況
     if (healthResult.status === 'completed') {
-      console.log(`🏥 システム健全性: ${healthResult.healthyRate}%`);
-      console.log(`   完全一致: ${healthResult.metrics.perfect}件`);
-      console.log(`   要改善: ${healthResult.metrics.major + healthResult.metrics.critical}件`);
-      console.log(`   ${healthResult.alertMessage}`);
     }
 
-    console.log('');
 
     // 新規問題
     if (newIssuesResult.status === 'completed') {
       if (newIssuesResult.hasNewIssues) {
-        console.log(`🚨 新規問題: ${newIssuesResult.potentialIssues.length}件`);
       } else {
-        console.log('✅ 新規問題: なし');
       }
-      console.log(`   過去24時間の新規分納: ${newIssuesResult.newTransactionsCount}件`);
     }
 
-    console.log('');
 
     // 修正候補
     if (candidatesResult.status === 'completed') {
-      console.log(`🛠️ 自動修正候補: ${candidatesResult.highConfidenceCount}件 (高信頼度)`);
-      console.log(`   税込調整候補: ${candidatesResult.taxAdjustmentCandidates.length}件`);
-      console.log(`   比例削減候補: ${candidatesResult.proportionalCandidates.length}件`);
     }
 
-    console.log('==========================================');
 
     return {
       status: 'completed',

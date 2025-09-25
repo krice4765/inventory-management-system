@@ -402,7 +402,6 @@ export class EnhancedErrorHandler {
     if (process.env.NODE_ENV === 'production') {
       try {
         // await externalErrorService.report(error);
-        console.log('エラーレポートを外部サービスに送信:', error.id);
       } catch (reportingError) {
         console.error('エラーレポートの送信に失敗:', reportingError);
       }

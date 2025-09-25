@@ -81,7 +81,6 @@ export interface OutboundFilters {
 
 // 出庫指示一覧取得
 const getOutboundOrders = async (filters?: OutboundFilters): Promise<OutboundOrder[]> => {
-  console.log('🔄 Fetching outbound orders with filters:', filters);
 
   let query = supabase
     .from('outbound_orders')
@@ -140,13 +139,11 @@ const getOutboundOrders = async (filters?: OutboundFilters): Promise<OutboundOrd
     }))
   }));
 
-  console.log('✅ Outbound orders fetched:', transformedData.length);
   return transformedData as OutboundOrder[];
 };
 
 // 特定の出庫指示詳細取得
 const getOutboundOrderDetail = async (orderId: string): Promise<OutboundOrder | null> => {
-  console.log('🔄 Fetching outbound order detail:', orderId);
 
   const { data, error } = await supabase
     .from('outbound_orders')
@@ -187,13 +184,11 @@ const getOutboundOrderDetail = async (orderId: string): Promise<OutboundOrder | 
     }))
   };
 
-  console.log('✅ Outbound order detail fetched:', transformedData?.order_number);
   return transformedData as OutboundOrder;
 };
 
 // 在庫引当チェック
 const checkStockAllocation = async (items: CreateOutboundRequest['items']): Promise<StockAllocationResult[]> => {
-  console.log('🔄 Checking stock allocation for items:', items.length);
 
   const productIds = items.map(item => item.product_id);
 
@@ -233,14 +228,12 @@ const checkStockAllocation = async (items: CreateOutboundRequest['items']): Prom
   });
 
   const fulfillableCount = results.filter(r => r.can_fulfill).length;
-  console.log(`✅ Stock allocation check completed: ${fulfillableCount}/${results.length} items can be fulfilled`);
 
   return results;
 };
 
 // 出庫指示作成
 const createOutboundOrder = async (request: CreateOutboundRequest): Promise<OutboundOrder> => {
-  console.log('🔄 Creating outbound order:', request);
 
   // 1. 在庫引当チェック
   const allocationResults = await checkStockAllocation(request.items);
@@ -365,13 +358,11 @@ const createOutboundOrder = async (request: CreateOutboundRequest): Promise<Outb
     items: orderItems
   } as OutboundOrder;
 
-  console.log('✅ Outbound order created:', result.order_number);
   return result;
 };
 
 // 出庫実績登録
 const registerShipment = async (request: ShipmentRequest): Promise<void> => {
-  console.log('🔄 Registering shipment:', request);
 
   for (const item of request.items) {
     if (item.quantity_shipped <= 0) continue;
@@ -442,7 +433,6 @@ const registerShipment = async (request: ShipmentRequest): Promise<void> => {
       .eq('id', request.outbound_order_id);
   }
 
-  console.log('✅ Shipment registered successfully');
 };
 
 // 出庫管理カスタムフック

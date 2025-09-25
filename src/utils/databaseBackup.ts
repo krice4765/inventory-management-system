@@ -20,7 +20,6 @@ export class DatabaseBackup {
       }
     };
 
-    console.log('🛡️ 分納データバックアップ開始:', timestamp);
 
     try {
       // 1. 発注書データバックアップ
@@ -30,7 +29,6 @@ export class DatabaseBackup {
 
       if (poError) throw poError;
       backupData.purchase_orders = purchaseOrders;
-      console.log('✅ 発注書データ:', purchaseOrders?.length, '件');
 
       // 2. 分納トランザクションデータバックアップ
       const { data: transactions, error: txError } = await supabase
@@ -40,7 +38,6 @@ export class DatabaseBackup {
 
       if (txError) throw txError;
       backupData.transactions = transactions;
-      console.log('✅ 分納データ:', transactions?.length, '件');
 
       // 3. 在庫移動履歴バックアップ
       const { data: movements, error: mvError } = await supabase
@@ -50,7 +47,6 @@ export class DatabaseBackup {
 
       if (mvError) throw mvError;
       backupData.inventory_movements = movements;
-      console.log('✅ 在庫移動データ:', movements?.length, '件');
 
       // 4. 発注明細データバックアップ
       const { data: items, error: itemError } = await supabase
@@ -59,7 +55,6 @@ export class DatabaseBackup {
 
       if (itemError) throw itemError;
       backupData.purchase_order_items = items;
-      console.log('✅ 発注明細データ:', items?.length, '件');
 
       // 5. バックアップファイル作成
       const backupJson = JSON.stringify(backupData, null, 2);
@@ -75,7 +70,6 @@ export class DatabaseBackup {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      console.log('✅ バックアップ完了:', link.download);
 
       return {
         success: true,
@@ -101,7 +95,6 @@ export class DatabaseBackup {
    * 特定発注書の詳細バックアップ
    */
   static async createOrderBackup(orderNo: string) {
-    console.log('🛡️ 発注書バックアップ開始:', orderNo);
 
     try {
       // 発注書ID取得
@@ -177,7 +170,6 @@ export class DatabaseBackup {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      console.log('✅ 発注書バックアップ完了:', link.download);
 
       return {
         success: true,

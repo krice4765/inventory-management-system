@@ -69,7 +69,6 @@ class PDFLibraryCache {
 
       const loadTime = performance.now() - startTime;
       performanceMonitor.trackAPI('PDF Library Load (Order)', loadTime);
-      console.log(`📦 PDF Library loaded: OrderPDFGenerator (${loadTime.toFixed(1)}ms)`);
 
       return this.orderPDFGenerator!;
     } catch (error) {
@@ -87,7 +86,6 @@ class PDFLibraryCache {
 
       const loadTime = performance.now() - startTime;
       performanceMonitor.trackAPI('PDF Library Load (Japanese)', loadTime);
-      console.log(`📦 PDF Library loaded: JapanesePDFGenerator (${loadTime.toFixed(1)}ms)`);
 
       return this.japanesePDFGenerator!;
     } catch (error) {
@@ -101,7 +99,6 @@ class PDFLibraryCache {
     this.orderPDFGenerator = null;
     this.japanesePDFGenerator = null;
     this.loadingPromises.clear();
-    console.log('📦 PDF library cache cleared');
   }
 }
 
@@ -244,7 +241,6 @@ export class DynamicPDFService {
    */
   static async preloadPDFLibraries(): Promise<void> {
     try {
-      console.log('📦 Pre-loading PDF libraries...');
 
       // 並列で両方のライブラリをロード
       await Promise.all([
@@ -252,7 +248,6 @@ export class DynamicPDFService {
         this.cache.getJapanesePDFGenerator()
       ]);
 
-      console.log('✅ PDF libraries pre-loaded successfully');
     } catch (error) {
       console.warn('PDF library pre-loading failed:', error);
     }

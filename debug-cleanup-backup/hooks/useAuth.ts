@@ -29,9 +29,11 @@ const ensureUserProfile = async (user: User) => {
       if (updateError) {
         console.warn('Last login time update failed:', updateError.message);
       } else {
+        console.log('Last login time updated successfully for existing user');
       }
     } else {
       // プロファイルが存在しない場合は新規作成
+      console.log('Creating new user profile for:', user.email);
 
       // 承認済み申請から情報を取得
       let applicationData = null;
@@ -46,6 +48,7 @@ const ensureUserProfile = async (user: User) => {
 
       if (application) {
         applicationData = application;
+        console.log('Found approved application data for user profile creation');
       }
 
       const newProfile = {
@@ -88,12 +91,14 @@ const ensureUserProfile = async (user: User) => {
             .eq('id', user.id);
 
           if (!updateError) {
+            console.log('✅ Last login time updated for existing profile');
           }
         } else {
           console.error('❌ User profile creation failed:', insertError.message);
           console.error('Error details:', insertError);
         }
       } else {
+        console.log('✅ User profile created successfully for:', user.email);
       }
     }
   } catch (error) {
@@ -116,6 +121,7 @@ export const useAuth = () => {
 
         // 既存セッションがある場合、プロファイルの確認と更新
         if (session?.user) {
+          console.log('Existing session found, ensuring user profile');
           ensureUserProfile(session.user);
         }
       } catch (error) {
@@ -154,8 +160,10 @@ export const useAuth = () => {
 
   // 各認証関数をuseCallbackでメモ化
   const signIn = useCallback(async (email: string, password: string) => {
+    console.log('🔐 ログイン試行:', { email, hasPassword: !!password });
     try {
       const result = await supabase.auth.signInWithPassword({ email, password });
+      console.log('🔐 ログイン結果:', {
         success: !result.error,
         error: result.error?.message,
         user: result.data.user?.email

@@ -2,11 +2,9 @@
 import { supabase } from '../lib/supabase';
 
 export const executeInstallmentCorrection = async () => {
-  console.log('🛠️ 分納修正実行開始');
 
   try {
     // Phase 1: バックアップ確認
-    console.log('📋 Phase 1: バックアップ状況確認');
 
     // まず現在の問題状況を再確認
     const { data: currentIssues } = await supabase
@@ -45,18 +43,12 @@ export const executeInstallmentCorrection = async () => {
       }
     });
 
-    console.log('📊 修正前状況:');
-    console.log(`  問題のある発注書: ${problematicOrders}件`);
-    console.log(`  総過剰額: ¥${totalExcess.toLocaleString()}`);
-    console.log(`  税関連と思われるケース: ${taxRelatedCases}件`);
 
     if (problematicOrders === 0) {
-      console.log('✅ 修正対象がありません');
       return { status: 'no_issues', message: '問題は検出されませんでした' };
     }
 
     // Phase 2: 税込調整の実行
-    console.log('💰 Phase 2: 税込調整実行');
 
     const taxAdjustmentCandidates = currentIssues.filter(order => {
       const deliveredTotal = order.transactions.reduce((sum: number, t: any) => sum + t.total_amount, 0);
@@ -66,14 +58,12 @@ export const executeInstallmentCorrection = async () => {
       return ratio >= 1.08 && ratio <= 1.12 && diffFromTax < 1000;
     });
 
-    console.log(`🎯 税込調整対象: ${taxAdjustmentCandidates.length}件`);
 
     let taxAdjustmentSuccess = 0;
 
     for (const order of taxAdjustmentCandidates) {
       const newAmount = Math.round(order.total_amount * 1.1);
 
-      console.log(`  調整中: ${order.order_no} ¥${order.total_amount.toLocaleString()} → ¥${newAmount.toLocaleString()}`);
 
       const { error } = await supabase
         .from('purchase_orders')
@@ -87,14 +77,11 @@ export const executeInstallmentCorrection = async () => {
         console.error(`❌ 調整失敗 ${order.order_no}:`, error.message);
       } else {
         taxAdjustmentSuccess++;
-        console.log(`  ✅ 調整完了: ${order.order_no}`);
       }
     }
 
-    console.log(`📊 Phase 2結果: ${taxAdjustmentSuccess}/${taxAdjustmentCandidates.length}件調整完了`);
 
     // Phase 3: 調整後の確認
-    console.log('🔍 Phase 3: 調整後確認');
 
     const { data: afterAdjustment } = await supabase
       .from('purchase_orders')
@@ -123,19 +110,10 @@ export const executeInstallmentCorrection = async () => {
         }
       });
 
-      console.log('📋 調整後状況:');
-      console.log(`  残存問題: ${remainingIssues}件`);
-      console.log(`  残存過剰額: ¥${remainingExcess.toLocaleString()}`);
-      console.log(`  解決率: ${Math.round((1 - remainingIssues / problematicOrders) * 100)}%`);
 
       if (remainingIssues === 0) {
-        console.log('🎉 全ての過剰分納問題が解決されました！');
       } else if (remainingIssues < problematicOrders / 2) {
-        console.log('✅ 大部分の問題が解決されました');
-        console.log('📋 残存問題は個別対応が必要です');
       } else {
-        console.log('⚠️ まだ多くの問題が残っています');
-        console.log('🔧 追加の調整戦略が必要です');
       }
 
       return {
@@ -167,7 +145,6 @@ export const executeInstallmentCorrection = async () => {
 
 // 修正状況の詳細確認
 export const checkCorrectionStatus = async () => {
-  console.log('🔍 修正状況詳細確認');
 
   try {
     const { data: orders } = await supabase
@@ -191,7 +168,6 @@ export const checkCorrectionStatus = async () => {
       return;
     }
 
-    console.log('📊 最新30件の発注書状況:');
 
     let perfectlyAligned = 0;
     let minorDifferences = 0;
@@ -215,23 +191,12 @@ export const checkCorrectionStatus = async () => {
       }
 
       if (index < 10) { // 上位10件詳細表示
-        console.log(`${index + 1}. ${order.order_no} ${status}`);
-        console.log(`   発注額: ¥${order.total_amount.toLocaleString()}`);
-        console.log(`   分納額: ¥${deliveredTotal.toLocaleString()}`);
-        console.log(`   差額: ¥${difference.toLocaleString()}`);
-        console.log(`   分納回数: ${installments.length}回`);
-        console.log('---');
       }
     });
 
-    console.log('📋 全体サマリー:');
-    console.log(`  完全一致: ${perfectlyAligned}件`);
-    console.log(`  軽微な差額: ${minorDifferences}件`);
-    console.log(`  大きな差額: ${majorDifferences}件`);
 
     const totalChecked = perfectlyAligned + minorDifferences + majorDifferences;
     const healthyRate = Math.round(((perfectlyAligned + minorDifferences) / totalChecked) * 100);
-    console.log(`  健全性: ${healthyRate}%`);
 
     return {
       perfectlyAligned,

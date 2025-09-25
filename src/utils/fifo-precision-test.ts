@@ -221,14 +221,12 @@ export async function executeFIFOPrecisionTest(): Promise<void> {
     const report = generateFIFOPrecisionReport(results);
 
     // レポート出力
-    console.log(report);
 
     // 要件適合性確認
     const passedTests = results.filter(r => r.passed).length;
     const successRate = (passedTests / results.length) * 100;
 
     if (successRate >= 99.8) {
-      console.log('🎉 FIFO評価額計算は99.8%以上の精度要件を満たしています！');
     } else {
       console.warn('⚠️ FIFO評価額計算の精度が要件を下回っています。要改善。');
     }

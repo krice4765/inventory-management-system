@@ -3,7 +3,6 @@ import { supabase } from '../lib/supabase';
 
 // 第2段階の税込調整実行
 export const executeBatchCorrection = async () => {
-  console.log('🚀 第2段階: バッチ税込調整開始');
 
   // expandedTaxAdjustmentで特定された追加候補
   const additionalCandidates = [
@@ -29,8 +28,6 @@ export const executeBatchCorrection = async () => {
     }
   ];
 
-  console.log(`🎯 第2段階修正対象: ${additionalCandidates.length}件`);
-  console.log(`📊 予想調整総額: ¥${additionalCandidates.reduce((sum, c) => sum + (c.suggestedAmount - c.expectedCurrentAmount), 0).toLocaleString()}`);
 
   try {
     let successCount = 0;
@@ -38,7 +35,6 @@ export const executeBatchCorrection = async () => {
     let actualAdjustmentTotal = 0;
 
     for (const candidate of additionalCandidates) {
-      console.log(`📋 処理中: ${candidate.orderNo}`);
 
       // IDと現在の金額を取得
       const { data: orderData, error: fetchError } = await supabase
@@ -59,11 +55,8 @@ export const executeBatchCorrection = async () => {
         continue;
       }
 
-      console.log(`  現在額: ¥${orderData.total_amount.toLocaleString()}`);
-      console.log(`  修正額: ¥${candidate.suggestedAmount.toLocaleString()}`);
 
       const actualAdjustment = candidate.suggestedAmount - orderData.total_amount;
-      console.log(`  調整額: ¥${actualAdjustment.toLocaleString()}`);
 
       // 予想と実際の金額が大きく異なる場合は警告
       if (Math.abs(orderData.total_amount - candidate.expectedCurrentAmount) > 100) {
@@ -83,21 +76,13 @@ export const executeBatchCorrection = async () => {
         console.error(`❌ 更新失敗 ${candidate.orderNo}:`, updateError);
         errorCount++;
       } else {
-        console.log(`✅ 修正完了: ${candidate.orderNo}`);
         successCount++;
         actualAdjustmentTotal += actualAdjustment;
       }
     }
 
-    console.log('📊 第2段階修正結果:');
-    console.log(`  成功: ${successCount}件`);
-    console.log(`  失敗: ${errorCount}件`);
-    console.log(`  修正率: ${Math.round((successCount / additionalCandidates.length) * 100)}%`);
-    console.log(`  実際調整総額: ¥${actualAdjustmentTotal.toLocaleString()}`);
 
     if (successCount > 0) {
-      console.log('🎉 追加の過剰分納問題が解決されました！');
-      console.log(`📈 累計修正: ${successCount + 3}件の発注書が完全整合`);
     }
 
     return {
@@ -119,7 +104,6 @@ export const executeBatchCorrection = async () => {
 
 // 第2段階修正結果の確認
 export const verifyBatchCorrections = async () => {
-  console.log('🔍 第2段階修正結果確認');
 
   const verifyOrders = ['PO250913005', 'PO250913004', 'PO250913003', 'PO250913002'];
 
@@ -127,7 +111,6 @@ export const verifyBatchCorrections = async () => {
     let perfectMatches = 0;
 
     for (const orderNo of verifyOrders) {
-      console.log(`📋 確認中: ${orderNo}`);
 
       // 発注書情報を取得
       const { data: order, error: orderError } = await supabase
@@ -156,25 +139,15 @@ export const verifyBatchCorrections = async () => {
       const deliveredTotal = (installments || []).reduce((sum, inst) => sum + inst.total_amount, 0);
       const difference = Math.abs(order.total_amount - deliveredTotal);
 
-      console.log(`  発注額: ¥${order.total_amount.toLocaleString()}`);
-      console.log(`  分納額: ¥${deliveredTotal.toLocaleString()}`);
-      console.log(`  差額: ¥${difference.toLocaleString()}`);
 
       if (difference < 1) {
-        console.log(`  ✅ 完全一致: ${orderNo}`);
         perfectMatches++;
       } else if (difference <= 10) {
-        console.log(`  ⚠️ 軽微な差額: ${orderNo}`);
       } else {
-        console.log(`  ❌ 問題継続: ${orderNo}`);
       }
 
-      console.log('---');
     }
 
-    console.log('📊 第2段階確認結果:');
-    console.log(`  完全一致: ${perfectMatches}件`);
-    console.log(`  累計完全一致: ${perfectMatches + 3}件`); // 第1段階含む
 
     return {
       status: 'verified',
@@ -190,7 +163,6 @@ export const verifyBatchCorrections = async () => {
 
 // 全体の整合性状況確認
 export const overallIntegrityStatus = async () => {
-  console.log('📊 全体整合性状況確認');
 
   try {
     // 最新20件の発注書を確認
@@ -206,11 +178,9 @@ export const overallIntegrityStatus = async () => {
     }
 
     if (!recentOrders) {
-      console.log('📝 データなし');
       return;
     }
 
-    console.log('🔍 最新20件の発注書整合性確認中...');
 
     let perfectCount = 0;
     let minorCount = 0;
@@ -245,20 +215,10 @@ export const overallIntegrityStatus = async () => {
     const totalChecked = perfectCount + minorCount + majorCount;
     const healthyRate = Math.round(((perfectCount + minorCount) / totalChecked) * 100);
 
-    console.log('📋 全体状況サマリー:');
-    console.log(`  確認した発注書: ${totalChecked}件`);
-    console.log(`  完全一致: ${perfectCount}件 (${Math.round((perfectCount / totalChecked) * 100)}%)`);
-    console.log(`  軽微な差額: ${minorCount}件`);
-    console.log(`  大きな差額: ${majorCount}件`);
-    console.log(`  システム健全性: ${healthyRate}%`);
-    console.log(`  残存過剰額: ¥${totalExcessAmount.toLocaleString()}`);
 
     if (healthyRate >= 80) {
-      console.log('🎉 システムの健全性が大幅に改善されました！');
     } else if (healthyRate >= 60) {
-      console.log('✅ システムの健全性が改善されています');
     } else {
-      console.log('⚠️ まだ改善の余地があります');
     }
 
     return {

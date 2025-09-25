@@ -44,6 +44,8 @@ const getAssignedUsers = async (): Promise<AssignedUser[]> => {
     .order('full_name');
 
   if (error) {
+    console.error('❌ Failed to fetch assigned users:', error);
+
     // フォールバックとして基本データのみ取得
     const { data: basicData, error: basicError } = await supabase
       .from('user_profiles')
@@ -52,6 +54,7 @@ const getAssignedUsers = async (): Promise<AssignedUser[]> => {
       .order('full_name');
 
     if (basicError) {
+      console.error('❌ Basic fetch also failed:', basicError);
       return [];
     }
 
@@ -65,6 +68,7 @@ const getAssignedUsers = async (): Promise<AssignedUser[]> => {
       created_at: user.updated_at,
     }));
 
+    console.warn('⚠️ Using fallback data with default permissions');
     return fallbackData;
   }
 
@@ -76,11 +80,14 @@ const getAssignedUsers = async (): Promise<AssignedUser[]> => {
     created_at: user.updated_at,
   }));
 
+  // Assigned users fetched
   return enhancedData;
 };
 
 // 特定の担当者情報取得
 const getAssignedUser = async (userId: string): Promise<AssignedUser | null> => {
+  // Fetching assigned user
+
   // user_profilesテーブル構造に基づいて取得
   const { data, error } = await supabase
     .from('user_profiles')
@@ -131,6 +138,7 @@ const getAssignedUser = async (userId: string): Promise<AssignedUser | null> => 
       created_at: basicData.updated_at,
     };
 
+    console.warn('⚠️ Using fallback user data with default permissions');
     return fallbackUser;
   }
 
@@ -247,6 +255,7 @@ export function useCurrentUser() {
           created_at: basicProfile?.updated_at,
         };
 
+        console.warn('⚠️ Using fallback current user data with default permissions');
       } else if (profile) {
         // 権限フィールドとその他のフィールドを設定
         profile = {
@@ -395,6 +404,7 @@ export function useAssignedUserHistory() {
       newUserId: string;
       reason?: string;
     }) => {
+      console.log('🔄 Recording assignment change:', { orderId, previousUserId, newUserId, reason });
 
       // 変更履歴をログテーブルに記録（将来の拡張用）
       const changeLog = {
@@ -406,6 +416,7 @@ export function useAssignedUserHistory() {
         changed_at: new Date().toISOString(),
       };
 
+      console.log('📝 Assignment change logged:', changeLog);
       return changeLog;
     },
     onSuccess: () => {

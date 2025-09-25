@@ -256,7 +256,6 @@ export class InstallmentApiTester {
    * 全テストスイートを実行
    */
   async runAllTests(): Promise<ApiTestSuite> {
-    console.log('🧪 API統合テストスイート開始...');
     const suiteStartTime = Date.now();
     const results: TestResult[] = [];
 
@@ -274,12 +273,10 @@ export class InstallmentApiTester {
         results.push(result);
         
         const status = result.success ? '✅' : '❌';
-        console.log(`${status} ${result.testName} (${result.duration}ms)`);
         
         if (!result.success) {
           console.error(`   エラー: ${result.error}`);
         } else if (result.data) {
-          console.log(`   結果: ${JSON.stringify(result.data, null, 2)}`);
         }
       } catch (error) {
         results.push({
@@ -304,11 +301,6 @@ export class InstallmentApiTester {
       duration: suiteDuration
     };
 
-    console.log('\n📊 テスト結果サマリー');
-    console.log(`総テスト数: ${suite.totalTests}`);
-    console.log(`✅ 成功: ${suite.passedTests}`);
-    console.log(`❌ 失敗: ${suite.failedTests}`);
-    console.log(`⏱️ 実行時間: ${suite.duration}ms`);
 
     return suite;
   }
@@ -320,11 +312,9 @@ export class InstallmentApiTester {
     const tester = new InstallmentApiTester();
     
     try {
-      console.log('🚀 API統合テスト開始');
       const results = await tester.runAllTests();
       
       if (results.failedTests === 0) {
-        console.log('\n🎉 すべてのテストが成功しました！');
       } else {
         console.warn(`\n⚠️  ${results.failedTests}個のテストが失敗しました`);
       }

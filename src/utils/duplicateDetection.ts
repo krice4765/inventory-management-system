@@ -78,7 +78,6 @@ export class DuplicateDetectionService {
       }
 
       if (existingRecord && existingRecord.length > 0) {
-        console.log('🚨 重複操作検出:', {
           hash: operationHash,
           existingRecord: existingRecord[0],
           timeDiff: now.getTime() - new Date(existingRecord[0].created_at).getTime()
@@ -113,7 +112,6 @@ export class DuplicateDetectionService {
         return { isDuplicate: false, operationHash };
       }
 
-      console.log('✅ 新規操作記録:', { hash: operationHash, orderId: data.orderId });
       return { isDuplicate: false, operationHash };
 
     } catch (error) {
@@ -137,7 +135,6 @@ export class DuplicateDetectionService {
       if (error) {
         console.error('期限切れレコードクリーンアップエラー:', error);
       } else {
-        console.log('✅ 期限切れレコードクリーンアップ完了');
       }
     } catch (error) {
       console.error('クリーンアップ処理エラー:', error);
@@ -159,7 +156,6 @@ export class DuplicateDetectionService {
       if (error) {
         console.error('セッション操作無効化エラー:', error);
       } else {
-        console.log('✅ セッション操作無効化完了:', sessionId);
       }
     } catch (error) {
       console.error('セッション無効化処理エラー:', error);

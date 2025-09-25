@@ -221,10 +221,7 @@ export function useErrorHandler() {
     // 開発環境では元のエラーもコンソールに出力
     if (import.meta.env.DEV) {
       console.group(`🚨 Error: ${userError.code}`);
-      console.log('User message:', userError.message);
-      console.log('Original error:', userError.originalError);
       if (userError.context) {
-        console.log('Context:', userError.context);
       }
       console.groupEnd();
     }
@@ -315,14 +312,12 @@ if (import.meta.env.DEV) {
     };
     
     const userError = convertToUserFriendlyError(p0001Error);
-    console.log('P0001 変換結果:', userError);
     
     // ネットワークエラーのテスト
     const networkError = new Error('NetworkError: fetch failed');
     networkError.name = 'NetworkError';
     
     const networkUserError = convertToUserFriendlyError(networkError);
-    console.log('Network Error 変換結果:', networkUserError);
     
     console.groupEnd();
   };

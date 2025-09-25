@@ -3,7 +3,6 @@ import { supabase } from '../lib/supabase';
 
 // 確認された調整候補を直接実行
 export const executeDirectCorrection = async () => {
-  console.log('🔧 直接修正実行開始');
 
   // 確認された調整対象（safeTaxAdjustmentの結果から）
   const adjustmentCandidates = [
@@ -27,14 +26,12 @@ export const executeDirectCorrection = async () => {
     }
   ];
 
-  console.log(`🎯 修正対象: ${adjustmentCandidates.length}件`);
 
   try {
     let successCount = 0;
     let errorCount = 0;
 
     for (const candidate of adjustmentCandidates) {
-      console.log(`📋 処理中: ${candidate.orderNo}`);
 
       // まずIDを取得
       const { data: orderData, error: fetchError } = await supabase
@@ -60,9 +57,6 @@ export const executeDirectCorrection = async () => {
         console.warn(`⚠️ 金額が変更されています ${candidate.orderNo}: 予想¥${candidate.currentAmount} 実際¥${orderData.total_amount}`);
       }
 
-      console.log(`  現在額: ¥${orderData.total_amount.toLocaleString()}`);
-      console.log(`  修正額: ¥${candidate.suggestedAmount.toLocaleString()}`);
-      console.log(`  調整額: ¥${(candidate.suggestedAmount - orderData.total_amount).toLocaleString()}`);
 
       // 金額を更新
       const { error: updateError } = await supabase
@@ -77,19 +71,12 @@ export const executeDirectCorrection = async () => {
         console.error(`❌ 更新失敗 ${candidate.orderNo}:`, updateError);
         errorCount++;
       } else {
-        console.log(`✅ 修正完了: ${candidate.orderNo}`);
         successCount++;
       }
     }
 
-    console.log('📊 修正結果:');
-    console.log(`  成功: ${successCount}件`);
-    console.log(`  失敗: ${errorCount}件`);
-    console.log(`  修正率: ${Math.round((successCount / adjustmentCandidates.length) * 100)}%`);
 
     if (successCount > 0) {
-      console.log('🎉 一部の過剰分納問題が解決されました！');
-      console.log('📋 次のステップ: 他の発注書も確認してください');
     }
 
     return {
@@ -110,13 +97,11 @@ export const executeDirectCorrection = async () => {
 
 // 修正後の確認
 export const verifyCorrections = async () => {
-  console.log('🔍 修正結果確認');
 
   const verifyOrders = ['PO250913008', 'PO250913007', 'PO250913006'];
 
   try {
     for (const orderNo of verifyOrders) {
-      console.log(`📋 確認中: ${orderNo}`);
 
       // 発注書情報を取得
       const { data: order, error: orderError } = await supabase
@@ -145,19 +130,12 @@ export const verifyCorrections = async () => {
       const deliveredTotal = (installments || []).reduce((sum, inst) => sum + inst.total_amount, 0);
       const difference = Math.abs(order.total_amount - deliveredTotal);
 
-      console.log(`  発注額: ¥${order.total_amount.toLocaleString()}`);
-      console.log(`  分納額: ¥${deliveredTotal.toLocaleString()}`);
-      console.log(`  差額: ¥${difference.toLocaleString()}`);
 
       if (difference < 1) {
-        console.log(`  ✅ 完全一致: ${orderNo}`);
       } else if (difference <= 10) {
-        console.log(`  ⚠️ 軽微な差額: ${orderNo}`);
       } else {
-        console.log(`  ❌ 問題継続: ${orderNo}`);
       }
 
-      console.log('---');
     }
 
     return { status: 'verified' };
@@ -170,7 +148,6 @@ export const verifyCorrections = async () => {
 
 // より多くの発注書を確認（段階的）
 export const expandedTaxAdjustment = async () => {
-  console.log('🔍 拡張税込調整確認');
 
   try {
     // 次の10件を確認
@@ -186,11 +163,9 @@ export const expandedTaxAdjustment = async () => {
     }
 
     if (!nextOrders || nextOrders.length === 0) {
-      console.log('📝 追加の発注書がありません');
       return;
     }
 
-    console.log(`📋 追加確認: ${nextOrders.length}件`);
 
     const additionalCandidates: Array<{
       orderNo: string;
@@ -211,14 +186,12 @@ export const expandedTaxAdjustment = async () => {
       const deliveredTotal = installments.reduce((sum, inst) => sum + inst.total_amount, 0);
       const ratio = deliveredTotal / order.total_amount;
 
-      console.log(`  ${order.order_no}: 比率 ${ratio.toFixed(3)}`);
 
       if (ratio >= 1.08 && ratio <= 1.12) {
         const suggestedAmount = Math.round(order.total_amount * 1.1);
         const diffFromSuggested = Math.abs(deliveredTotal - suggestedAmount);
 
         if (diffFromSuggested < 1000) {
-          console.log(`    🎯 追加候補: ${order.order_no}`);
           additionalCandidates.push({
             orderNo: order.order_no,
             currentAmount: order.total_amount,
@@ -229,13 +202,9 @@ export const expandedTaxAdjustment = async () => {
       }
     }
 
-    console.log(`📊 追加税込調整候補: ${additionalCandidates.length}件`);
 
     if (additionalCandidates.length > 0) {
-      console.log('🔍 追加候補詳細:');
       additionalCandidates.forEach((candidate, index) => {
-        console.log(`${index + 1}. ${candidate.orderNo}`);
-        console.log(`   調整額: ¥${(candidate.suggestedAmount - candidate.currentAmount).toLocaleString()}`);
       });
     }
 
