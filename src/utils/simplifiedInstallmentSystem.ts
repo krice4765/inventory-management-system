@@ -80,21 +80,27 @@ export class SimplifiedInstallmentService {
             .eq('purchase_order_id', data.orderId);
 
           if (!itemsError && orderItems) {
-            const totalQuantity = Object.values(data.quantities).reduce((sum: number, qty: number) => sum + qty, 0);
+            const totalQuantity = Object.values(data.quantities).reduce((sum: number, qty: any) => {
+              const numQty = Number(qty) || 0;
+              return sum + numQty;
+            }, 0);
+
+            console.log('🔍 数量計算結果:', { originalQuantities: data.quantities, totalQuantity });
 
             if (totalQuantity > 0) {
               items = Object.entries(data.quantities)
-                .filter(([_productId, quantity]) => quantity > 0)
+                .filter(([_productId, quantity]) => (Number(quantity) || 0) > 0)
                 .map(([productId, quantity]) => {
+                  const numQuantity = Number(quantity) || 0;
                   const orderItem = orderItems.find(item => item.product_id === productId);
                   if (orderItem) {
                     // 実際の分納単価を計算（分納金額 / 総数量）
                     const actualUnitPrice = Math.round(data.amount / totalQuantity);
                     return {
                       product_id: productId,
-                      quantity: quantity,
+                      quantity: numQuantity,
                       unit_price: actualUnitPrice || 0, // 0除算対策
-                      total_amount: (actualUnitPrice || 0) * quantity
+                      total_amount: (actualUnitPrice || 0) * numQuantity
                     };
                   }
                   return null;
