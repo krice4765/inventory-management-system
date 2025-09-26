@@ -247,16 +247,51 @@ export async function addPurchaseInstallment(params: AddInstallmentParams): Prom
         return null;
       }).filter(item => item !== null);
 
-    // V3関数で商品情報付き分納を作成
-    const { data, error } = await supabase.rpc('create_installment_v3', {
-      p_parent_order_id: params.parentOrderId,
-      p_partner_id: null, // 発注から自動取得
-      p_transaction_date: new Date().toISOString().split('T')[0],
-      p_due_date: params.dueDate || new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
-      p_total_amount: params.amount,
-      p_memo: params.memo || '',
-      p_items: items.length > 0 ? items : null
-    });
+    // RPC関数の代わりに直接分納取引を作成
+    const parentOrder = await supabase
+      .from('purchase_orders')
+      .select('partner_id')
+      .eq('id', params.parentOrderId)
+      .single();
+
+    const { data: transactionData, error } = await supabase
+      .from('transactions')
+      .insert({
+        transaction_type: 'purchase',
+        partner_id: parentOrder.data?.partner_id,
+        transaction_date: new Date().toISOString().split('T')[0],
+        due_date: params.dueDate || new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
+        total_amount: params.amount,
+        status: 'pending',
+        memo: params.memo || '',
+        parent_order_id: params.parentOrderId
+      })
+      .select()
+      .single();
+
+    let data = null;
+    if (!error && transactionData) {
+      data = { success: true, transaction_id: transactionData.id };
+
+      // 分納明細アイテムを作成
+      if (items.length > 0) {
+        const itemsToInsert = items.map(item => ({
+          transaction_id: transactionData.id,
+          product_id: item.product_id,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total_amount: item.total_amount
+        }));
+
+        const { error: itemsError } = await supabase
+          .from('transaction_items')
+          .insert(itemsToInsert);
+
+        if (itemsError) {
+          console.error('分納明細作成エラー:', itemsError);
+        }
+      }
+    }
 
     if (error) throw error;
     if (!data || !data.success) {

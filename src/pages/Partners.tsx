@@ -8,17 +8,7 @@ import { motion } from 'framer-motion';
 import { ModernCard } from '../components/ui/ModernCard';
 
 interface Partner {
-  id: string;
-  name: string;
-  partner_code: string;
-  partner_type: 'supplier' | 'customer' | 'both';
-  contact_person?: string | null;
-  phone?: string | null;
-  email?: string | null;
-  address?: string | null;
-  is_active: boolean;
-  created_at: string;
-}
+      id: string; name: string; partner_code: string; partner_type: 'supplier' | 'customer' | 'both'; contact_person?: string | null; phone?: string | null; email?: string | null; address?: string | null; is_active: boolean; created_at: string; }
 
 export default function Partners() {
   const queryClient = useQueryClient();
@@ -94,8 +84,7 @@ export default function Partners() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+      const handleSubmit = async (e: React.FormEvent) => { e.preventDefault();
     
     try {
       if (editingPartner) {
@@ -143,8 +132,7 @@ export default function Partners() {
     }
   };
 
-  const handleEdit = (partner: Partner) => {
-    setEditingPartner(partner);
+      const handleEdit = (partner: Partner) => { setEditingPartner(partner);
     setFormData({
       name: partner.name,
       partner_code: partner.partner_code,
@@ -165,8 +153,7 @@ export default function Partners() {
         .eq('id', id);
 
       if (error) throw error;
-      toast.success(currentStatus ? '取引先を無効化しました' : '取引先を有効化しました');
-      fetchPartners();
+      toast.success(currentStatus ? '取引先を無効化しました' : '取引先を有効化しました'); fetchPartners();
     } catch (error) {
       console.error('Partner toggle error:', error);
       toast.error('取引先の状態変更に失敗しました');
@@ -250,19 +237,13 @@ export default function Partners() {
     }
   };
 
-  const getPartnerTypeLabel = (type: string) => {
-    switch (type) {
-      case 'supplier': return '仕入先';
-      case 'customer': return '販売先';
-      case 'both': return '仕入先・販売先';
-      default: return type;
-    }
+      const getPartnerTypeLabel = (type: string) => { switch (type) {
+      case 'supplier': return '仕入先'; case 'customer': return '販売先'; case 'both': return '仕入先・販売先'; default: return type; }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500">
-        <div className="flex items-center justify-center h-64">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark: from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500"><div className="flex items-center justify-center h-64">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -271,8 +252,7 @@ export default function Partners() {
           <motion.span 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="ml-4 text-lg font-medium text-gray-700 dark:text-gray-300"
-          >
+      className="ml-4 text-lg font-medium text-gray-700 dark: text-gray-300">
             取引先データを読み込み中...
           </motion.span>
         </div>
@@ -281,8 +261,7 @@ export default function Partners() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500 font-inter">
-      <motion.div 
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark: from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500 font-inter"><motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -306,16 +285,14 @@ export default function Partners() {
               <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-noto-sans-jp">
                 取引先管理
               </h1>
-              <p className="text-gray-600 dark:text-gray-300 mt-1">パートナー企業との関係を管理</p>
-            </div>
+      <p className="text-gray-600 dark: text-gray-300 mt-1">パートナー企業との関係を管理</p> </div>
           </div>
           <div className="flex items-center gap-3">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowForm(true)}
-              className="flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
-            >
+      className="flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-medium shadow-lg hover: shadow-xl transition-all duration-300">
               <Plus className="w-5 h-5 mr-2" />
               新規取引先
               <Sparkles className="w-4 h-4 ml-2 opacity-75" />
@@ -324,8 +301,7 @@ export default function Partners() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={toggleDarkMode}
-              className="p-3 rounded-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl"
-            >
+      className="p-3 rounded-xl bg-white/80 dark: bg-gray-800/80 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl">
               {isDark ? '☀️' : '🌙'}
             </motion.button>
           </div>
@@ -337,8 +313,7 @@ export default function Partners() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="flex flex-col lg:flex-row gap-4 items-center"
-          >
+      className="flex flex-col lg: flex-row gap-4 items-center">
             {/* 検索バー */}
             <div className="flex-1 relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -347,18 +322,15 @@ export default function Partners() {
               <input
                 type="text"
                 placeholder="取引先名・コード・担当者・連絡先で検索..."
-                className="w-full pl-11 pr-4 py-3 border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"
-                value={searchTerm}
+      className="w-full pl-11 pr-4 py-3 border-0 bg-white/50 dark: bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
 
             {/* 取引先種別フィルター */}
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">種別:</label>
-              <select
-                className="px-4 py-3 border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"
-                value={partnerTypeFilter}
+      <label className="text-sm font-medium text-gray-700 dark: text-gray-300">種別:</label> <select
+      className="px-4 py-3 border-0 bg-white/50 dark: bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"value={partnerTypeFilter}
                 onChange={(e) => setPartnerTypeFilter(e.target.value as 'all' | 'supplier' | 'customer' | 'both')}
               >
                 <option value="all">すべて</option>
@@ -370,10 +342,8 @@ export default function Partners() {
 
             {/* ステータスフィルター */}
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">状態:</label>
-              <select
-                className="px-4 py-3 border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"
-                value={statusFilter}
+      <label className="text-sm font-medium text-gray-700 dark: text-gray-300">状態:</label> <select
+      className="px-4 py-3 border-0 bg-white/50 dark: bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
               >
                 <option value="all">すべて</option>
@@ -388,8 +358,7 @@ export default function Partners() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={clearFilters}
-                className="inline-flex items-center px-4 py-3 border-0 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 transition-all duration-300 shadow-sm"
-              >
+      className="inline-flex items-center px-4 py-3 border-0 rounded-xl text-sm font-medium text-gray-700 dark: text-gray-300 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 transition-all duration-300 shadow-sm">
                 <X className="w-4 h-4 mr-1" />
                 クリア
               </motion.button>
@@ -402,14 +371,12 @@ export default function Partners() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="text-sm text-gray-600 dark:text-gray-400 px-2"
-        >
+      className="text-sm text-gray-600 dark: text-gray-400 px-2">
           {searchTerm || partnerTypeFilter !== 'all' || statusFilter !== 'all' ? (
             <span>
               {filteredPartners.length}件の結果 (全{partners.length}件中)
             </span>
-          ) : (
-            <span>全{partners.length}件の取引先</span>
+      ) : ( <span>全{partners.length}件の取引先</span>
           )}
         </motion.div>
 
@@ -425,30 +392,24 @@ export default function Partners() {
               </h2>
               <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">取引先名</label>
-                  <input
+      <label className="block text-sm font-semibold text-gray-700 dark: text-gray-300 mb-2">取引先名</label> <input
                     type="text"
                     required
-                    className="block w-full border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"
-                    value={formData.name}
+      className="block w-full border-0 bg-white/50 dark: bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">取引先コード</label>
-                  <input
+      <label className="block text-sm font-semibold text-gray-700 dark: text-gray-300 mb-2">取引先コード</label> <input
                     type="text"
                     required
-                    className="block w-full border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"
-                    value={formData.partner_code}
+      className="block w-full border-0 bg-white/50 dark: bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"value={formData.partner_code}
                     onChange={(e) => setFormData({ ...formData, partner_code: e.target.value })}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">取引先種別</label>
-                  <select
-                    className="block w-full border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"
-                    value={formData.partner_type}
+      <label className="block text-sm font-semibold text-gray-700 dark: text-gray-300 mb-2">取引先種別</label> <select
+      className="block w-full border-0 bg-white/50 dark: bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"value={formData.partner_type}
                     onChange={(e) => setFormData({ ...formData, partner_type: e.target.value as 'supplier' | 'customer' | 'both' })}
                   >
                     <option value="supplier">仕入先</option>
@@ -457,37 +418,29 @@ export default function Partners() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">担当者名</label>
-                  <input
+      <label className="block text-sm font-semibold text-gray-700 dark: text-gray-300 mb-2">担当者名</label> <input
                     type="text"
-                    className="block w-full border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"
-                    value={formData.contact_person}
+      className="block w-full border-0 bg-white/50 dark: bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"value={formData.contact_person}
                     onChange={(e) => setFormData({ ...formData, contact_person: e.target.value })}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">電話番号</label>
-                  <input
+      <label className="block text-sm font-semibold text-gray-700 dark: text-gray-300 mb-2">電話番号</label> <input
                     type="text"
-                    className="block w-full border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"
-                    value={formData.phone}
+      className="block w-full border-0 bg-white/50 dark: bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">メールアドレス</label>
-                  <input
+      <label className="block text-sm font-semibold text-gray-700 dark: text-gray-300 mb-2">メールアドレス</label> <input
                     type="email"
-                    className="block w-full border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"
-                    value={formData.email}
+      className="block w-full border-0 bg-white/50 dark: bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm"value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">住所</label>
-                  <textarea
-                    className="block w-full border-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm resize-none"
-                    rows={3}
+      <label className="block text-sm font-semibold text-gray-700 dark: text-gray-300 mb-2">住所</label> <textarea
+      className="block w-full border-0 bg-white/50 dark: bg-gray-800/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-gray-800 transition-all duration-300 shadow-sm resize-none"rows={3}
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   />
@@ -498,16 +451,14 @@ export default function Partners() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={resetForm}
-                    className="px-6 py-3 border-0 text-gray-700 dark:text-gray-300 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl hover:bg-white dark:hover:bg-gray-800 transition-all duration-300 shadow-sm font-medium"
-                  >
+      className="px-6 py-3 border-0 text-gray-700 dark: text-gray-300 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl hover:bg-white dark:hover:bg-gray-800 transition-all duration-300 shadow-sm font-medium">
                     キャンセル
                   </motion.button>
                   <motion.button
                     type="submit"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
-                  >
+      className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover: shadow-lg transition-all duration-300 font-medium">
                     {editingPartner ? '更新' : '作成'}
                   </motion.button>
                 </div>
@@ -523,52 +474,41 @@ export default function Partners() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <table className="min-w-full divide-y divide-gray-200/20 dark:divide-gray-700/20">
-              <thead className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-900/20 dark:to-purple-900/20 backdrop-blur-sm">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                    取引先情報
+      <table className="min-w-full divide-y divide-gray-200/20 dark: divide-gray-700/20"><thead className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark: from-blue-900/20 dark:to-purple-900/20 backdrop-blur-sm"><tr>
+      <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 dark: text-gray-400 uppercase tracking-wider">取引先情報
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                    連絡先
+      <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 dark: text-gray-400 uppercase tracking-wider">連絡先
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                    ステータス
+      <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 dark: text-gray-400 uppercase tracking-wider">ステータス
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                    操作
+      <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 dark: text-gray-400 uppercase tracking-wider">操作
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-sm divide-y divide-gray-200/20 dark:divide-gray-700/20">
-                {filteredPartners.length === 0 ? (
+      <tbody className="bg-gray-800/30 dark:bg-gray-900/30 backdrop-blur-sm divide-y divide-gray-200/20 dark:divide-gray-700/20">{filteredPartners.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="px-6 py-16 text-center">
                       <motion.div 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-gray-500 dark:text-gray-400"
-                      >
+      className="text-gray-500 dark: text-gray-400">
                         <Users className="w-16 h-16 mx-auto mb-6 opacity-50" />
                         <p className="text-xl font-semibold mb-3">該当する取引先が見つかりません</p>
                         <p className="text-sm">
                           {searchTerm || partnerTypeFilter !== 'all' || statusFilter !== 'all'
                             ? '検索条件を変更してお試しください'
-                            : '取引先がまだありません'
-                          }
+      : '取引先がまだありません' }
                         </p>
                       </motion.div>
                     </td>
                   </tr>
-                ) : (
-                  filteredPartners.map((partner, index) => (
+      ) : ( filteredPartners.map((partner, index) => (
                     <motion.tr 
                       key={partner.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
-                      className="hover:bg-white/50 dark:hover:bg-gray-800/50 transition-all duration-200"
-                    >
+      className="hover:bg-gray-700/30 dark:hover:bg-gray-800/50 transition-all duration-200">
                       <td className="px-6 py-5 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-12 w-12">
@@ -592,8 +532,7 @@ export default function Partners() {
                         <span className={`px-3 py-1 inline-flex text-xs font-bold rounded-full ${
                           partner.is_active 
                             ? 'bg-gradient-to-r from-green-400 to-green-500 text-white shadow-lg' 
-                            : 'bg-gradient-to-r from-red-400 to-red-500 text-white shadow-lg'
-                        }`}>
+      : 'bg-gradient-to-r from-red-400 to-red-500 text-white shadow-lg' }`}>
                           {partner.is_active ? '有効' : '無効'}
                         </span>
                       </td>
@@ -603,8 +542,7 @@ export default function Partners() {
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={() => handleEdit(partner)}
-                            className="p-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all duration-200"
-                          >
+      className="p-2 text-blue-600 hover: text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all duration-200">
                             <Edit className="w-4 h-4" />
                           </motion.button>
                           <motion.button
@@ -613,9 +551,7 @@ export default function Partners() {
                             onClick={() => handleToggleActive(partner.id, partner.is_active)}
                             className={`px-3 py-1 text-xs font-bold rounded-lg transition-all duration-200 ${
                               partner.is_active 
-                                ? 'text-red-600 bg-red-50 hover:bg-red-100 dark:text-red-400 dark:bg-red-900/20 dark:hover:bg-red-900/40' 
-                                : 'text-green-600 bg-green-50 hover:bg-green-100 dark:text-green-400 dark:bg-green-900/20 dark:hover:bg-green-900/40'
-                            }`}
+      ? 'text-red-600 bg-red-50 hover: bg-red-100 dark:text-red-400 dark:bg-red-900/20 dark:hover:bg-red-900/40'  : 'text-green-600 bg-green-50 hover:bg-green-100 dark:text-green-400 dark:bg-green-900/20 dark:hover:bg-green-900/40' }`}
                           >
                             {partner.is_active ? '無効化' : '有効化'}
                           </motion.button>

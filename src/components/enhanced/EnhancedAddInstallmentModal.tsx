@@ -24,20 +24,13 @@ import { INSTALLMENT_STATUS_LABELS } from '../../types/installment';
 
 // 型定義
 interface OrderSummary {
-  order_no: string;
-  partner_name: string;
-  order_total: number;
-  allocated_total: number;
-}
+      order_no: string; partner_name: string; order_total: number; allocated_total: number; }
 
 interface RemainingCalc {
-  currentRemaining: number;
-}
+      currentRemaining: number; }
 
 interface FormType {
-  watch: (field: string) => unknown;
-  formState: {
-    errors: Record<string, { message?: string }>;
+      watch: (field: string) => unknown; formState: { errors: Record<string, { message?: string }>;
   };
   register: (field: string, options?: unknown) => unknown;
 }
@@ -48,22 +41,18 @@ interface FormType {
 
 const createInstallmentSchema = (maxAmount: number) =>
   yup.object({
-    amount: yup
-      .number()
+      amount: yup .number()
       .typeError('数値を入力してください')
       .positive('0より大きい値を入力してください')
       .max(maxAmount, `残額¥${maxAmount.toLocaleString()}を超えています`)
       .min(INSTALLMENT_CONFIG.MIN_AMOUNT, `最小金額¥${INSTALLMENT_CONFIG.MIN_AMOUNT}以上を入力してください`)
       .required('分納金額は必須です'),
-    status: yup
-      .string()
+      status: yup .string()
       .oneOf(['draft', 'confirmed'] as InstallmentStatus[])
       .required('ステータスを選択してください'),
-    dueDate: yup
-      .string()
+      dueDate: yup .string()
       .optional(),
-    memo: yup
-      .string()
+      memo: yup .string()
       .max(500, 'メモは500文字以内で入力してください')
       .optional(),
   });
@@ -83,8 +72,7 @@ export const EnhancedAddInstallmentModal: React.FC = () => {
   // フォーム管理
   const form = useForm<CreateInstallmentFormData>({
     resolver: orderSummary ? yupResolver(createInstallmentSchema(orderSummary.remaining_amount)) : undefined,
-    defaultValues: {
-      amount: 0,
+      defaultValues: { amount: 0,
       status: 'draft',
       dueDate: getDefaultDueDate(),
       memo: '',
@@ -136,16 +124,14 @@ export const EnhancedAddInstallmentModal: React.FC = () => {
     ];
   }, [orderSummary]);
   
-  const setQuickAmount = (amount: number) => {
-    form.setValue('amount', amount, { shouldValidate: true });
+      const setQuickAmount = (amount: number) => { form.setValue('amount', amount, { shouldValidate: true });
   };
   
   // ===============================================================
   // 5. フォーム送信処理
   // ===============================================================
   
-  const handleSubmit = async (formData: CreateInstallmentFormData) => {
-    if (!orderSummary) return;
+      const handleSubmit = async (formData: CreateInstallmentFormData) => { if (!orderSummary) return;
     
     try {
       const result = await createInstallment({
@@ -181,8 +167,7 @@ export const EnhancedAddInstallmentModal: React.FC = () => {
           </h3>
           <button 
             onClick={close}
-            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
-          >
+      className="text-gray-400 hover: text-gray-600 text-2xl leading-none">
             ×
           </button>
         </div>
@@ -211,8 +196,7 @@ export const EnhancedAddInstallmentModal: React.FC = () => {
                 <p className="mt-1 text-sm text-red-700">{formatError(error)}</p>
                 <button 
                   onClick={() => refetch()}
-                  className="mt-2 text-sm text-red-600 hover:text-red-500 underline"
-                >
+      className="mt-2 text-sm text-red-600 hover: text-red-500 underline">
                   再試行
                 </button>
               </div>
@@ -231,8 +215,7 @@ export const EnhancedAddInstallmentModal: React.FC = () => {
 
             {orderSummary.remaining_amount <= 0 ? (
               <NoRemainingAmountMessage />
-            ) : (
-              <>
+      ) : ( <>
                 {/* クイック金額設定 */}
                 <QuickAmountButtons 
                   buttons={quickAmountButtons}
@@ -281,9 +264,7 @@ export const EnhancedAddInstallmentModal: React.FC = () => {
 // ===============================================================
 
 const OrderSummaryCard: React.FC<{
-  orderSummary: OrderSummary;
-  remainingCalc: RemainingCalc;
-}> = ({ orderSummary, remainingCalc }) => (
+      orderSummary: OrderSummary; remainingCalc: RemainingCalc; }> = ({ orderSummary, remainingCalc }) => (
   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 mb-6 border border-blue-200">
     <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
       <span className="bg-blue-100 rounded-full w-6 h-6 flex items-center justify-center text-xs text-blue-800 mr-2">
@@ -291,8 +272,7 @@ const OrderSummaryCard: React.FC<{
       </span>
       {orderSummary.order_no}
     </h4>
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-      <div>
+      <div className="grid grid-cols-2 md: grid-cols-4 gap-3 text-sm"><div>
         <span className="text-blue-700 block">仕入先</span>
         <p className="font-medium text-gray-900">{orderSummary.partner_name}</p>
       </div>
@@ -340,8 +320,7 @@ const NoRemainingAmountMessage: React.FC = () => (
 
 const QuickAmountButtons: React.FC<{
   buttons: Array<{percentage: number; label: string; amount: number}>;
-  onSetAmount: (amount: number) => void;
-}> = ({ buttons, onSetAmount }) => (
+      onSetAmount: (amount: number) => void; }> = ({ buttons, onSetAmount }) => (
   <div className="mb-6">
     <label className="block text-sm font-medium text-gray-700 mb-3">
       クイック金額設定
@@ -352,8 +331,7 @@ const QuickAmountButtons: React.FC<{
           key={button.label}
           type="button"
           onClick={() => onSetAmount(button.amount)}
-          className="p-3 text-xs bg-gradient-to-b from-blue-100 to-blue-200 text-blue-700 rounded-lg hover:from-blue-200 hover:to-blue-300 transition-all duration-200 border border-blue-300"
-        >
+      className="p-3 text-xs bg-gradient-to-b from-blue-100 to-blue-200 text-blue-700 rounded-lg hover: from-blue-200 hover:to-blue-300 transition-all duration-200 border border-blue-300">
           <div className="font-semibold">{button.label}</div>
           <div className="text-blue-600">¥{button.amount.toLocaleString()}</div>
         </button>
@@ -363,9 +341,7 @@ const QuickAmountButtons: React.FC<{
 );
 
 const AmountInput: React.FC<{
-  form: FormType;
-  remainingCalc: RemainingCalc;
-}> = ({ form, remainingCalc }) => (
+      form: FormType; remainingCalc: RemainingCalc; }> = ({ form, remainingCalc }) => (
   <div className="mb-4">
     <label className="block text-sm font-medium text-gray-700 mb-2">
       分納金額 <span className="text-red-500">*</span>
@@ -375,13 +351,10 @@ const AmountInput: React.FC<{
         type="number"
         step="1"
         {...form.register('amount', { valueAsNumber: true })}
-        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg font-medium ${
-          form.formState.errors.amount || !remainingCalc.isValid
+      className={`w-full px-4 py-3 border rounded-lg focus: outline-none focus:ring-2 focus:ring-blue-500 text-lg font-medium ${ form.formState.errors.amount || !remainingCalc.isValid
             ? 'border-red-300 bg-red-50'
-            : remainingCalc.canAdd
-            ? 'border-green-300 bg-green-50'
-            : 'border-gray-300'
-        }`}
+      : remainingCalc.canAdd ? 'border-green-300 bg-green-50'
+      : 'border-gray-300' }`}
         placeholder="0"
       />
       <div className="absolute right-3 top-3 text-gray-500">
@@ -427,8 +400,7 @@ const DueDateInput: React.FC<{form: FormType}> = ({ form }) => (
     <input
       type="date"
       {...form.register('dueDate')}
-      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-    />
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-blue-500"/>
   </div>
 );
 
@@ -440,8 +412,7 @@ const MemoInput: React.FC<{form: FormType}> = ({ form }) => (
     <textarea
       rows={3}
       {...form.register('memo')}
-      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-      placeholder="備考を入力..."
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-blue-500"placeholder="備考を入力..."
       maxLength={500}
     />
     <div className="text-xs text-gray-500 mt-1">
@@ -451,25 +422,20 @@ const MemoInput: React.FC<{form: FormType}> = ({ form }) => (
 );
 
 const RealTimeValidation: React.FC<{
-  remainingCalc: RemainingCalc;
-  formErrors: Record<string, { message?: string }>;
+      remainingCalc: RemainingCalc; formErrors: Record<string, { message?: string }>;
 }> = ({ remainingCalc, formErrors: _formErrors }) => (
   <div className="mb-6 p-3 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50">
     <h4 className="text-sm font-medium text-gray-700 mb-2">リアルタイム検証結果</h4>
     <div className="grid grid-cols-2 gap-4 text-xs">
       <div>
-        <span className="text-gray-600">入力後残額:</span>
-        <span className={`ml-2 font-semibold ${
-          remainingCalc.afterAddition >= 0 ? 'text-green-600' : 'text-red-600'
-        }`}>
+      <span className="text-gray-600">入力後残額: </span> <span className={`ml-2 font-semibold ${
+      remainingCalc.afterAddition >= 0 ? 'text-green-600' : 'text-red-600' }`}>
           ¥{remainingCalc.afterAddition.toLocaleString()}
         </span>
       </div>
       <div>
-        <span className="text-gray-600">追加可能:</span>
-        <span className={`ml-2 font-semibold ${
-          remainingCalc.canAdd ? 'text-green-600' : 'text-red-600'
-        }`}>
+      <span className="text-gray-600">追加可能: </span> <span className={`ml-2 font-semibold ${
+      remainingCalc.canAdd ? 'text-green-600' : 'text-red-600' }`}>
           {remainingCalc.canAdd ? 'はい' : 'いいえ'}
         </span>
       </div>
@@ -478,17 +444,12 @@ const RealTimeValidation: React.FC<{
 );
 
 const ActionButtons: React.FC<{
-  onCancel: () => void;
-  isSubmitting: boolean;
-  isFormValid: boolean;
-  hasRemainingAmount: boolean;
-}> = ({ onCancel, isSubmitting, isFormValid, hasRemainingAmount }) => (
+      onCancel: () => void; isSubmitting: boolean; isFormValid: boolean; hasRemainingAmount: boolean; }> = ({ onCancel, isSubmitting, isFormValid, hasRemainingAmount }) => (
   <div className="flex justify-end space-x-3">
     <button
       type="button"
       onClick={onCancel}
-      className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-    >
+      className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover: bg-gray-50 transition-colors">
       キャンセル
     </button>
     {hasRemainingAmount && (
@@ -497,17 +458,14 @@ const ActionButtons: React.FC<{
         disabled={isSubmitting || !isFormValid}
         className={`px-6 py-2 rounded-lg transition-all duration-200 ${
           isFormValid
-            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg'
-            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-        }`}
+      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover: from-blue-700 hover:to-indigo-700 text-white shadow-lg' : 'bg-gray-300 text-gray-500 cursor-not-allowed' }`}
       >
         {isSubmitting ? (
           <span className="flex items-center">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
             処理中...
           </span>
-        ) : (
-          '分納追加'
+      ) : ( '分納追加'
         )}
       </button>
     )}

@@ -67,8 +67,7 @@ export default function Orders() {
     allocateStock,
     processShipment,
     error: outboundError,
-    refetch: refetchOutbound
-  } = useOutboundManagement();
+      refetch: refetchOutbound } = useOutboundManagement();
   
   // 全件データ
   const allOrders = allOrdersData?.data || [];
@@ -98,8 +97,7 @@ export default function Orders() {
         
         // カスタム日付範囲がある場合は優先
         if (startDate || endDate) {
-          const targetDate = new Date(dateField === 'created_at' ? order.created_at : order.delivery_deadline);
-          const targetDateStr = targetDate.toISOString().split('T')[0];
+      const targetDate = new Date(dateField === 'created_at' ? order.created_at : order.delivery_deadline); const targetDateStr = targetDate.toISOString().split('T')[0];
           
           if (startDate && endDate) {
             matchesDateRange = targetDateStr >= startDate && targetDateStr <= endDate;
@@ -115,18 +113,15 @@ export default function Orders() {
           const deliveryDate = new Date(order.delivery_deadline);
           
           switch (dateRangeFilter) {
-            case 'today': {
-              const today = now.toISOString().split('T')[0];
+      case 'today': { const today = now.toISOString().split('T')[0];
               matchesDateRange = orderDate.toISOString().split('T')[0] === today;
               break;
             }
-            case 'week': {
-              const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      case 'week': { const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
               matchesDateRange = orderDate >= weekAgo;
               break;
             }
-            case 'month': {
-              const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      case 'month': { const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
               matchesDateRange = orderDate >= monthAgo;
               break;
             }
@@ -163,8 +158,7 @@ export default function Orders() {
             return 0;
         }
         
-        return sortOrder === 'desc' ? bValue - aValue : aValue - bValue;
-      });
+      return sortOrder === 'desc' ? bValue - aValue : aValue - bValue; });
 
       return filtered;
     } catch (error) {
@@ -184,8 +178,7 @@ export default function Orders() {
       totalAmount: allOrdersForStats.reduce((sum, o) => sum + o.total_amount, 0),
       // delivery_progress >= 100 が納品完了の条件
       deliveredOrders: allOrdersForStats.filter(o => o.delivery_progress >= 100).length,
-      overdueOrders: allOrdersForStats.filter(o =>
-        new Date(o.delivery_deadline) < now && o.delivery_progress < 100
+      overdueOrders: allOrdersForStats.filter(o => new Date(o.delivery_deadline) < now && o.delivery_progress < 100
       ).length,
 
       // 統一ステータス統計（分離管理）
@@ -215,8 +208,7 @@ export default function Orders() {
   }, [orders, currentPage, pageSize]);
 
   // ページネーション関数（totalPages定義後）
-  const goToPage = useCallback((page: number) => {
-    setCurrentPage(page);
+      const goToPage = useCallback((page: number) => { setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
   
@@ -233,8 +225,7 @@ export default function Orders() {
   }, [currentPage, goToPage]);
 
   // クイック日付フィルター関数
-  const setQuickDateFilter = useCallback((days: number) => {
-    const today = new Date();
+      const setQuickDateFilter = useCallback((days: number) => { const today = new Date();
     const startDateObj = new Date(today);
     startDateObj.setDate(today.getDate() - days);
     
@@ -285,23 +276,20 @@ export default function Orders() {
   ], [stats]);
 
   // 進捗状態の変換
-  const getProgressStatus = (order: PurchaseOrder) => {
-    if (order.delivery_progress >= 100) return '納品完了';
+      const getProgressStatus = (order: PurchaseOrder) => { if (order.delivery_progress >= 100) return '納品完了';
     if (order.delivery_progress > 0) return '一部納品';
     return '未納品';
   };
 
   // 進捗バーの色
-  const getProgressColor = (order: PurchaseOrder) => {
-    if (order.is_overdue && order.delivery_progress < 100) return 'bg-red-500';
+      const getProgressColor = (order: PurchaseOrder) => { if (order.is_overdue && order.delivery_progress < 100) return 'bg-red-500';
     if (order.delivery_progress >= 100) return 'bg-green-500';
     if (order.delivery_progress > 0) return 'bg-blue-500';
     return 'bg-gray-300';
   };
 
   // 第1商品名取得（0922Youken.md要件対応）
-  const getFirstProductName = (order: PurchaseOrder): string => {
-    if (order.first_product?.length > 0) {
+      const getFirstProductName = (order: PurchaseOrder): string => { if (order.first_product?.length > 0) {
       const firstProduct = order.first_product[0];
       return firstProduct.product_name?.product_name || '商品名取得中...';
     }
@@ -310,16 +298,14 @@ export default function Orders() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500">
-        <motion.div
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark: from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500"><motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="p-6 space-y-8"
         >
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
-            <span className="text-lg text-gray-700 dark:text-gray-300 font-medium">
-              発注データを読み込み中...
+      <span className="text-lg text-gray-700 dark: text-gray-300 font-medium">発注データを読み込み中...
             </span>
           </div>
         </motion.div>
@@ -329,24 +315,20 @@ export default function Orders() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500">
-        <motion.div
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark: from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500"><motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="p-6 space-y-8"
         >
           <div className="text-center py-12">
             <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
-              データ取得エラー
+      <h2 className="text-xl font-semibold mb-2 text-gray-900 dark: text-white">データ取得エラー
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              {error.message}
+      <p className="text-gray-600 dark: text-gray-400 mb-4">{error.message}
             </p>
             <button
               onClick={() => refetch()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
+      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover: bg-blue-700 transition-colors">
               再試行
             </button>
           </div>
@@ -356,8 +338,7 @@ export default function Orders() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500">
-      <motion.div
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark: from-gray-900 dark:via-blue-900 dark:to-purple-900 transition-all duration-500"><motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         className="p-6 space-y-8"
@@ -369,18 +350,15 @@ export default function Orders() {
               {(() => {
                 const currentTab = ORDERS_TABS.find(tab => tab.id === activeTab);
                 const IconComponent = currentTab?.icon;
-                return IconComponent ? <IconComponent className="h-8 w-8 text-white" /> : <FileText className="h-8 w-8 text-white" />;
-              })()}
+      return IconComponent ? <IconComponent className="h-8 w-8 text-white" /> : <FileText className="h-8 w-8 text-white" />; })()}
             </div>
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 {activeTab === 'orders' ? '発注管理' : '出庫管理'}
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 font-medium">
-                {activeTab === 'orders'
+      <p className="text-gray-600 dark: text-gray-400 font-medium">{activeTab === 'orders'
                   ? '仕入先への発注・納期管理・分納入荷処理'
-                  : '在庫引当・出庫指示・出荷管理'
-                }
+      : '在庫引当・出庫指示・出荷管理' }
               </p>
             </div>
           </div>
@@ -390,8 +368,7 @@ export default function Orders() {
             {activeTab === 'outbound' && (
               <button
                 onClick={() => navigate('/outbound-orders/new')}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md"
-              >
+      className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover: bg-blue-700 transition-colors shadow-md">
                 <Plus className="h-4 w-4" />
                 <span>出庫指示作成</span>
               </button>
@@ -400,12 +377,8 @@ export default function Orders() {
               onClick={() => activeTab === 'orders' ? refetch() : refetchOutbound()}
               disabled={activeTab === 'orders' ? isFetching : isOutboundLoading}
               className={`p-2 rounded-lg transition-colors ${
-                (activeTab === 'orders' ? isFetching : isOutboundLoading)
-                  ? 'text-gray-400 cursor-not-allowed'
-                  : isDark
-                    ? 'text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700'
-                    : 'text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-100'
-              }`}
+      (activeTab === 'orders' ? isFetching : isOutboundLoading) ? 'text-gray-400 cursor-not-allowed'
+      : isDark ? 'text-gray-300 hover: text-white bg-gray-800 hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-100' }`}
             >
               <RefreshCw className={`h-5 w-5 ${(activeTab === 'orders' ? isFetching : isOutboundLoading) ? 'animate-spin' : ''}`} />
             </button>
@@ -413,22 +386,18 @@ export default function Orders() {
             {activeTab === 'orders' && (
               <Link
                 to="/orders/new"
-                className="group relative flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                <div className="flex items-center justify-center w-5 h-5 bg-white bg-opacity-20 rounded-full group-hover:bg-opacity-30 transition-all duration-300">
-                  <Plus className="h-3 w-3" />
+      className="group relative flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover: from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+      <div className="flex items-center justify-center w-5 h-5 bg-white bg-opacity-20 rounded-full group-hover: bg-opacity-30 transition-all duration-300"><Plus className="h-3 w-3" />
                 </div>
                 <span className="font-semibold text-base">新規発注</span>
-                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 rounded-xl transition-opacity duration-300" />
-              </Link>
+      <div className="absolute inset-0 bg-white opacity-0 group-hover: opacity-10 rounded-xl transition-opacity duration-300" /></Link>
             )}
 
           </div>
         </div>
 
         {/* タブナビゲーション */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="flex">
+      <div className="bg-white dark: bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden"><div className="flex">
             {ORDERS_TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -438,9 +407,7 @@ export default function Orders() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex-1 flex items-center justify-center px-6 py-4 text-sm font-medium transition-all duration-200 relative ${
                     isActive
-                      ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                  }`}
+      ? 'text-blue-600 dark: text-blue-400 bg-blue-50 dark:bg-blue-900/30' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50' }`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -448,8 +415,7 @@ export default function Orders() {
                   <span>{tab.label}</span>
                   {isActive && (
                     <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400"
-                      layoutId="activeTab"
+      className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark: bg-blue-400"layoutId="activeTab"
                       initial={false}
                       transition={{ type: "spring", stiffness: 500, damping: 30 }}
                     />
@@ -464,8 +430,7 @@ export default function Orders() {
         {activeTab === 'orders' && (
           <>
             {/* 発注管理統計カード */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-              {/* 未納品 */}
+      <div className="grid grid-cols-1 md: grid-cols-2 lg:grid-cols-4 gap-6 mb-6">{/* 未納品 */}
               <motion.div
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -478,15 +443,11 @@ export default function Orders() {
                   relative group overflow-hidden rounded-xl p-6 cursor-pointer
                   transition-all duration-300 ease-out
                   ${isDark
-                    ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover:border-gray-600'
-                    : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg'
-                  }
+      ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover: border-gray-600' : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg' }
                 `}
               >
                 {/* 背景の装飾エフェクト */}
-                <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-orange-100 dark:bg-orange-900" />
-
-                {/* アクセントライン */}
+      <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-orange-100 dark: bg-orange-900" />{/* アクセントライン */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-orange-500" />
 
                 <div className="relative z-10">
@@ -504,8 +465,7 @@ export default function Orders() {
                   {/* プログレスインジケーター */}
                   <div className="mt-4">
                     <div className={`h-1 rounded-full overflow-hidden ${
-                      isDark ? 'bg-gray-700' : 'bg-gray-200'
-                    }`}>
+      isDark ? 'bg-gray-700' : 'bg-gray-200' }`}>
                       <motion.div
                         className="h-full bg-orange-500"
                         initial={{ width: 0 }}
@@ -530,15 +490,11 @@ export default function Orders() {
                   relative group overflow-hidden rounded-xl p-6 cursor-pointer
                   transition-all duration-300 ease-out
                   ${isDark
-                    ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover:border-gray-600'
-                    : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg'
-                  }
+      ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover: border-gray-600' : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg' }
                 `}
               >
                 {/* 背景の装飾エフェクト */}
-                <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-blue-100 dark:bg-blue-900" />
-
-                {/* アクセントライン */}
+      <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-blue-100 dark: bg-blue-900" />{/* アクセントライン */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-blue-500" />
 
                 <div className="relative z-10">
@@ -556,8 +512,7 @@ export default function Orders() {
                   {/* プログレスインジケーター */}
                   <div className="mt-4">
                     <div className={`h-1 rounded-full overflow-hidden ${
-                      isDark ? 'bg-gray-700' : 'bg-gray-200'
-                    }`}>
+      isDark ? 'bg-gray-700' : 'bg-gray-200' }`}>
                       <motion.div
                         className="h-full bg-blue-500"
                         initial={{ width: 0 }}
@@ -582,15 +537,11 @@ export default function Orders() {
                   relative group overflow-hidden rounded-xl p-6 cursor-pointer
                   transition-all duration-300 ease-out
                   ${isDark
-                    ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover:border-gray-600'
-                    : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg'
-                  }
+      ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover: border-gray-600' : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg' }
                 `}
               >
                 {/* 背景の装飾エフェクト */}
-                <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-green-100 dark:bg-green-900" />
-
-                {/* アクセントライン */}
+      <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-green-100 dark: bg-green-900" />{/* アクセントライン */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-green-500" />
 
                 <div className="relative z-10">
@@ -608,8 +559,7 @@ export default function Orders() {
                   {/* プログレスインジケーター */}
                   <div className="mt-4">
                     <div className={`h-1 rounded-full overflow-hidden ${
-                      isDark ? 'bg-gray-700' : 'bg-gray-200'
-                    }`}>
+      isDark ? 'bg-gray-700' : 'bg-gray-200' }`}>
                       <motion.div
                         className="h-full bg-green-500"
                         initial={{ width: 0 }}
@@ -634,15 +584,11 @@ export default function Orders() {
                   relative group overflow-hidden rounded-xl p-6 cursor-pointer
                   transition-all duration-300 ease-out
                   ${isDark
-                    ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover:border-gray-600'
-                    : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg'
-                  }
+      ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover: border-gray-600' : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg' }
                 `}
               >
                 {/* 背景の装飾エフェクト */}
-                <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-red-100 dark:bg-red-900" />
-
-                {/* アクセントライン */}
+      <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-red-100 dark: bg-red-900" />{/* アクセントライン */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-red-500" />
 
                 <div className="relative z-10">
@@ -660,8 +606,7 @@ export default function Orders() {
                   {/* プログレスインジケーター */}
                   <div className="mt-4">
                     <div className={`h-1 rounded-full overflow-hidden ${
-                      isDark ? 'bg-gray-700' : 'bg-gray-200'
-                    }`}>
+      isDark ? 'bg-gray-700' : 'bg-gray-200' }`}>
                       <motion.div
                         className="h-full bg-red-500"
                         initial={{ width: 0 }}
@@ -683,8 +628,7 @@ export default function Orders() {
               </h3>
               <button
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className="flex items-center space-x-2 text-blue-600 hover:text-blue-700"
-              >
+      className="flex items-center space-x-2 text-blue-600 hover: text-blue-700">
                 <Filter className="h-4 w-4" />
                 <span>{showAdvancedFilters ? '簡易表示' : '詳細フィルター'}</span>
               </button>
@@ -703,8 +647,7 @@ export default function Orders() {
                     className={`w-full pl-10 pr-4 py-2 border rounded-lg ${
                       isDark 
                         ? 'bg-gray-800 border-gray-700 text-white' 
-                        : 'bg-white border-gray-300 text-gray-900'
-                    }`}
+      : 'bg-white border-gray-300 text-gray-900' }`}
                     title="発注番号や仕入先名を入力して検索できます"
                   />
                 </div>
@@ -716,8 +659,7 @@ export default function Orders() {
                 className={`px-3 py-2 border rounded-lg ${
                   isDark 
                     ? 'bg-gray-800 border-gray-700 text-white' 
-                    : 'bg-white border-gray-300 text-gray-900'
-                }`}
+      : 'bg-white border-gray-300 text-gray-900' }`}
               >
                 <option value="all">すべてのステータス</option>
                 <option value="undelivered">未納品</option>
@@ -732,8 +674,7 @@ export default function Orders() {
                 className={`px-3 py-2 border rounded-lg ${
                   isDark 
                     ? 'bg-gray-800 border-gray-700 text-white' 
-                    : 'bg-white border-gray-300 text-gray-900'
-                }`}
+      : 'bg-white border-gray-300 text-gray-900' }`}
               >
                 <option value="all">全期間</option>
                 <option value="today">今日</option>
@@ -744,8 +685,7 @@ export default function Orders() {
 
               <button
                 onClick={resetFilters}
-                className="flex items-center space-x-1 px-3 py-2 text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
+      className="flex items-center space-x-1 px-3 py-2 text-gray-500 hover: text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
                 <X className="h-4 w-4" />
                 <span>リセット</span>
               </button>
@@ -753,11 +693,9 @@ export default function Orders() {
 
             {/* 詳細フィルター */}
             {showAdvancedFilters && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
-                <div>
+      <div className="grid grid-cols-1 md: grid-cols-3 gap-4 pt-4 border-t"><div>
                   <label className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+      isDark ? 'text-gray-300' : 'text-gray-700' }`}>
                     仕入先検索
                   </label>
                   <SearchableSelect
@@ -775,15 +713,13 @@ export default function Orders() {
                     className="w-full"
                     darkMode={isDark}
                   />
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    ※仕入先名やコードで検索できます
+      <p className="text-xs text-gray-500 dark: text-gray-400 mt-1">※仕入先名やコードで検索できます
                   </p>
                 </div>
 
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+      isDark ? 'text-gray-300' : 'text-gray-700' }`}>
                     並び順
                   </label>
                   <select
@@ -792,8 +728,7 @@ export default function Orders() {
                     className={`w-full px-3 py-2 border rounded-lg ${
                       isDark 
                         ? 'bg-gray-800 border-gray-700 text-white' 
-                        : 'bg-white border-gray-300 text-gray-900'
-                    }`}
+      : 'bg-white border-gray-300 text-gray-900' }`}
                   >
                     <option value="created_at">作成日時</option>
                     <option value="delivery_deadline">納期</option>
@@ -804,8 +739,7 @@ export default function Orders() {
 
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+      isDark ? 'text-gray-300' : 'text-gray-700' }`}>
                     順序
                   </label>
                   <select
@@ -814,8 +748,7 @@ export default function Orders() {
                     className={`w-full px-3 py-2 border rounded-lg ${
                       isDark 
                         ? 'bg-gray-800 border-gray-700 text-white' 
-                        : 'bg-white border-gray-300 text-gray-900'
-                    }`}
+      : 'bg-white border-gray-300 text-gray-900' }`}
                   >
                     <option value="desc">降順</option>
                     <option value="asc">昇順</option>
@@ -823,11 +756,9 @@ export default function Orders() {
                 </div>
 
                 {/* カレンダー検索セクション */}
-                <div className="md:col-span-3 mt-4 pt-4 border-t">
-                  <div className="flex items-center justify-between mb-3">
+      <div className="md: col-span-3 mt-4 pt-4 border-t"><div className="flex items-center justify-between mb-3">
                     <h4 className={`text-sm font-medium ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
+      isDark ? 'text-gray-300' : 'text-gray-700' }`}>
                       <Calendar className="inline h-4 w-4 mr-2" />
                       日付範囲検索
                     </h4>
@@ -839,8 +770,7 @@ export default function Orders() {
                       className={`px-3 py-1 text-sm border rounded ${
                         isDark
                           ? 'bg-gray-800 border-gray-700 text-white'
-                          : 'bg-white border-gray-300 text-gray-900'
-                      }`}
+      : 'bg-white border-gray-300 text-gray-900' }`}
                     >
                       <option value="created_at">発注日で絞込</option>
                       <option value="delivery_deadline">納期で絞込</option>
@@ -850,8 +780,7 @@ export default function Orders() {
                   {/* クイック期間選択 */}
                   <div className="mb-4">
                     <p className={`text-xs mb-2 ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>
+      isDark ? 'text-gray-400' : 'text-gray-500' }`}>
                       クイック選択
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -866,9 +795,7 @@ export default function Orders() {
                           onClick={() => setQuickDateFilter(period.days)}
                           className={`px-3 py-1 text-sm rounded-full transition-colors ${
                             isDark
-                              ? 'bg-blue-900 text-blue-200 hover:bg-blue-800'
-                              : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                          }`}
+      ? 'bg-blue-900 text-blue-200 hover: bg-blue-800' : 'bg-blue-100 text-blue-700 hover:bg-blue-200' }`}
                         >
                           {period.label}
                         </button>
@@ -877,11 +804,9 @@ export default function Orders() {
                   </div>
 
                   {/* カスタム日付範囲 */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
+      <div className="grid grid-cols-1 md: grid-cols-2 gap-4"><div>
                       <label className={`block text-sm font-medium mb-1 ${
-                        isDark ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
+      isDark ? 'text-gray-300' : 'text-gray-700' }`}>
                         開始日
                       </label>
                       <input
@@ -891,15 +816,13 @@ export default function Orders() {
                         className={`w-full px-3 py-2 border rounded-lg ${
                           isDark 
                             ? 'bg-gray-800 border-gray-700 text-white' 
-                            : 'bg-white border-gray-300 text-gray-900'
-                        }`}
+      : 'bg-white border-gray-300 text-gray-900' }`}
                       />
                     </div>
 
                     <div>
                       <label className={`block text-sm font-medium mb-1 ${
-                        isDark ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
+      isDark ? 'text-gray-300' : 'text-gray-700' }`}>
                         終了日
                       </label>
                       <input
@@ -909,32 +832,26 @@ export default function Orders() {
                         className={`w-full px-3 py-2 border rounded-lg ${
                           isDark 
                             ? 'bg-gray-800 border-gray-700 text-white' 
-                            : 'bg-white border-gray-300 text-gray-900'
-                        }`}
+      : 'bg-white border-gray-300 text-gray-900' }`}
                       />
                     </div>
                   </div>
 
                   {/* アクティブフィルターの表示と日付クリアボタン */}
                   {(startDate || endDate) && (
-                    <div className="mt-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-                      <div className="flex items-center justify-between">
+      <div className="mt-3 p-3 rounded-lg bg-blue-50 dark: bg-blue-900/20 border border-blue-200 dark:border-blue-800"><div className="flex items-center justify-between">
                         <div>
                           <p className={`text-sm font-medium ${
-                            isDark ? 'text-blue-200' : 'text-blue-800'
-                          }`}>
+      isDark ? 'text-blue-200' : 'text-blue-800' }`}>
                             🔍 アクティブな日付フィルター
                           </p>
                           <p className={`text-xs mt-1 ${
-                            isDark ? 'text-blue-300' : 'text-blue-600'
-                          }`}>
+      isDark ? 'text-blue-300' : 'text-blue-600' }`}>
                             {dateField === 'created_at' ? '発注日' : '納期'}：
                             {startDate && endDate ? (
                               ` ${startDate} 〜 ${endDate}`
-                            ) : startDate ? (
-                              ` ${startDate} 以降`
-                            ) : (
-                              ` ${endDate} 以前`
+      ) : startDate ? ( ` ${startDate} 以降`
+      ) : ( ` ${endDate} 以前`
                             )}
                           </p>
                         </div>
@@ -945,9 +862,7 @@ export default function Orders() {
                           }}
                           className={`text-sm px-3 py-1 rounded transition-colors ${
                             isDark
-                              ? 'text-blue-300 hover:text-white hover:bg-blue-800'
-                              : 'text-blue-600 hover:text-blue-800 hover:bg-blue-100'
-                          }`}
+      ? 'text-blue-300 hover: text-white hover:bg-blue-800' : 'text-blue-600 hover:text-blue-800 hover:bg-blue-100' }`}
                         >
                           <X className="inline h-4 w-4 mr-1" />
                           クリア
@@ -974,9 +889,7 @@ export default function Orders() {
                   {(searchTerm || statusFilter !== 'all' || dateRangeFilter !== 'all' || partnerIdFilter || startDate || endDate) && (
                     <div className={`px-3 py-1 rounded-full text-sm font-medium ${
                       filteredTotalCount === 0
-                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
-                        : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                    }`}>
+      ? 'bg-red-100 text-red-700 dark: bg-red-900/30 dark:text-red-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' }`}>
                       {filteredTotalCount === 0
                         ? '🔍 検索結果: 該当なし'
                         : `🔍 検索結果: ${filteredTotalCount}件`
@@ -1005,8 +918,7 @@ export default function Orders() {
               
               {/* ページネーションコントロール（上部） */}
               {(totalPages > 1 || filteredTotalCount > pageSize) && (
-                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-                  <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+      <div className="flex items-center justify-between py-3 border-b border-gray-200 dark: border-gray-700"><div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                     ページ {currentPage} / {totalPages} (全{filteredTotalCount}件)
                   </div>
                   
@@ -1016,11 +928,7 @@ export default function Orders() {
                       disabled={currentPage <= 1}
                       className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm transition-colors ${
                         currentPage <= 1
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
-                          : isDark
-                          ? 'bg-gray-700 text-white hover:bg-gray-600'
-                          : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-                      }`}
+      ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark: bg-gray-800 dark:text-gray-600' : isDark ? 'bg-gray-700 text-white hover: bg-gray-600' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300' }`}
                     >
                       <span>← 前へ</span>
                     </button>
@@ -1030,11 +938,8 @@ export default function Orders() {
                       {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                         const pageNum = currentPage <= 3 
                           ? i + 1 
-                          : currentPage >= totalPages - 2
-                          ? totalPages - 4 + i
-                          : currentPage - 2 + i;
-                        
-                        if (pageNum < 1 || pageNum > totalPages) return null;
+      : currentPage >= totalPages - 2 ? totalPages - 4 + i
+      : currentPage - 2 + i; if (pageNum < 1 || pageNum > totalPages) return null;
                         
                         return (
                           <button
@@ -1043,10 +948,7 @@ export default function Orders() {
                             className={`w-8 h-8 rounded-md text-sm transition-colors ${
                               currentPage === pageNum
                                 ? 'bg-blue-600 text-white'
-                                : isDark
-                                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-                            }`}
+      : isDark ? 'bg-gray-700 text-gray-300 hover: bg-gray-600' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300' }`}
                           >
                             {pageNum}
                           </button>
@@ -1059,11 +961,7 @@ export default function Orders() {
                       disabled={currentPage >= totalPages}
                       className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm transition-colors ${
                         currentPage >= totalPages
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
-                          : isDark
-                          ? 'bg-gray-700 text-white hover:bg-gray-600'
-                          : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-                      }`}
+      ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark: bg-gray-800 dark:text-gray-600' : isDark ? 'bg-gray-700 text-white hover: bg-gray-600' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300' }`}
                     >
                       <span>次へ →</span>
                     </button>
@@ -1083,72 +981,58 @@ export default function Orders() {
                 </p>
                 <button
                   onClick={resetFilters}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
+      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover: bg-blue-700 transition-colors">
                   フィルターをリセット
                 </button>
               </div>
-            ) : (
-              <div className="space-y-4">
+      ) : ( <div className="space-y-4">
                 {/* 新しいテーブル形式の発注一覧 */}
                 <div className="overflow-x-auto">
                 <table className={`w-full min-w-full table-auto ${
-                  isDark ? 'bg-gray-900' : 'bg-white'
-                }`}>
+      isDark ? 'bg-gray-900' : 'bg-white' }`}>
                   <thead className={`${
-                    isDark ? 'bg-gray-800' : 'bg-gray-50'
-                  }`}>
+      isDark ? 'bg-gray-800' : 'bg-gray-50' }`}>
                     <tr>
                       <th className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider ${
-                        isDark ? 'text-gray-300' : 'text-gray-500'
-                      }`} style={{width: '15%'}}>
+      isDark ? 'text-gray-300' : 'text-gray-500' }`} style={{width: '15%'}}>
                         仕入先
                       </th>
                       <th className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider ${
-                        isDark ? 'text-gray-300' : 'text-gray-500'
-                      }`} style={{width: '12%'}}>
+      isDark ? 'text-gray-300' : 'text-gray-500' }`} style={{width: '12%'}}>
                         発注番号
                       </th>
                       <th className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider ${
-                        isDark ? 'text-gray-300' : 'text-gray-500'
-                      }`} style={{width: '9%'}}>
+      isDark ? 'text-gray-300' : 'text-gray-500' }`} style={{width: '9%'}}>
                         納期日
                       </th>
                       <th className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider ${
-                        isDark ? 'text-gray-300' : 'text-gray-500'
-                      }`} style={{width: '14%'}}>
+      isDark ? 'text-gray-300' : 'text-gray-500' }`} style={{width: '14%'}}>
                         商品名
                       </th>
                       <th className={`px-3 py-2 text-right text-xs font-medium uppercase tracking-wider ${
-                        isDark ? 'text-gray-300' : 'text-gray-500'
-                      }`} style={{width: '10%'}}>
+      isDark ? 'text-gray-300' : 'text-gray-500' }`} style={{width: '10%'}}>
                         数量合計
                       </th>
                       <th className={`px-6 py-2 text-center text-xs font-medium uppercase tracking-wider ${
-                        isDark ? 'text-gray-300' : 'text-gray-500'
-                      }`} style={{width: '12%'}}>
+      isDark ? 'text-gray-300' : 'text-gray-500' }`} style={{width: '12%'}}>
                         担当者
                       </th>
                       <th className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider ${
-                        isDark ? 'text-gray-300' : 'text-gray-500'
-                      }`} style={{width: '8%'}}>
+      isDark ? 'text-gray-300' : 'text-gray-500' }`} style={{width: '8%'}}>
                         発注日
                       </th>
                       <th className={`px-3 py-2 text-center text-xs font-medium uppercase tracking-wider ${
-                        isDark ? 'text-gray-300' : 'text-gray-500'
-                      }`} style={{width: '10%'}}>
+      isDark ? 'text-gray-300' : 'text-gray-500' }`} style={{width: '10%'}}>
                         ステータス
                       </th>
                       <th className={`px-3 py-2 text-center text-xs font-medium uppercase tracking-wider ${
-                        isDark ? 'text-gray-300' : 'text-gray-500'
-                      }`} style={{width: '11%'}}>
+      isDark ? 'text-gray-300' : 'text-gray-500' }`} style={{width: '11%'}}>
                         操作
                       </th>
                     </tr>
                   </thead>
-                  <tbody className={`${isDark ? 'bg-gray-900' : 'bg-white'} divide-y ${
-                    isDark ? 'divide-gray-700' : 'divide-gray-200'
-                  }`}>
+                  <tbody className={`${isDark ? 'bg-slate-900' : 'bg-white'} divide-y ${
+      isDark ? 'divide-slate-700' : 'divide-gray-200' }`}>
                     {paginatedOrders.map((order) => {
                       // 納期緊急度判定（7日以内をJST基準で赤色表示）
                       const deliveryDate = new Date(order.delivery_deadline);
@@ -1163,19 +1047,15 @@ export default function Orders() {
                           animate={{ opacity: 1, y: 0 }}
                           className={`transition-all duration-200 ${
                             isDark
-                              ? 'hover:bg-gray-800'
-                              : 'hover:bg-gray-50'
-                          }`}
+      ? 'hover:bg-slate-800' : 'hover:bg-gray-50' }`}
                         >
                           {/* 仕入先 */}
                           <td className={`px-3 py-2 text-sm ${
-                            isDark ? 'text-gray-300' : 'text-gray-900'
-                          }`} style={{width: '15%'}}>
+      isDark ? 'text-gray-300' : 'text-gray-900' }`} style={{width: '15%'}}>
                             <div>
                               <div className="font-medium text-sm truncate">{order.partners.name}</div>
                               <div className={`text-xs ${
-                                isDark ? 'text-gray-400' : 'text-gray-500'
-                              }`}>
+      isDark ? 'text-gray-400' : 'text-gray-500' }`}>
                                 {order.partners.partner_code}
                               </div>
                             </div>
@@ -1183,12 +1063,10 @@ export default function Orders() {
 
                           {/* 発注番号（クリックで明細確認モーダル） */}
                           <td className={`px-3 py-2 whitespace-nowrap text-sm font-medium ${
-                            isDark ? 'text-white' : 'text-gray-900'
-                          }`} style={{width: '12%'}}>
+      isDark ? 'text-white' : 'text-gray-900' }`} style={{width: '12%'}}>
                             <Link
                               to={`/purchase-orders/${order.id}`}
-                              className="text-blue-600 hover:text-blue-800 transition-colors"
-                              title="クリックで発注明細を確認"
+      className="text-blue-600 hover: text-blue-800 transition-colors"title="クリックで発注明細を確認"
                             >
                               {order.order_no}
                             </Link>
@@ -1198,10 +1076,8 @@ export default function Orders() {
                           <td className={`px-3 py-2 whitespace-nowrap text-sm ${
                             isUrgent
                               ? 'text-red-600 font-semibold'
-                              : order.is_overdue
-                                ? 'text-red-500 font-medium'
-                                : isDark ? 'text-gray-300' : 'text-gray-900'
-                          }`} style={{width: '9%'}}>
+      : order.is_overdue ? 'text-red-500 font-medium'
+      : isDark ? 'text-gray-300' : 'text-gray-900' }`} style={{width: '9%'}}>
                             <div className="text-xs">
                               {new Date(order.delivery_deadline).toLocaleDateString('ja-JP')}
                               {(isUrgent || order.is_overdue) && (
@@ -1212,13 +1088,11 @@ export default function Orders() {
 
                           {/* 商品名（第1商品名のみ表示、クリック→明細確認モーダル） */}
                           <td className={`px-3 py-2 text-sm ${
-                            isDark ? 'text-gray-300' : 'text-gray-900'
-                          }`} style={{width: '14%'}}>
+      isDark ? 'text-gray-300' : 'text-gray-900' }`} style={{width: '14%'}}>
                             <div className="truncate">
                               <Link
                                 to={`/purchase-orders/${order.id}`}
-                                className="text-left truncate hover:text-blue-600 transition-colors"
-                                title="クリックで全明細を確認"
+      className="text-left truncate hover: text-blue-600 transition-colors"title="クリックで全明細を確認"
                               >
                                 {getFirstProductName(order)}
                               </Link>
@@ -1227,24 +1101,21 @@ export default function Orders() {
 
                           {/* 数量合計（税込/税抜表示統一対応） */}
                           <td className={`px-3 py-2 whitespace-nowrap text-sm text-right ${
-                            isDark ? 'text-gray-300' : 'text-gray-900'
-                          }`} style={{width: '10%'}}>
+      isDark ? 'text-gray-300' : 'text-gray-900' }`} style={{width: '10%'}}>
                             {/* 実際の商品明細データ表示 */}
                             <QuantitySummaryDisplay orderId={order.id} totalAmount={order.total_amount} />
                           </td>
 
                           {/* 発注担当者 */}
                           <td className={`px-6 py-2 whitespace-nowrap text-sm text-center ${
-                            isDark ? 'text-gray-300' : 'text-gray-900'
-                          }`} style={{width: '12%'}}>
+      isDark ? 'text-gray-300' : 'text-gray-900' }`} style={{width: '12%'}}>
                             {/* 実際の担当者データ表示 */}
                             <AssignedUserDisplay userId={order.assigned_user_id} />
                           </td>
 
                           {/* 発注日 */}
                           <td className={`px-3 py-2 whitespace-nowrap text-sm ${
-                            isDark ? 'text-gray-300' : 'text-gray-900'
-                          }`} style={{width: '8%'}}>
+      isDark ? 'text-gray-300' : 'text-gray-900' }`} style={{width: '8%'}}>
                             <div className="text-xs">
                               {new Date(order.created_at).toLocaleDateString('ja-JP')}
                             </div>
@@ -1260,8 +1131,7 @@ export default function Orders() {
                                     label: 'キャンセル',
                                     textColor: 'text-red-800 dark:text-red-200',
                                     bgColor: 'bg-red-100 dark:bg-red-900',
-                                    progressColor: 'bg-red-500'
-                                  };
+      progressColor: 'bg-red-500' };
                                 }
 
                                 if (order.delivery_progress >= 100) {
@@ -1269,8 +1139,7 @@ export default function Orders() {
                                     label: '納品完了',
                                     textColor: 'text-green-800 dark:text-green-200',
                                     bgColor: 'bg-green-100 dark:bg-green-900',
-                                    progressColor: 'bg-green-500'
-                                  };
+      progressColor: 'bg-green-500' };
                                 }
 
                                 if (order.delivery_progress > 0) {
@@ -1278,16 +1147,14 @@ export default function Orders() {
                                     label: '一部納品',
                                     textColor: 'text-blue-800 dark:text-blue-200',
                                     bgColor: 'bg-blue-100 dark:bg-blue-900',
-                                    progressColor: 'bg-blue-500'
-                                  };
+      progressColor: 'bg-blue-500' };
                                 }
 
                                 return {
                                   label: '未納品',
                                   textColor: 'text-orange-800 dark:text-orange-200',
                                   bgColor: 'bg-orange-100 dark:bg-orange-900',
-                                  progressColor: 'bg-orange-500'
-                                };
+      progressColor: 'bg-orange-500' };
                               };
 
                               const statusDisplay = getOrderStatusDisplay();
@@ -1303,8 +1170,7 @@ export default function Orders() {
                                   {order.status !== 'cancelled' && (
                                     <div className="flex items-center space-x-2">
                                       <span className={`text-xs font-medium ${
-                                        isDark ? 'text-gray-400' : 'text-gray-600'
-                                      }`}>
+      isDark ? 'text-gray-400' : 'text-gray-600' }`}>
                                         進捗
                                       </span>
                                       <span className={`text-xs font-semibold ${statusDisplay.textColor}`}>
@@ -1325,9 +1191,7 @@ export default function Orders() {
                                 disabled={order.status === 'cancelled' || order.delivery_progress >= 100}
                                 className={`px-1 py-0.5 text-xs rounded transition-colors ${
                                   (order.status !== 'cancelled' && order.delivery_progress < 100)
-                                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                }`}
+      ? 'bg-blue-600 text-white hover: bg-blue-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed' }`}
                               >
                                 分納
                               </button>
@@ -1336,9 +1200,7 @@ export default function Orders() {
                                 disabled={order.status === 'cancelled' || order.delivery_progress >= 100}
                                 className={`px-1 py-0.5 text-xs rounded transition-colors ${
                                   (order.status !== 'cancelled' && order.delivery_progress < 100)
-                                    ? 'bg-green-600 text-white hover:bg-green-700'
-                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                }`}
+      ? 'bg-green-600 text-white hover: bg-green-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed' }`}
                               >
                                 全納
                               </button>

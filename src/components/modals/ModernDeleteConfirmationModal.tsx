@@ -16,23 +16,10 @@ import {
 } from 'lucide-react';
 
 interface OutboundOrder {
-  id: string;
-  order_number: string;
-  customer_name: string;
-  destination: string;
-  total_items: number;
-  total_amount: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  created_at: string;
-}
+      id: string; order_number: string; customer_name: string; destination: string; total_items: number; total_amount: number; status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'; created_at: string; }
 
 interface ModernDeleteConfirmationModalProps {
-  order: OutboundOrder | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirmDelete: (orderId: string) => Promise<void>;
-  isDark?: boolean;
-}
+      order: OutboundOrder | null; isOpen: boolean; onClose: () => void; onConfirmDelete: (orderId: string) => Promise<void>; isDark?: boolean; }
 
 const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps> = ({
   order,
@@ -45,8 +32,7 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
   const [reason, setReason] = useState('');
   const [currentStep, setCurrentStep] = useState<'confirm' | 'reason'>('confirm');
 
-  const getStatusInfo = (status: string) => {
-    switch (status) {
+      const getStatusInfo = (status: string) => { switch (status) {
       case 'pending':
         return {
           label: '保留中',
@@ -54,8 +40,7 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
           icon: AlertCircle,
           canDelete: true,
           risk: 'low',
-          warning: '保留中のオーダーです。削除すると復元できません。'
-        };
+      warning: '保留中のオーダーです。削除すると復元できません。' };
       case 'processing':
         return {
           label: '処理中',
@@ -63,8 +48,7 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
           icon: Package,
           canDelete: true,
           risk: 'medium',
-          warning: '処理中のオーダーです。作業が進行中の可能性があります。'
-        };
+      warning: '処理中のオーダーです。作業が進行中の可能性があります。' };
       case 'shipped':
         return {
           label: '出荷済み',
@@ -72,8 +56,7 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
           icon: CheckCircle,
           canDelete: false,
           risk: 'high',
-          warning: '出荷済みのオーダーは削除できません。'
-        };
+      warning: '出荷済みのオーダーは削除できません。' };
       case 'delivered':
         return {
           label: '配送完了',
@@ -81,8 +64,7 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
           icon: CheckCircle,
           canDelete: false,
           risk: 'high',
-          warning: '配送完了のオーダーは削除できません。'
-        };
+      warning: '配送完了のオーダーは削除できません。' };
       case 'cancelled':
         return {
           label: 'キャンセル',
@@ -90,8 +72,7 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
           icon: XCircle,
           canDelete: true,
           risk: 'low',
-          warning: 'キャンセル済みのオーダーです。履歴として保持することを推奨します。'
-        };
+      warning: 'キャンセル済みのオーダーです。履歴として保持することを推奨します。' };
       default:
         return {
           label: status,
@@ -99,8 +80,7 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
           icon: AlertCircle,
           canDelete: false,
           risk: 'high',
-          warning: 'このオーダーの削除可否を判定できません。'
-        };
+      warning: 'このオーダーの削除可否を判定できません。' };
     }
   };
 
@@ -134,8 +114,7 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
   const riskColors = {
     low: 'from-green-500 to-emerald-600',
     medium: 'from-yellow-500 to-orange-600',
-    high: 'from-red-500 to-red-600'
-  };
+      high: 'from-red-500 to-red-600' };
 
   return (
     <ModernDialog open={isOpen} onOpenChange={onClose}>
@@ -168,12 +147,10 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700"
-                >
+      className="p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                        {order.order_number}
+      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{order.order_number}
                       </h3>
                       <div className="flex items-center space-x-2 mt-2">
                         <StatusIcon className={`w-5 h-5 text-${statusInfo.color}-500`} />
@@ -188,14 +165,12 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-4">
                       <div className="flex items-center space-x-3">
                         <User className="w-5 h-5 text-gray-400" />
                         <div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">顧客名</p>
-                          <p className="font-semibold text-gray-900 dark:text-gray-100">
-                            {order.customer_name}
+      <p className="text-sm text-gray-500 dark: text-gray-400">顧客名</p> <p className="font-semibold text-gray-900 dark:text-gray-100">{order.customer_name}
                           </p>
                         </div>
                       </div>
@@ -203,9 +178,7 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
                       <div className="flex items-center space-x-3">
                         <Package className="w-5 h-5 text-gray-400" />
                         <div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">商品点数</p>
-                          <p className="font-semibold text-gray-900 dark:text-gray-100">
-                            {(order.total_items || 0).toLocaleString()} 点
+      <p className="text-sm text-gray-500 dark: text-gray-400">商品点数</p> <p className="font-semibold text-gray-900 dark:text-gray-100">{(order.total_items || 0).toLocaleString()} 点
                           </p>
                         </div>
                       </div>
@@ -215,9 +188,7 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
                       <div className="flex items-center space-x-3">
                         <div className="w-5 h-5 text-gray-400 text-center">¥</div>
                         <div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">合計金額</p>
-                          <p className="font-semibold text-2xl text-gray-900 dark:text-gray-100">
-                            ¥{(order.total_amount || 0).toLocaleString()}
+      <p className="text-sm text-gray-500 dark: text-gray-400">合計金額</p> <p className="font-semibold text-2xl text-gray-900 dark:text-gray-100">¥{(order.total_amount || 0).toLocaleString()}
                           </p>
                         </div>
                       </div>
@@ -225,9 +196,7 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
                       <div className="flex items-center space-x-3">
                         <Calendar className="w-5 h-5 text-gray-400" />
                         <div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">作成日時</p>
-                          <p className="font-semibold text-gray-900 dark:text-gray-100">
-                            {order.created_at ? new Date(order.created_at).toLocaleDateString('ja-JP') : '-'}
+      <p className="text-sm text-gray-500 dark: text-gray-400">作成日時</p> <p className="font-semibold text-gray-900 dark:text-gray-100">{order.created_at ? new Date(order.created_at).toLocaleDateString('ja-JP') : '-'}
                           </p>
                         </div>
                       </div>
@@ -242,36 +211,28 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
                   transition={{ delay: 0.1 }}
                   className={`p-6 rounded-2xl border ${
                     statusInfo.canDelete
-                      ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
-                      : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-                  }`}
+      ? 'bg-yellow-50 dark: bg-yellow-900/20 border-yellow-200 dark:border-yellow-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' }`}
                 >
                   <div className="flex items-start space-x-4">
                     <div className={`p-3 rounded-xl ${
                       statusInfo.canDelete
                         ? 'bg-yellow-500'
-                        : 'bg-red-500'
-                    }`}>
+      : 'bg-red-500' }`}>
                       {statusInfo.canDelete ? (
                         <AlertTriangle className="w-6 h-6 text-white" />
-                      ) : (
-                        <Shield className="w-6 h-6 text-white" />
+      ) : ( <Shield className="w-6 h-6 text-white" />
                       )}
                     </div>
 
                     <div className="flex-1">
                       <h4 className={`font-bold text-lg mb-2 ${
                         statusInfo.canDelete
-                          ? 'text-yellow-800 dark:text-yellow-200'
-                          : 'text-red-800 dark:text-red-200'
-                      }`}>
+      ? 'text-yellow-800 dark: text-yellow-200' : 'text-red-800 dark:text-red-200' }`}>
                         {statusInfo.canDelete ? '削除可能' : '削除不可'}
                       </h4>
                       <p className={`mb-4 ${
                         statusInfo.canDelete
-                          ? 'text-yellow-700 dark:text-yellow-300'
-                          : 'text-red-700 dark:text-red-300'
-                      }`}>
+      ? 'text-yellow-700 dark: text-yellow-300' : 'text-red-700 dark:text-red-300' }`}>
                         {statusInfo.warning}
                       </p>
 
@@ -280,11 +241,9 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
                           <div className="flex items-start space-x-2">
                             <Lightbulb className="w-5 h-5 text-blue-500 mt-0.5" />
                             <div>
-                              <p className="font-medium text-blue-800 dark:text-blue-200 mb-2">
-                                推奨対応方法
+      <p className="font-medium text-blue-800 dark: text-blue-200 mb-2">推奨対応方法
                               </p>
-                              <ul className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
-                                {order.status === 'shipped' && (
+      <ul className="space-y-1 text-sm text-blue-700 dark: text-blue-300">{order.status === 'shipped' && (
                                   <>
                                     <li>• 配送業者に連絡して配送停止を依頼</li>
                                     <li>• 顧客に連絡して返品手続きを案内</li>
@@ -307,8 +266,7 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
                   </div>
                 </motion.div>
               </motion.div>
-            ) : (
-              <motion.div
+      ) : ( <motion.div
                 key="reason"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -319,11 +277,9 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
                   <div className="mx-auto w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center mb-4">
                     <Trash2 className="w-8 h-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                    削除理由の入力
+      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">削除理由の入力
                   </h3>
-                  <p className="text-gray-500 dark:text-gray-400">
-                    オーダー削除の理由を詳細に記入してください
+      <p className="text-gray-500 dark: text-gray-400">オーダー削除の理由を詳細に記入してください
                   </p>
                 </div>
 
@@ -331,8 +287,7 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
                   label="削除理由"
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder="削除する理由を詳しく入力してください（例: 顧客からのキャンセル要請、重複オーダーのため、等）"
-                  helperText={`${reason.trim().length}/5文字以上入力してください`}
+      placeholder="削除する理由を詳しく入力してください（例: 顧客からのキャンセル要請、重複オーダーのため、等）" helperText={`${reason.trim().length}/5文字以上入力してください`}
                   error={reason.trim().length > 0 && reason.trim().length < 5 ? '5文字以上入力してください' : ''}
                   success={reason.trim().length >= 5}
                   size="lg"
@@ -342,16 +297,13 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl"
-                >
+      className="p-4 bg-red-50 dark: bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
                   <div className="flex items-start space-x-3">
                     <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                        最終確認
+      <p className="text-sm font-medium text-red-800 dark: text-red-200">最終確認
                       </p>
-                      <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                        このオーダーを削除すると、すべてのデータが永久に失われます。
+      <p className="text-sm text-red-700 dark: text-red-300 mt-1">このオーダーを削除すると、すべてのデータが永久に失われます。
                         この操作は取り消しできません。
                       </p>
                     </div>
@@ -384,8 +336,7 @@ const ModernDeleteConfirmationModal: React.FC<ModernDeleteConfirmationModalProps
                 >
                   削除理由を入力
                 </ModernButton>
-              ) : (
-                <ModernButton
+      ) : ( <ModernButton
                   variant="danger"
                   size="lg"
                   onClick={handleConfirmDelete}

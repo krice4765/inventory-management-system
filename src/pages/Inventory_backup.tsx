@@ -58,10 +58,8 @@ export default function Inventory() {
       // 分納フィルター
       let matchesDelivery = true;
       if (deliveryFilter === 'partial_delivery') {
-        matchesDelivery = movement.memo.includes('[分納:') || movement.memo.includes('分納入力');
-      } else if (deliveryFilter === 'manual') {
-        matchesDelivery = !movement.memo.includes('[分納:') && !movement.memo.includes('分納入力');
-      }
+      matchesDelivery = movement.memo.includes('[分納: ') || movement.memo.includes('分納入力'); } else if (deliveryFilter === 'manual') {
+      matchesDelivery = !movement.memo.includes('[分納: ') && !movement.memo.includes('分納入力'); }
 
       // 日付範囲フィルター
       let matchesDateRange = true;
@@ -95,10 +93,8 @@ export default function Inventory() {
       }
       
       if (sortOrder === 'asc') {
-        return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
-      } else {
-        return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
-      }
+      return valueA > valueB ? 1 : valueA < valueB ? -1 : 0; } else {
+      return valueA < valueB ? 1 : valueA > valueB ? -1 : 0; }
     });
 
     setFilteredMovements(filtered);
@@ -114,8 +110,7 @@ export default function Inventory() {
   };
 
   // クイックフィルター関数
-  const setQuickDateFilter = (days: number) => {
-    const today = new Date();
+      const setQuickDateFilter = (days: number) => { const today = new Date();
     const startDate = new Date(today.setDate(today.getDate() - days));
     setStartDate(startDate.toISOString().split('T')[0]);
     setEndDate(new Date().toISOString().split('T')[0]);
@@ -147,8 +142,7 @@ export default function Inventory() {
       
         products: products.length,
         movements: movements.length,
-        latestMovement: movements[0]
-      });
+      latestMovement: movements[0] });
       
       // 分納取引の予定日を取得
       const transactionIds = movements
@@ -174,14 +168,11 @@ export default function Inventory() {
       // 手動でproductsとmovementsを結合し、分納予定日を追加
       const enhancedMovements = movements.map(movement => ({
         ...movement,
-        products: products.find(p => p.id === movement.product_id) || {
-          id: movement.product_id,
+      products: products.find(p => p.id === movement.product_id) || { id: movement.product_id,
           product_name: '商品情報なし',
           product_code: '',
-          current_stock: 0
-        },
-        delivery_scheduled_date: movement.transaction_id ? transactionDates[movement.transaction_id] : null
-      }));
+      current_stock: 0 },
+      delivery_scheduled_date: movement.transaction_id ? transactionDates[movement.transaction_id] : null }));
 
       setProducts(products);
       setMovements(enhancedMovements);
@@ -203,22 +194,17 @@ export default function Inventory() {
     setSortOrder('desc');
   };
 
-  const handleSort = (field: 'created_at' | 'product_name') => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
+      const handleSort = (field: 'created_at' | 'product_name') => { if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc'); } else {
       setSortBy(field);
       setSortOrder('desc');
     }
   };
 
-  const getSortIcon = (field: 'created_at' | 'product_name') => {
-    if (sortBy !== field) return '↕️';
-    return sortOrder === 'asc' ? '↑' : '↓';
-  };
+      const getSortIcon = (field: 'created_at' | 'product_name') => { if (sortBy !== field) return '↕️';
+      return sortOrder === 'asc' ? '↑' : '↓'; };
 
-  const handleQuickMovement = async (e: React.FormEvent) => {
-    e.preventDefault();
+      const handleQuickMovement = async (e: React.FormEvent) => { e.preventDefault();
 
     try {
       const quantity = parseInt(quickFormData.quantity);
@@ -229,8 +215,7 @@ export default function Inventory() {
         transaction_type: quickFormData.movement_type,
         quantity,
         unit_price: 0, // 在庫管理では単価は管理しない
-        memo: quickFormData.memo || 'Quick入出庫'
-      });
+      memo: quickFormData.memo || 'Quick入出庫' });
 
       if (!result.success) {
         throw new Error(result.error || '在庫記録に失敗しました');
@@ -258,22 +243,19 @@ export default function Inventory() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-green-900/20 dark:to-blue-900/20 transition-all duration-500">
-        <div className="flex items-center justify-center h-64">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 dark: from-gray-900 dark:via-green-900/20 dark:to-blue-900/20 transition-all duration-500"><div className="flex items-center justify-center h-64">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
             className="rounded-full h-16 w-16 border-4 border-green-500 border-t-transparent"
           />
-          <span className="ml-3 text-gray-700 dark:text-gray-300 font-medium">在庫データを読み込み中...</span>
-        </div>
+      <span className="ml-3 text-gray-700 dark: text-gray-300 font-medium">在庫データを読み込み中...</span> </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-green-900/20 dark:to-blue-900/20 transition-all duration-500">
-      <div className="p-6 space-y-6">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 dark: from-gray-900 dark:via-green-900/20 dark:to-blue-900/20 transition-all duration-500"><div className="p-6 space-y-6">
         <motion.div 
           className="flex items-center justify-between"
           initial={{ opacity: 0, y: -20 }}
@@ -288,14 +270,12 @@ export default function Inventory() {
               <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 在庫管理
               </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">入出庫履歴の確認・Quick操作</p>
-            </div>
+      <p className="text-sm text-gray-600 dark: text-gray-400">入出庫履歴の確認・Quick操作</p> </div>
           </div>
           <div className="flex items-center gap-3">
             <motion.button
               onClick={fetchData}
-              className="flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-xl transition-all shadow-lg hover:shadow-xl font-medium"
-              whileHover={{ scale: 1.05 }}
+      className="flex items-center px-4 py-2 bg-gray-600 hover: bg-gray-700 text-white rounded-xl transition-all shadow-lg hover:shadow-xl font-medium"whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <RefreshCw className="w-4 h-4 mr-2" />
@@ -303,8 +283,7 @@ export default function Inventory() {
             </motion.button>
             <motion.button
               onClick={() => setShowQuickForm(true)}
-              className="flex items-center px-6 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-xl hover:from-green-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl font-medium"
-              whileHover={{ scale: 1.05 }}
+      className="flex items-center px-6 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-xl hover: from-green-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl font-medium"whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <Package className="w-4 h-4 mr-2" />
@@ -312,8 +291,7 @@ export default function Inventory() {
             </motion.button>
             <motion.button
               onClick={toggleDarkMode}
-              className="p-2 rounded-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-lg hover:shadow-xl"
-              whileHover={{ scale: 1.1, rotate: 5 }}
+      className="p-2 rounded-xl bg-white/80 dark: bg-gray-800/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-lg hover:shadow-xl"whileHover={{ scale: 1.1, rotate: 5 }}
               whileTap={{ scale: 0.9 }}
             >
               {isDark ? '☀️' : '🌙'}
@@ -342,13 +320,11 @@ export default function Inventory() {
             <div className="mb-4">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-                </div>
+      <Search className="h-5 w-5 text-gray-400 dark: text-gray-500" /></div>
                 <input
                   type="text"
                   placeholder="商品名・商品コード・商品ID・発注番号・移動ID・メモで検索..."
-                  className="w-full pl-11 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                  value={searchTerm}
+      className="w-full pl-11 pr-4 py-3 border border-gray-300 dark: border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
@@ -358,10 +334,8 @@ export default function Inventory() {
             <div className="flex flex-wrap gap-3 items-center mb-4">
               {/* 移動種別フィルター */}
               <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">種別:</label>
-                <select
-                  className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-w-[120px]"
-                  value={movementTypeFilter}
+      <label className="text-sm font-medium text-gray-700 dark: text-gray-300 whitespace-nowrap">種別:</label> <select
+      className="px-3 py-1.5 border border-gray-300 dark: border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-w-[120px]"value={movementTypeFilter}
                   onChange={(e) => setMovementTypeFilter(e.target.value as 'all' | 'in' | 'out')}
                 >
                   <option value="all">すべて</option>
@@ -372,10 +346,8 @@ export default function Inventory() {
 
               {/* 分納フィルター */}
               <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">分納:</label>
-                <select
-                  className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-w-[120px]"
-                  value={deliveryFilter}
+      <label className="text-sm font-medium text-gray-700 dark: text-gray-300 whitespace-nowrap">分納:</label> <select
+      className="px-3 py-1.5 border border-gray-300 dark: border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-w-[120px]"value={deliveryFilter}
                   onChange={(e) => setDeliveryFilter(e.target.value as 'all' | 'partial_delivery' | 'manual')}
                 >
                   <option value="all">すべて</option>
@@ -390,9 +362,7 @@ export default function Inventory() {
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                 className={`inline-flex items-center px-3 py-1.5 border rounded-lg text-sm font-medium transition-colors ${
                   showAdvancedFilters || startDate || endDate
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600'
-                }`}
+      ? 'border-blue-500 bg-blue-50 dark: bg-blue-900/20 text-blue-700 dark:text-blue-300' : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600' }`}
               >
                 <Calendar className="w-4 h-4 mr-1" />
                 <span className="whitespace-nowrap">日付範囲</span>
@@ -403,8 +373,7 @@ export default function Inventory() {
               {(searchTerm || movementTypeFilter !== 'all' || deliveryFilter !== 'all' || startDate || endDate || sortBy !== 'created_at' || sortOrder !== 'desc') && (
                 <button
                   onClick={resetFilters}
-                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-                  title="すべてのフィルターをクリア"
+      className="inline-flex items-center px-3 py-1.5 border border-gray-300 dark: border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"title="すべてのフィルターをクリア"
                 >
                   <X className="w-4 h-4 mr-1" />
                   <span className="whitespace-nowrap">全リセット</span>
@@ -414,50 +383,40 @@ export default function Inventory() {
 
             {/* 高度なフィルター（日付範囲） */}
             {showAdvancedFilters && (
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* 開始日 */}
+      <div className="pt-4 border-t border-gray-200 dark: border-gray-600"><div className="grid grid-cols-1 md: grid-cols-2 lg:grid-cols-3 gap-4">{/* 開始日 */}
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">開始日</label>
-                    <input
+      <label className="text-sm font-medium text-gray-700 dark: text-gray-300">開始日</label> <input
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    />
+      className="px-3 py-2 border border-gray-300 dark: border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"/>
                   </div>
                   
                   {/* 終了日 */}
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">終了日</label>
-                    <input
+      <label className="text-sm font-medium text-gray-700 dark: text-gray-300">終了日</label> <input
                       type="date"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    />
+      className="px-3 py-2 border border-gray-300 dark: border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"/>
                   </div>
 
                   {/* クイック日付フィルター */}
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">クイック選択</label>
-                    <div className="flex gap-2">
+      <label className="text-sm font-medium text-gray-700 dark: text-gray-300">クイック選択</label> <div className="flex gap-2">
                       <button
                         onClick={() => setQuickDateFilter(7)}
-                        className="flex-1 px-3 py-2 text-sm bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors"
-                      >
+      className="flex-1 px-3 py-2 text-sm bg-blue-100 dark: bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors">
                         7日
                       </button>
                       <button
                         onClick={() => setQuickDateFilter(30)}
-                        className="flex-1 px-3 py-2 text-sm bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg hover:bg-green-200 dark:hover:bg-green-900/40 transition-colors"
-                      >
+      className="flex-1 px-3 py-2 text-sm bg-green-100 dark: bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg hover:bg-green-200 dark:hover:bg-green-900/40 transition-colors">
                         30日
                       </button>
                       <button
                         onClick={() => setQuickDateFilter(90)}
-                        className="flex-1 px-3 py-2 text-sm bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-lg hover:bg-yellow-200 dark:hover:bg-yellow-900/40 transition-colors"
-                      >
+      className="flex-1 px-3 py-2 text-sm bg-yellow-100 dark: bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-lg hover:bg-yellow-200 dark:hover:bg-yellow-900/40 transition-colors">
                         90日
                       </button>
                     </div>
@@ -468,29 +427,23 @@ export default function Inventory() {
           </div>
 
           {/* 検索結果数表示（下段） */}
-          <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-600 rounded-b-lg">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              {searchTerm || movementTypeFilter !== 'all' || deliveryFilter !== 'all' || startDate || endDate ? (
+      <div className="px-4 py-3 bg-gray-50 dark: bg-gray-700/50 border-t border-gray-200 dark:border-gray-600 rounded-b-lg"><div className="text-sm text-gray-600 dark: text-gray-400">{searchTerm || movementTypeFilter !== 'all' || deliveryFilter !== 'all' || startDate || endDate ? (
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{filteredMovements.length}件の結果</span>
                   <span className="text-gray-500 dark:text-gray-500">(全{movements.length}件中)</span>
                   {searchTerm && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
-                      「{searchTerm}」で検索中
+      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark: bg-blue-900/30 text-blue-800 dark:text-blue-200">「{searchTerm}」で検索中
                     </span>
                   )}
                   {startDate && endDate && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
-                      期間: {startDate} ～ {endDate}
+      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark: bg-green-900/30 text-green-800 dark:text-green-200">期間: {startDate} ～ {endDate}
                     </span>
                   )}
                 </div>
-              ) : (
-                <span className="font-medium">全{movements.length}件の入出庫履歴</span>
+      ) : ( <span className="font-medium">全{movements.length}件の入出庫履歴</span>
               )}
               {searchTerm && (
-                <div className="mt-2 text-xs text-gray-500 dark:text-gray-500 bg-blue-50 dark:bg-blue-900/10 px-3 py-2 rounded-lg">
-                  💡 商品名・商品コード・商品ID・発注番号（PO250910004）・移動ID・分納回次（第1回）・メモで検索可能
+      <div className="mt-2 text-xs text-gray-500 dark: text-gray-500 bg-blue-50 dark:bg-blue-900/10 px-3 py-2 rounded-lg">💡 商品名・商品コード・商品ID・発注番号（PO250910004）・移動ID・分納回次（第1回）・メモで検索可能
                 </div>
               )}
             </div>
@@ -499,15 +452,11 @@ export default function Inventory() {
         </motion.div>
 
       {showQuickForm && (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Quick入出庫</h2>
-          <form onSubmit={handleQuickMovement} className="grid grid-cols-2 gap-4">
+      <div className="bg-white dark: bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700"><h2 className="text-xl font-semibold mb-4 text-gray-900 dark: text-white">Quick入出庫</h2> <form onSubmit={handleQuickMovement} className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">商品</label>
-              <select
+      <label className="block text-sm font-medium text-gray-700 dark: text-gray-300">商品</label> <select
                 required
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm font-medium"
-                value={quickFormData.product_id}
+      className="mt-1 block w-full border border-gray-300 dark: border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm font-medium"value={quickFormData.product_id}
                 onChange={(e) => setQuickFormData({ ...quickFormData, product_id: e.target.value })}
               >
                 <option value="">商品を選択</option>
@@ -519,10 +468,8 @@ export default function Inventory() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">入出庫種別</label>
-              <select
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                value={quickFormData.movement_type}
+      <label className="block text-sm font-medium text-gray-700 dark: text-gray-300">入出庫種別</label> <select
+      className="mt-1 block w-full border border-gray-300 dark: border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"value={quickFormData.movement_type}
                 onChange={(e) => setQuickFormData({ ...quickFormData, movement_type: e.target.value as 'in' | 'out' })}
               >
                 <option value="in">入庫</option>
@@ -530,21 +477,17 @@ export default function Inventory() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">数量</label>
-              <input
+      <label className="block text-sm font-medium text-gray-700 dark: text-gray-300">数量</label> <input
                 type="number"
                 required
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                value={quickFormData.quantity}
+      className="mt-1 block w-full border border-gray-300 dark: border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"value={quickFormData.quantity}
                 onChange={(e) => setQuickFormData({ ...quickFormData, quantity: e.target.value })}
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">メモ</label>
-              <input
+      <label className="block text-sm font-medium text-gray-700 dark: text-gray-300">メモ</label> <input
                 type="text"
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                value={quickFormData.memo}
+      className="mt-1 block w-full border border-gray-300 dark: border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"value={quickFormData.memo}
                 onChange={(e) => setQuickFormData({ ...quickFormData, memo: e.target.value })}
               />
             </div>
@@ -552,14 +495,12 @@ export default function Inventory() {
               <button
                 type="button"
                 onClick={resetQuickForm}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors"
-              >
+      className="px-4 py-2 border border-gray-300 dark: border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors">
                 キャンセル
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors"
-              >
+      className="px-4 py-2 bg-green-600 text-white rounded-md hover: bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors">
                 記録
               </button>
             </div>
@@ -573,84 +514,64 @@ export default function Inventory() {
         transition={{ duration: 0.5, delay: 0.3 }}
       >
         <ModernCard className="overflow-hidden">
-          <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200/50 dark:border-gray-700/50">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <Warehouse className="w-6 h-6 text-green-600 dark:text-green-400" />
-              入出庫履歴
+      <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 dark: from-gray-800 dark:to-gray-700 border-b border-gray-200/50 dark:border-gray-700/50"><h2 className="text-xl font-bold text-gray-900 dark: text-white flex items-center gap-2"><Warehouse className="w-6 h-6 text-green-600 dark: text-green-400" />入出庫履歴
             </h2>
           </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-800">
-              <tr>
+      <table className="min-w-full divide-y divide-gray-200 dark: divide-gray-700"><thead className="bg-gray-50 dark: bg-gray-800"><tr>
                 <th 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
-                  onClick={() => handleSort('created_at')}
+      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark: text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"onClick={() => handleSort('created_at')}
                 >
                   <div className="flex items-center space-x-1">
                     <span>日時</span>
                     <span className="text-gray-400">{getSortIcon('created_at')}</span>
                     {sortBy === 'created_at' && (
-                      <span className="text-blue-600 dark:text-blue-400 text-xs font-normal lowercase">
-                        ({sortOrder === 'asc' ? '昇順' : '降順'})
+      <span className="text-blue-600 dark: text-blue-400 text-xs font-normal lowercase">({sortOrder === 'asc' ? '昇順' : '降順'})
                       </span>
                     )}
                   </div>
                 </th>
                 <th 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
-                  onClick={() => handleSort('product_name')}
+      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark: text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"onClick={() => handleSort('product_name')}
                 >
                   <div className="flex items-center space-x-1">
                     <span>商品</span>
                     <span className="text-gray-400">{getSortIcon('product_name')}</span>
                     {sortBy === 'product_name' && (
-                      <span className="text-blue-600 dark:text-blue-400 text-xs font-normal lowercase">
-                        ({sortOrder === 'asc' ? '昇順' : '降順'})
+      <span className="text-blue-600 dark: text-blue-400 text-xs font-normal lowercase">({sortOrder === 'asc' ? '昇順' : '降順'})
                       </span>
                     )}
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  種別
+      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark: text-gray-400 uppercase tracking-wider">種別
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  移動数量
+      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark: text-gray-400 uppercase tracking-wider">移動数量
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  在庫変化
+      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark: text-gray-400 uppercase tracking-wider">在庫変化
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  操作
+      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark: text-gray-400 uppercase tracking-wider">操作
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredMovements.length === 0 ? (
+      <tbody className="bg-white dark: bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">{filteredMovements.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center">
-                    <div className="text-gray-500 dark:text-gray-400">
-                      <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
+      <div className="text-gray-500 dark: text-gray-400"><Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
                       <p className="text-lg font-medium mb-2">該当する履歴が見つかりません</p>
                       <p className="text-sm">
                         {searchTerm || movementTypeFilter !== 'all' 
                           ? '検索条件を変更してお試しください' 
-                          : '入出庫履歴がまだありません'
-                        }
+      : '入出庫履歴がまだありません' }
                       </p>
                     </div>
                   </td>
                 </tr>
-              ) : (
-                filteredMovements.map((movement) => (
-                <tr key={movement.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+      ) : ( filteredMovements.map((movement) => (
+      console.log("Debug:", { <tr key={movement.id} className="hover: bg-gray-50 dark:hover:bg-gray-800 transition-colors"> });
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
-                      <div className="text-sm text-gray-900 dark:text-white">
-                        <div>{new Date(movement.created_at).toLocaleDateString('ja-JP')}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {new Date(movement.created_at).toLocaleTimeString('ja-JP')}
+      <Calendar className="h-4 w-4 text-gray-400 dark: text-gray-500 mr-2" /><div className="text-sm text-gray-900 dark: text-white"><div>{new Date(movement.created_at).toLocaleDateString('ja-JP')}</div>
+      <div className="text-xs text-gray-500 dark: text-gray-400">{new Date(movement.created_at).toLocaleTimeString('ja-JP')}
                         </div>
                       </div>
                     </div>
@@ -662,21 +583,15 @@ export default function Inventory() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       {movement.movement_type === 'in' ? (
-                        <Plus className="h-4 w-4 text-green-600 dark:text-green-400 mr-1" />
-                      ) : (
-                        <Minus className="h-4 w-4 text-red-600 dark:text-red-400 mr-1" />
-                      )}
+      <Plus className="h-4 w-4 text-green-600 dark: text-green-400 mr-1" />) : ( <Minus className="h-4 w-4 text-red-600 dark: text-red-400 mr-1" />)}
                       <div>
                         <span className={`text-sm font-medium ${
-                          movement.movement_type === 'in' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                        }`}>
+      movement.movement_type === 'in' ? 'text-green-600 dark: text-green-400' : 'text-red-600 dark:text-red-400' }`}>
                           {movement.movement_type === 'in' ? '入庫' : '出庫'}
                         </span>
                         {/* 分納情報表示 */}
-                        {movement.memo && (movement.memo.includes('[分納:') || movement.memo.includes('分納入力')) && (
-                          <div className="flex items-center mt-1">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                              分納
+      {movement.memo && (movement.memo.includes('[分納: ') || movement.memo.includes('分納入力')) && ( <div className="flex items-center mt-1">
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark: bg-purple-900 dark:text-purple-200">分納
                               {(() => {
                                 // memoから分納回数を抽出
                                 const sequenceMatch = movement.memo.match(/第(\d+)回/);
@@ -691,8 +606,7 @@ export default function Inventory() {
                               })()}
                             </span>
                             {movement.memo.includes('[個数指定]') && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 ml-1">
-                                個数指定
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark: bg-blue-900 dark:text-blue-200 ml-1">個数指定
                               </span>
                             )}
                           </div>
@@ -702,27 +616,20 @@ export default function Inventory() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-2">
-                      <div className="text-sm text-gray-900 dark:text-white font-bold">
-                        {movement.movement_type === 'in' ? '+' : '-'}{movement.quantity}
+      <div className="text-sm text-gray-900 dark: text-white font-bold">{movement.movement_type === 'in' ? '+' : '-'}{movement.quantity}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        {movement.movement_type === 'in' ? '入庫' : '出庫'}
+      <div className="text-xs text-gray-500 dark: text-gray-400">{movement.movement_type === 'in' ? '入庫' : '出庫'}
                       </div>
                     </div>
                     
                     {/* 分納の場合は発注番号と予定日情報も表示 */}
-                    {movement.memo && movement.memo.includes('[分納:') && (
-                      <div className="text-xs space-y-1 mt-1">
-                        <div className="text-gray-500 dark:text-gray-400">
-                          📋 {movement.memo.match(/\[分納: ([^\]]+)\]/)?.[1] || ''}
+      {movement.memo && movement.memo.includes('[分納: ') && ( <div className="text-xs space-y-1 mt-1">
+      <div className="text-gray-500 dark: text-gray-400">📋 {movement.memo.match(/\[分納: ([^\]]+)\]/)?.[1] || ''}
                         </div>
                         {movement.transaction_id && (
                           <div className="flex items-center space-x-2 text-xs">
                             <span className="text-gray-400">📅</span>
-                            <span className="text-blue-600 dark:text-blue-400">
-                              予定: {movement.delivery_scheduled_date ? 
-                                new Date(movement.delivery_scheduled_date).toLocaleDateString('ja-JP') : 
-                                '日付不明'
+      <span className="text-blue-600 dark: text-blue-400">予定: {movement.delivery_scheduled_date ?  new Date(movement.delivery_scheduled_date).toLocaleDateString('ja-JP') :   '日付不明'
                               }
                             </span>
                           </div>
@@ -731,19 +638,15 @@ export default function Inventory() {
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 dark:text-white font-medium">
-                      {movement.products.current_stock}
+      <div className="text-sm text-gray-900 dark: text-white font-medium">{movement.products.current_stock}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      現在在庫
+      <div className="text-xs text-gray-500 dark: text-gray-400">現在在庫
                     </div>
                     {/* 在庫変化の表示 */}
                     {(() => {
                       const previousStock = movement.products.current_stock - 
-                        (movement.movement_type === 'in' ? movement.quantity : -movement.quantity);
-                      return (
-                        <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                          {previousStock} → {movement.products.current_stock}
+      (movement.movement_type === 'in' ? movement.quantity : -movement.quantity); return (
+      <div className="text-xs text-blue-600 dark: text-blue-400 mt-1">{previousStock} → {movement.products.current_stock}
                         </div>
                       );
                     })()}
@@ -754,8 +657,7 @@ export default function Inventory() {
                         setSelectedMovement(movement);
                         setShowDetailModal(true);
                       }}
-                      className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 transition-colors"
-                    >
+      className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-blue-600 dark: text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 transition-colors">
                       <Eye className="w-4 h-4 mr-1" />
                       詳細
                     </button>
@@ -772,38 +674,28 @@ export default function Inventory() {
       {/* 在庫履歴詳細モーダル */}
       {showDetailModal && selectedMovement && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">在庫履歴詳細</h3>
-              <button
+      <div className="bg-white dark: bg-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto"><div className="flex justify-between items-center mb-6">
+      <h3 className="text-xl font-semibold text-gray-900 dark: text-white">在庫履歴詳細</h3> <button
                 onClick={() => {
                   setShowDetailModal(false);
                   setSelectedMovement(null);
                 }}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl leading-none"
-              >
+      className="text-gray-400 hover: text-gray-600 dark:hover:text-gray-300 text-2xl leading-none">
                 ×
               </button>
             </div>
 
             <div className="space-y-6">
               {/* 基本情報 */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-3">基本情報</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
+      <div className="bg-blue-50 dark: bg-blue-900/20 rounded-lg p-4"><h4 className="font-semibold text-blue-900 dark: text-blue-100 mb-3">基本情報</h4> <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-blue-700 dark:text-blue-300 font-medium">処理日時:</span>
-                    <p className="text-gray-900 dark:text-white">
-                      {new Date(selectedMovement.created_at).toLocaleString('ja-JP')}
+      <span className="text-blue-700 dark: text-blue-300 font-medium">処理日時:</span> <p className="text-gray-900 dark: text-white">{new Date(selectedMovement.created_at).toLocaleString('ja-JP')}
                     </p>
                   </div>
                   <div>
-                    <span className="text-blue-700 dark:text-blue-300 font-medium">処理種別:</span>
-                    <p className={`font-medium ${
+      <span className="text-blue-700 dark: text-blue-300 font-medium">処理種別:</span> <p className={`font-medium ${
                       selectedMovement.movement_type === 'in' 
-                        ? 'text-green-600 dark:text-green-400' 
-                        : 'text-red-600 dark:text-red-400'
-                    }`}>
+      ? 'text-green-600 dark: text-green-400'  : 'text-red-600 dark:text-red-400' }`}>
                       {selectedMovement.movement_type === 'in' ? '入庫' : '出庫'}
                     </p>
                   </div>
@@ -811,80 +703,54 @@ export default function Inventory() {
               </div>
 
               {/* 商品情報 */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-3">商品情報</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
+      <div className="bg-gray-50 dark: bg-gray-700 rounded-lg p-4"><h4 className="font-semibold text-gray-900 dark: text-white mb-3">商品情報</h4> <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-600 dark:text-gray-400 font-medium">商品名:</span>
-                    <p className="text-gray-900 dark:text-white font-medium">
-                      {selectedMovement.products.product_name}
+      <span className="text-gray-600 dark: text-gray-400 font-medium">商品名:</span> <p className="text-gray-900 dark: text-white font-medium">{selectedMovement.products.product_name}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-600 dark:text-gray-400 font-medium">商品コード:</span>
-                    <p className="text-gray-900 dark:text-white">
-                      {selectedMovement.products.product_code}
+      <span className="text-gray-600 dark: text-gray-400 font-medium">商品コード:</span> <p className="text-gray-900 dark: text-white">{selectedMovement.products.product_code}
                     </p>
                   </div>
                 </div>
               </div>
 
               {/* 数量・在庫情報 */}
-              <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-                <h4 className="font-semibold text-green-900 dark:text-green-100 mb-3">在庫移動詳細</h4>
-                <div className="grid grid-cols-3 gap-4 text-sm">
+      <div className="bg-green-50 dark: bg-green-900/20 rounded-lg p-4"><h4 className="font-semibold text-green-900 dark: text-green-100 mb-3">在庫移動詳細</h4> <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
-                    <span className="text-green-700 dark:text-green-300 font-medium">移動数量:</span>
-                    <p className="text-gray-900 dark:text-white text-lg font-bold">
-                      {selectedMovement.quantity} 個
+      <span className="text-green-700 dark: text-green-300 font-medium">移動数量:</span> <p className="text-gray-900 dark: text-white text-lg font-bold">{selectedMovement.quantity} 個
                     </p>
                   </div>
                   <div>
-                    <span className="text-green-700 dark:text-green-300 font-medium">移動時残高:</span>
-                    <p className="text-gray-900 dark:text-white font-medium">
-                      {selectedMovement.current_balance} 個
+      <span className="text-green-700 dark: text-green-300 font-medium">移動時残高:</span> <p className="text-gray-900 dark: text-white font-medium">{selectedMovement.current_balance} 個
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">※移動記録時点</p>
-                  </div>
+      <p className="text-xs text-gray-500 dark: text-gray-400 mt-1">※移動記録時点</p> </div>
                   <div>
-                    <span className="text-green-700 dark:text-green-300 font-medium">現在在庫:</span>
-                    <p className="text-gray-900 dark:text-white text-lg font-bold">
-                      {selectedMovement.products.current_stock} 個
+      <span className="text-green-700 dark: text-green-300 font-medium">現在在庫:</span> <p className="text-gray-900 dark: text-white text-lg font-bold">{selectedMovement.products.current_stock} 個
                     </p>
-                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">※リアルタイム</p>
-                  </div>
+      <p className="text-xs text-blue-600 dark: text-blue-400 mt-1">※リアルタイム</p> </div>
                 </div>
               </div>
 
               {/* メモ・備考 */}
               {selectedMovement.memo && (
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
-                  <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-3">処理詳細</h4>
-                  <p className="text-gray-900 dark:text-white text-sm whitespace-pre-wrap">
-                    {selectedMovement.memo}
+      <div className="bg-yellow-50 dark: bg-yellow-900/20 rounded-lg p-4"><h4 className="font-semibold text-yellow-900 dark: text-yellow-100 mb-3">処理詳細</h4> <p className="text-gray-900 dark: text-white text-sm whitespace-pre-wrap">{selectedMovement.memo}
                   </p>
                 </div>
               )}
 
               {/* 関連発注情報（分納記録の場合） */}
-              {selectedMovement.memo && selectedMovement.memo.includes('[分納:') && (
-                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
-                  <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-3">分納連動情報</h4>
-                  <div className="text-sm">
-                    <p className="text-gray-900 dark:text-white">
-                      この在庫更新は発注システムからの分納処理により自動実行されました
+      {selectedMovement.memo && selectedMovement.memo.includes('[分納: ') && ( <div className="bg-purple-50 dark: bg-purple-900/20 rounded-lg p-4"><h4 className="font-semibold text-purple-900 dark: text-purple-100 mb-3">分納連動情報</h4> <div className="text-sm">
+      <p className="text-gray-900 dark: text-white">この在庫更新は発注システムからの分納処理により自動実行されました
                     </p>
-                    {selectedMovement.memo.match(/\[分納: ([^\]]+)\]/) && (
-                      <p className="text-purple-700 dark:text-purple-300 font-medium mt-2">
-                        関連発注: {selectedMovement.memo.match(/\[分納: ([^\]]+)\]/)?.[1]}
+      {selectedMovement.memo.match(/\[分納: ([^\]]+)\]/) && ( <p className="text-purple-700 dark: text-purple-300 font-medium mt-2">関連発注: {selectedMovement.memo.match(/\[分納: ([^\]]+)\]/)?.[1]}
                       </p>
                     )}
                     {(() => {
                       const sequenceMatch = selectedMovement.memo.match(/第(\d+)回/);
                       if (sequenceMatch) {
                         return (
-                          <p className="text-purple-700 dark:text-purple-300 font-medium mt-1">
-                            分納回次: 第{sequenceMatch[1]}回目
+      <p className="text-purple-700 dark: text-purple-300 font-medium mt-1">分納回次: 第{sequenceMatch[1]}回目
                           </p>
                         );
                       }
@@ -892,21 +758,16 @@ export default function Inventory() {
                     })()}
                     
                     {/* 分納日程情報の拡充 */}
-                    <div className="mt-3 p-3 bg-white dark:bg-gray-800 rounded border border-purple-200 dark:border-purple-800">
-                      <h5 className="font-medium text-purple-800 dark:text-purple-200 mb-2">📅 分納日程詳細</h5>
+      <div className="mt-3 p-3 bg-white dark: bg-gray-800 rounded border border-purple-200 dark:border-purple-800"><h5 className="font-medium text-purple-800 dark:text-purple-200 mb-2">📅 分納日程詳細</h5>
                       <div className="grid grid-cols-1 gap-2 text-xs">
                         {selectedMovement.delivery_scheduled_date && (
-                          <div className="flex justify-between items-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
-                            <span className="text-blue-700 dark:text-blue-300 font-medium">📋 分納予定日:</span>
-                            <span className="font-bold text-blue-900 dark:text-blue-100">
-                              {new Date(selectedMovement.delivery_scheduled_date).toLocaleDateString('ja-JP')}
+      <div className="flex justify-between items-center p-2 bg-blue-50 dark: bg-blue-900/20 rounded"><span className="text-blue-700 dark:text-blue-300 font-medium">📋 分納予定日:</span>
+      <span className="font-bold text-blue-900 dark: text-blue-100">{new Date(selectedMovement.delivery_scheduled_date).toLocaleDateString('ja-JP')}
                             </span>
                           </div>
                         )}
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600 dark:text-gray-400">✅ 実際の処理日時:</span>
-                          <span className="font-medium text-gray-900 dark:text-white">
-                            {new Date(selectedMovement.created_at).toLocaleString('ja-JP')}
+      <span className="text-gray-600 dark: text-gray-400">✅ 実際の処理日時:</span> <span className="font-medium text-gray-900 dark: text-white">{new Date(selectedMovement.created_at).toLocaleString('ja-JP')}
                           </span>
                         </div>
                         {selectedMovement.delivery_scheduled_date && (
@@ -915,14 +776,11 @@ export default function Inventory() {
                             <span className={`font-medium ${
                               new Date(selectedMovement.created_at).toDateString() === 
                               new Date(selectedMovement.delivery_scheduled_date).toDateString() 
-                                ? 'text-green-600 dark:text-green-400' 
-                                : 'text-orange-600 dark:text-orange-400'
-                            }`}>
+      ? 'text-green-600 dark: text-green-400'  : 'text-orange-600 dark:text-orange-400' }`}>
                               {new Date(selectedMovement.created_at).toDateString() === 
                                new Date(selectedMovement.delivery_scheduled_date).toDateString() 
                                 ? '予定通り' 
-                                : `${Math.ceil((new Date(selectedMovement.created_at).getTime() - 
-                                    new Date(selectedMovement.delivery_scheduled_date).getTime()) / 
+      : `${Math.ceil((new Date(selectedMovement.created_at).getTime() -  new Date(selectedMovement.delivery_scheduled_date).getTime()) / 
                                     (1000 * 60 * 60 * 24))}日差`
                               }
                             </span>
@@ -931,8 +789,7 @@ export default function Inventory() {
                         {selectedMovement.transaction_id && (
                           <div className="flex justify-between items-center">
                             <span className="text-gray-600 dark:text-gray-400">🔗 関連分納ID:</span>
-                            <span className="font-mono text-xs text-gray-700 dark:text-gray-300">
-                              {selectedMovement.transaction_id.slice(0, 8)}...
+      <span className="font-mono text-xs text-gray-700 dark: text-gray-300">{selectedMovement.transaction_id.slice(0, 8)}...
                             </span>
                           </div>
                         )}
@@ -949,8 +806,7 @@ export default function Inventory() {
                   setShowDetailModal(false);
                   setSelectedMovement(null);
                 }}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-              >
+      className="px-4 py-2 bg-gray-600 text-white rounded-md hover: bg-gray-700 transition-colors">
                 閉じる
               </button>
             </div>

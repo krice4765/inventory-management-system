@@ -1,9 +1,9 @@
 import React from 'react'
 
 interface InstallmentProgressProps {
-  orderTotal: number
-  allocatedAmount: number
-  className?: string
+  orderTotal: number;
+  allocatedAmount: number;
+  className?: string;
 }
 
 export const InstallmentProgress: React.FC<InstallmentProgressProps> = ({
@@ -11,10 +11,10 @@ export const InstallmentProgress: React.FC<InstallmentProgressProps> = ({
   allocatedAmount,
   className = ''
 }) => {
-  const progressRate = orderTotal > 0 ? (allocatedAmount / orderTotal) * 100 : 0
-  const remainingAmount = Math.max(0, orderTotal - allocatedAmount)
-  const isComplete = progressRate >= 100
-  const isOverAllocated = progressRate > 100
+  const progressRate = orderTotal > 0 ? (allocatedAmount / orderTotal) * 100 : 0;
+  const remainingAmount = Math.max(0, orderTotal - allocatedAmount);
+  const isComplete = progressRate >= 100;
+  const isOverAllocated = progressRate > 100;
 
   const getProgressColor = () => {
     if (isOverAllocated) return 'bg-red-500'

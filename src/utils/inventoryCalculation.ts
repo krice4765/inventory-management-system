@@ -106,15 +106,11 @@ export async function fetchProductsWithDynamicStock(): Promise<ProductWithDynami
     return products.map(product => {
       const productMovements = movementsMap.get(product.id) || [];
 
-      const totalIn = productMovements
-        .filter(m => m.movement_type === 'in')
-        .reduce((sum, m) => sum + (m.quantity || 0), 0);
-
-      const totalOut = productMovements
-        .filter(m => m.movement_type === 'out')
-        .reduce((sum, m) => sum + (m.quantity || 0), 0);
-
-      const current_stock = Math.max(0, totalIn - totalOut);
+      // 移動履歴から在庫計算（'in'は加算、'out'は減算）
+      const current_stock = Math.max(0, productMovements.reduce((sum, m) => {
+        const quantity = m.quantity || 0;
+        return m.movement_type === 'in' ? sum + quantity : sum - quantity;
+      }, 0));
 
       return {
         ...product,

@@ -2,16 +2,10 @@ import React from 'react';
 import type { FieldError, UseFormRegisterReturn } from 'react-hook-form';
 
 interface BaseFieldProps {
-  readonly label: string;
-  readonly required?: boolean;
-  readonly error?: FieldError;
-  readonly className?: string;
-}
+      readonly label: string; readonly required?: boolean; readonly error?: FieldError; readonly className?: string; }
 
 interface TextFieldProps extends BaseFieldProps {
-  readonly placeholder?: string;
-  readonly register: UseFormRegisterReturn;
-}
+      readonly placeholder?: string; readonly register: UseFormRegisterReturn; }
 
 export const TextField: React.FC<TextFieldProps> = React.memo(({
   label,
@@ -27,8 +21,7 @@ export const TextField: React.FC<TextFieldProps> = React.memo(({
     </label>
     <input 
       type="text"
-      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-      placeholder={placeholder}
+      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus: border-indigo-500 focus:ring-1 focus:ring-indigo-500"placeholder={placeholder}
       {...register} 
     />
     {error && <p className="text-sm text-red-600 mt-1">{error.message}</p>}
@@ -38,10 +31,7 @@ export const TextField: React.FC<TextFieldProps> = React.memo(({
 TextField.displayName = 'TextField';
 
 interface CurrencyFieldProps extends BaseFieldProps {
-  readonly register: UseFormRegisterReturn;
-  readonly step?: string;
-  readonly min?: string;
-}
+      readonly register: UseFormRegisterReturn; readonly step?: string; readonly min?: string; }
 
 export const CurrencyField: React.FC<CurrencyFieldProps> = React.memo(({
   label,
@@ -63,8 +53,7 @@ export const CurrencyField: React.FC<CurrencyFieldProps> = React.memo(({
         step={step}
         min={min}
         onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-        className="w-full rounded-md border border-gray-300 pl-8 pr-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-        placeholder="0.00"
+      className="w-full rounded-md border border-gray-300 pl-8 pr-3 py-2 text-sm focus: border-indigo-500 focus:ring-1 focus:ring-indigo-500"placeholder="0.00"
         {...register} 
       />
     </div>
@@ -75,10 +64,7 @@ export const CurrencyField: React.FC<CurrencyFieldProps> = React.memo(({
 CurrencyField.displayName = 'CurrencyField';
 
 interface NumberFieldProps extends BaseFieldProps {
-  readonly register: UseFormRegisterReturn;
-  readonly min?: string;
-  readonly placeholder?: string;
-}
+      readonly register: UseFormRegisterReturn; readonly min?: string; readonly placeholder?: string; }
 
 export const NumberField: React.FC<NumberFieldProps> = React.memo(({
   label,
@@ -97,8 +83,7 @@ export const NumberField: React.FC<NumberFieldProps> = React.memo(({
       type="number"
       min={min}
       onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-      placeholder={placeholder}
+      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus: border-indigo-500 focus:ring-1 focus:ring-indigo-500"placeholder={placeholder}
       {...register} 
     />
     {error && <p className="text-sm text-red-600 mt-1">{error.message}</p>}
@@ -108,16 +93,10 @@ export const NumberField: React.FC<NumberFieldProps> = React.memo(({
 NumberField.displayName = 'NumberField';
 
 export interface SelectOption {
-  readonly value: string | number;
-  readonly label: string;
-}
+      readonly value: string | number; readonly label: string; }
 
 interface SelectFieldProps extends BaseFieldProps {
-  readonly register: UseFormRegisterReturn;
-  readonly options: readonly SelectOption[];
-  readonly loading?: boolean;
-  readonly placeholder?: string;
-}
+      readonly register: UseFormRegisterReturn; readonly options: readonly SelectOption[]; readonly loading?: boolean; readonly placeholder?: string; }
 
 export const SelectField: React.FC<SelectFieldProps> = React.memo(({
   label,
@@ -134,8 +113,7 @@ export const SelectField: React.FC<SelectFieldProps> = React.memo(({
       {label} {required && <span className="text-red-500">*</span>}
     </label>
     <select 
-      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-      {...register}
+      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus: border-indigo-500 focus:ring-1 focus:ring-indigo-500"{...register}
       disabled={loading}
     >
       <option value="">{placeholder}</option>
@@ -153,10 +131,7 @@ export const SelectField: React.FC<SelectFieldProps> = React.memo(({
 SelectField.displayName = 'SelectField';
 
 interface TextAreaFieldProps extends BaseFieldProps {
-  readonly register: UseFormRegisterReturn;
-  readonly rows?: number;
-  readonly placeholder?: string;
-}
+      readonly register: UseFormRegisterReturn; readonly rows?: number; readonly placeholder?: string; }
 
 export const TextAreaField: React.FC<TextAreaFieldProps> = React.memo(({
   label,
@@ -172,8 +147,7 @@ export const TextAreaField: React.FC<TextAreaFieldProps> = React.memo(({
       {label} {required && <span className="text-red-500">*</span>}
     </label>
     <textarea 
-      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-      rows={rows} 
+      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus: border-indigo-500 focus:ring-1 focus:ring-indigo-500"rows={rows} 
       placeholder={placeholder}
       {...register} 
     />
@@ -184,9 +158,7 @@ export const TextAreaField: React.FC<TextAreaFieldProps> = React.memo(({
 TextAreaField.displayName = 'TextAreaField';
 
 interface URLFieldProps extends BaseFieldProps {
-  readonly register: UseFormRegisterReturn;
-  readonly placeholder?: string;
-}
+      readonly register: UseFormRegisterReturn; readonly placeholder?: string; }
 
 export const URLField: React.FC<URLFieldProps> = React.memo(({
   label,
@@ -202,8 +174,7 @@ export const URLField: React.FC<URLFieldProps> = React.memo(({
     </label>
     <input 
       type="url"
-      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-      placeholder={placeholder}
+      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus: border-indigo-500 focus:ring-1 focus:ring-indigo-500"placeholder={placeholder}
       {...register} 
     />
     {error && <p className="text-sm text-red-600 mt-1">{error.message}</p>}

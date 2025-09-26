@@ -9,10 +9,7 @@ import { useDarkMode } from '../hooks/useDarkMode';
 import { AdvancedUnifiedFilters } from './AdvancedUnifiedFilters';
 
 interface UnifiedInventoryDisplayProps {
-  initialFilters?: MovementFilters;
-  showTitle?: boolean;
-  showFilters?: boolean;
-}
+      initialFilters?: MovementFilters; showTitle?: boolean; showFilters?: boolean; }
 
 const UnifiedInventoryDisplayComponent: React.FC<UnifiedInventoryDisplayProps> = ({
   initialFilters = {},
@@ -55,8 +52,7 @@ const UnifiedInventoryDisplayComponent: React.FC<UnifiedInventoryDisplayProps> =
       amountOnlyTransactions: amountOnlyTransactions.length,
       totalAmount,
       totalQuantity,
-      averageAmount: records.length > 0 ? totalAmount / records.length : 0
-    };
+      averageAmount: records.length > 0 ? totalAmount / records.length : 0 };
   }, [unifiedData]);
 
   // ページネーション処理
@@ -98,8 +94,7 @@ const UnifiedInventoryDisplayComponent: React.FC<UnifiedInventoryDisplayProps> =
           </p>
           <button
             onClick={handleRefetch}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
+      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover: bg-blue-700 transition-colors">
             再試行
           </button>
         </div>
@@ -120,8 +115,7 @@ const UnifiedInventoryDisplayComponent: React.FC<UnifiedInventoryDisplayProps> =
 
       {/* 統計情報カード */}
       {statistics && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <ModernCard className="p-4">
+      <div className="grid grid-cols-2 md: grid-cols-3 lg:grid-cols-6 gap-4"><ModernCard className="p-4">
             <div className="text-center">
               <Database className={`h-6 w-6 mx-auto mb-2 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
               <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -214,8 +208,7 @@ const UnifiedInventoryDisplayComponent: React.FC<UnifiedInventoryDisplayProps> =
               統合データを読み込み中...
             </span>
           </div>
-        ) : unifiedData?.data && unifiedData.data.length > 0 ? (
-          <div className="space-y-3">
+      ) : unifiedData?.data && unifiedData.data.length > 0 ? ( <div className="space-y-3">
             <div className="mb-4">
               <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 在庫移動・分納記録一覧 ({unifiedData.data.length}件)
@@ -223,8 +216,7 @@ const UnifiedInventoryDisplayComponent: React.FC<UnifiedInventoryDisplayProps> =
 
               {/* ページネーション - 上部 */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+      <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 dark: bg-gray-800 rounded-lg"><div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                     ページ {currentPage} / {totalPages} ({((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, unifiedData.data.length)} 件表示)
                   </div>
                   <div className="flex items-center space-x-2">
@@ -233,9 +225,7 @@ const UnifiedInventoryDisplayComponent: React.FC<UnifiedInventoryDisplayProps> =
                       disabled={currentPage === 1}
                       className={`px-3 py-1 rounded text-sm font-medium ${
                         currentPage === 1
-                          ? isDark ? 'bg-gray-800 text-gray-600 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                          : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-700 hover:bg-gray-100 border'
-                      }`}
+      ? isDark ? 'bg-gray-800 text-gray-600 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed' : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-700 hover:bg-gray-100 border' }`}
                     >
                       前へ
                     </button>
@@ -258,9 +248,7 @@ const UnifiedInventoryDisplayComponent: React.FC<UnifiedInventoryDisplayProps> =
                           onClick={() => handlePageChange(pageNumber)}
                           className={`px-3 py-1 rounded text-sm font-medium ${
                             pageNumber === currentPage
-                              ? isDark ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600 border border-blue-200'
-                              : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-700 hover:bg-gray-100 border'
-                          }`}
+      ? isDark ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600 border border-blue-200' : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-700 hover:bg-gray-100 border' }`}
                         >
                           {pageNumber}
                         </button>
@@ -272,9 +260,7 @@ const UnifiedInventoryDisplayComponent: React.FC<UnifiedInventoryDisplayProps> =
                       disabled={currentPage === totalPages}
                       className={`px-3 py-1 rounded text-sm font-medium ${
                         currentPage === totalPages
-                          ? isDark ? 'bg-gray-800 text-gray-600 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                          : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-700 hover:bg-gray-100 border'
-                      }`}
+      ? isDark ? 'bg-gray-800 text-gray-600 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed' : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-700 hover:bg-gray-100 border' }`}
                     >
                       次へ
                     </button>
@@ -300,9 +286,7 @@ const UnifiedInventoryDisplayComponent: React.FC<UnifiedInventoryDisplayProps> =
                   disabled={currentPage === 1}
                   className={`px-3 py-2 rounded-md text-sm font-medium ${
                     currentPage === 1
-                      ? isDark ? 'bg-gray-800 text-gray-600 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-700 hover:bg-gray-50 border'
-                  }`}
+      ? isDark ? 'bg-gray-800 text-gray-600 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed' : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-700 hover:bg-gray-50 border' }`}
                 >
                   前へ
                 </button>
@@ -325,9 +309,7 @@ const UnifiedInventoryDisplayComponent: React.FC<UnifiedInventoryDisplayProps> =
                       onClick={() => handlePageChange(pageNumber)}
                       className={`px-3 py-2 rounded-md text-sm font-medium ${
                         pageNumber === currentPage
-                          ? isDark ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600 border border-blue-200'
-                          : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-700 hover:bg-gray-50 border'
-                      }`}
+      ? isDark ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600 border border-blue-200' : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-700 hover:bg-gray-50 border' }`}
                     >
                       {pageNumber}
                     </button>
@@ -339,17 +321,14 @@ const UnifiedInventoryDisplayComponent: React.FC<UnifiedInventoryDisplayProps> =
                   disabled={currentPage === totalPages}
                   className={`px-3 py-2 rounded-md text-sm font-medium ${
                     currentPage === totalPages
-                      ? isDark ? 'bg-gray-800 text-gray-600 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-700 hover:bg-gray-50 border'
-                  }`}
+      ? isDark ? 'bg-gray-800 text-gray-600 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed' : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-700 hover:bg-gray-50 border' }`}
                 >
                   次へ
                 </button>
               </div>
             )}
           </div>
-        ) : (
-          <div className="text-center py-8">
+      ) : ( <div className="text-center py-8">
             <Package className={`h-12 w-12 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
             <p className={`text-lg font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
               表示するデータがありません
@@ -370,10 +349,7 @@ UnifiedInventoryDisplay.displayName = 'UnifiedInventoryDisplay';
 
 // 個別レコードカードコンポーネント（React.memo最適化版）
 const UnifiedRecordCard = React.memo<{
-  record: UnifiedInventoryRecord;
-  index: number;
-  isDark: boolean;
-}>(({ record, index, isDark }) => {
+      record: UnifiedInventoryRecord; index: number; isDark: boolean; }>(({ record, index, isDark }) => {
   const isInventoryMovement = record.record_type === 'inventory_movement';
 
   return (
@@ -384,21 +360,17 @@ const UnifiedRecordCard = React.memo<{
       className={`p-4 border rounded-lg ${
         isDark
           ? 'bg-gray-800 border-gray-700'
-          : 'bg-white border-gray-200'
-      } hover:shadow-md transition-shadow`}
+      : 'bg-white border-gray-200' } hover:shadow-md transition-shadow`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           {/* レコード種別アイコン */}
           <div className={`p-2 rounded-full ${
             isInventoryMovement
-              ? isDark ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700'
-              : isDark ? 'bg-orange-900 text-orange-200' : 'bg-orange-100 text-orange-700'
-          }`}>
+      ? isDark ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700' : isDark ? 'bg-orange-900 text-orange-200' : 'bg-orange-100 text-orange-700' }`}>
             {isInventoryMovement ? (
               <Package className="h-4 w-4" />
-            ) : (
-              <DollarSign className="h-4 w-4" />
+      ) : ( <DollarSign className="h-4 w-4" />
             )}
           </div>
 
@@ -432,14 +404,11 @@ const UnifiedRecordCard = React.memo<{
       </div>
 
       {/* 詳細情報 */}
-      <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between text-xs">
+      <div className="mt-3 pt-3 border-t border-gray-200 dark: border-gray-700"><div className="flex items-center justify-between text-xs">
           <div className={`flex items-center space-x-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             <span className={`inline-flex items-center px-2 py-1 rounded-full ${
               isInventoryMovement
-                ? isDark ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700'
-                : isDark ? 'bg-orange-900 text-orange-200' : 'bg-orange-100 text-orange-700'
-            }`}>
+      ? isDark ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-700' : isDark ? 'bg-orange-900 text-orange-200' : 'bg-orange-100 text-orange-700' }`}>
               {isInventoryMovement ? '在庫移動' : '金額分納'}
             </span>
 
@@ -460,10 +429,8 @@ const UnifiedRecordCard = React.memo<{
                     if (record.installment_no) {
                       installmentNumber = String(record.installment_no);
                     } else {
-                      // フォールバック: memoから回数を抽出（第X回の形式）
-                      const installmentMatch = record.memo.match(/第(\d+)回/);
-                      installmentNumber = installmentMatch ? installmentMatch[1] : null;
-                    }
+      // フォールバック: memoから回数を抽出（第X回の形式） const installmentMatch = record.memo.match(/第(\d+)回/);
+      installmentNumber = installmentMatch ? installmentMatch[1] : null; }
 
                     if (installmentNumber) {
                       return `📝 分納入力(${installmentNumber}回目) - ${poMatch[0]}`;
@@ -486,8 +453,7 @@ const UnifiedRecordCard = React.memo<{
                 month: '2-digit',
                 day: '2-digit',
                 hour: '2-digit',
-                minute: '2-digit'
-              })}
+      minute: '2-digit' })}
             </span>
           </div>
         </div>

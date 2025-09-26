@@ -6,31 +6,10 @@ import toast from 'react-hot-toast';
 import { useDarkMode } from '../hooks/useDarkMode';
 
 interface OrderDetail {
-  purchase_order_id: string;
-  order_no: string;
-  partner_name: string;
-  partner_code: string;
-  order_date: string;
-  delivery_deadline?: string;
-  order_manager_name?: string;
-  order_manager_department?: string;
-  assigned_user_id?: string;
-  assigned_user_name?: string;
-  ordered_amount: number;
-  delivered_amount: number;
-  remaining_amount: number;
-  progress_status: string;
-  memo?: string;
-  created_at: string;
-}
+      purchase_order_id: string; order_no: string; partner_name: string; partner_code: string; order_date: string; delivery_deadline?: string; order_manager_name?: string; order_manager_department?: string; assigned_user_id?: string; assigned_user_name?: string; ordered_amount: number; delivered_amount: number; remaining_amount: number; progress_status: string; memo?: string; created_at: string; }
 
 interface OrderItem {
-  product_name: string;
-  product_code: string;
-  quantity: number;
-  unit_price: number;
-  total_amount: number;
-}
+      product_name: string; product_code: string; quantity: number; unit_price: number; total_amount: number; }
 
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
@@ -47,8 +26,7 @@ export default function OrderDetail() {
     }
   }, [id]);
 
-  const fetchOrderDetail = async (orderId: string) => {
-    try {
+      const fetchOrderDetail = async (orderId: string) => { try {
       setLoading(true);
 
       // 🚨 purchase_ordersデータを取得
@@ -110,8 +88,7 @@ export default function OrderDetail() {
       const remaining_amount = Math.max(0, ordered_amount - delivered_amount);
       
       // 進捗状況を正確に判定
-      let progress_status: string;
-      if (remaining_amount === 0 && delivered_amount > 0) {
+      let progress_status: string; if (remaining_amount === 0 && delivered_amount > 0) {
         progress_status = '納品完了';
       } else if (delivered_amount > 0) {
         progress_status = '一部納品';
@@ -120,6 +97,7 @@ export default function OrderDetail() {
       }
 
       // デバッグログを追加
+      console.log('OrderDetail debug:', {
         orderId,
         assigned_user_id: orderDetailData.assigned_user_id,
         assigned_user: assignedUserData,
@@ -127,8 +105,7 @@ export default function OrderDetail() {
       });
 
       // 発注基本情報を設定（分納実績反映）
-      const orderInfo: OrderDetail = {
-        purchase_order_id: orderDetailData.id,
+      const orderInfo: OrderDetail = { purchase_order_id: orderDetailData.id,
         order_no: orderDetailData.order_no,
         partner_name: orderDetailData.partners?.name || '取引先不明',
         partner_code: orderDetailData.partners?.partner_code || '—',
@@ -143,12 +120,12 @@ export default function OrderDetail() {
         remaining_amount,
         progress_status,
         memo: orderDetailData.memo,
-        created_at: orderDetailData.created_at
-      };
+      created_at: orderDetailData.created_at };
       
       setOrder(orderInfo);
       
       // 🚨 明細データを安全に整形
+      console.log('Items debug:', {
         order_id: orderDetailData.id,
         order_no: orderDetailData.order_no,
         has_items: !!orderDetailData.purchase_order_items,
@@ -156,18 +133,13 @@ export default function OrderDetail() {
         raw_items: orderDetailData.purchase_order_items
       });
 
-      const formattedItems: OrderItem[] = Array.isArray(orderDetailData.purchase_order_items) && orderDetailData.purchase_order_items.length > 0
-        ? orderDetailData.purchase_order_items.map((item: any) => ({
-            product_name: item.products?.product_name || '商品名未設定',
+      const formattedItems: OrderItem[] = Array.isArray(orderDetailData.purchase_order_items) && orderDetailData.purchase_order_items.length > 0 ? orderDetailData.purchase_order_items.map((item: any) => ({ product_name: item.products?.product_name || '商品名未設定',
             product_code: item.products?.product_code || '—',
             quantity: item.quantity || 0,
             unit_price: item.unit_price || 0,
             total_amount: item.total_amount || 0,
           }))
-        : []; // 明細がない場合は空配列
-      
-      
-      setItems(formattedItems);
+      : []; // 明細がない場合は空配列 setItems(formattedItems);
     } catch (error) {
       console.error('Order detail fetch error:', error);
       toast.error(`発注詳細の取得に失敗しました: ${(error as Error).message}`);
@@ -177,18 +149,12 @@ export default function OrderDetail() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case '未納品': return 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400';
-      case '一部納品': return 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400';
-      case '納品完了': return 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400';
-      default: return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-400';
-    }
+      const getStatusColor = (status: string) => { switch (status) {
+      case '未納品': return 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'; case '一部納品': return 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400'; case '納品完了': return 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'; default: return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-400'; }
   };
 
   const getProgressPercentage = (delivered: number, total: number) => {
-    return total > 0 ? Math.round((delivered / total) * 100) : 0;
-  };
+      return total > 0 ? Math.round((delivered / total) * 100) : 0; };
 
   if (loading) {
     return (
@@ -237,12 +203,10 @@ export default function OrderDetail() {
         {/* 基本情報カード */}
         <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} shadow rounded-lg p-6 transition-colors duration-300`}>
           <h2 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>基本情報</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="space-y-4">
+      <div className="grid grid-cols-1 md: grid-cols-2 lg:grid-cols-3 gap-6"><div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/20' : 'bg-blue-50'}`}>
-                  <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                </div>
+      <User className="w-5 h-5 text-blue-600 dark: text-blue-400" /></div>
                 <div>
                   <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>仕入先</p>
                   <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{order.partner_name}</p>
@@ -253,8 +217,7 @@ export default function OrderDetail() {
               {order.order_manager_name && (
                 <div className="flex items-center space-x-3">
                   <div className={`p-2 rounded-lg ${isDark ? 'bg-green-900/20' : 'bg-green-50'}`}>
-                    <User className="w-5 h-5 text-green-600 dark:text-green-400" />
-                  </div>
+      <User className="w-5 h-5 text-green-600 dark: text-green-400" /></div>
                   <div>
                     <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>発注担当者</p>
                     <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{order.order_manager_name}</p>
@@ -268,8 +231,7 @@ export default function OrderDetail() {
               {order.assigned_user_name && (
                 <div className="flex items-center space-x-3">
                   <div className={`p-2 rounded-lg ${isDark ? 'bg-indigo-900/20' : 'bg-indigo-50'}`}>
-                    <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                  </div>
+      <User className="w-5 h-5 text-indigo-600 dark: text-indigo-400" /></div>
                   <div>
                     <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>担当者</p>
                     <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{order.assigned_user_name}</p>
@@ -281,8 +243,7 @@ export default function OrderDetail() {
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-900/20' : 'bg-purple-50'}`}>
-                  <Calendar className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                </div>
+      <Calendar className="w-5 h-5 text-purple-600 dark: text-purple-400" /></div>
                 <div>
                   <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>発注日</p>
                   <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -294,8 +255,7 @@ export default function OrderDetail() {
               {order.delivery_deadline && (
                 <div className="flex items-center space-x-3">
                   <div className={`p-2 rounded-lg ${isDark ? 'bg-orange-900/20' : 'bg-orange-50'}`}>
-                    <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                  </div>
+      <Clock className="w-5 h-5 text-orange-600 dark: text-orange-400" /></div>
                   <div>
                     <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>納期</p>
                     <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -309,8 +269,7 @@ export default function OrderDetail() {
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <div className={`p-2 rounded-lg ${isDark ? 'bg-green-900/20' : 'bg-green-50'}`}>
-                  <DollarSign className="w-5 h-5 text-green-600 dark:text-green-400" />
-                </div>
+      <DollarSign className="w-5 h-5 text-green-600 dark: text-green-400" /></div>
                 <div>
                   <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>発注額</p>
                   <p className={`font-medium text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -348,8 +307,7 @@ export default function OrderDetail() {
           </div>
 
           {order.memo && (
-            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>備考</p>
+      <div className="mt-6 pt-6 border-t border-gray-200 dark: border-gray-700"><p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>備考</p>
               <p className={`mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{order.memo}</p>
             </div>
           )}
@@ -357,12 +315,10 @@ export default function OrderDetail() {
 
         {/* 発注明細カード */}
         <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} shadow rounded-lg overflow-hidden transition-colors duration-300`}>
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>発注明細</h2>
+      <div className="px-6 py-4 border-b border-gray-200 dark: border-gray-700"><h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>発注明細</h2>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className={`${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+      <table className="min-w-full divide-y divide-gray-200 dark: divide-gray-700"><thead className={`${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
                 <tr>
                   <th className={`px-6 py-3 text-left text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
                     商品
@@ -394,8 +350,7 @@ export default function OrderDetail() {
                       </div>
                     </td>
                   </tr>
-                ) : (
-                  items.map((item, index) => (
+      ) : ( items.map((item, index) => (
                     <tr key={index} className={`${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} transition-colors`}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">

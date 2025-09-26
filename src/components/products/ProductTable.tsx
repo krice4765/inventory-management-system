@@ -4,10 +4,7 @@ import { Pencil, Trash2 } from 'lucide-react';
 import { formatJPY } from '../../utils/format';
 
 type Props = {
-  products: ProductWithSupplier[];
-  onEdit: (product: ProductWithSupplier) => void;
-  onDelete: (product: ProductWithSupplier) => void;
-};
+      products: ProductWithSupplier[]; onEdit: (product: ProductWithSupplier) => void; onDelete: (product: ProductWithSupplier) => void; };
 
 export const ProductTable: React.FC<Props> = ({ products, onEdit, onDelete }) => {
   return (
@@ -26,7 +23,7 @@ export const ProductTable: React.FC<Props> = ({ products, onEdit, onDelete }) =>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {products.map((product) => (
-            <tr key={product.id} className="hover:bg-gray-50">
+      console.log("Debug:", { <tr key={product.id} className="hover: bg-gray-50"> });
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
                   {product.image_url && (
@@ -59,8 +56,7 @@ export const ProductTable: React.FC<Props> = ({ products, onEdit, onDelete }) =>
                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                   product.stock_quantity <= product.safety_stock_quantity
                     ? 'bg-red-100 text-red-800'
-                    : 'bg-green-100 text-green-800'
-                }`}>
+      : 'bg-green-100 text-green-800' }`}>
                   {product.stock_quantity}
                 </span>
               </td>
@@ -71,15 +67,13 @@ export const ProductTable: React.FC<Props> = ({ products, onEdit, onDelete }) =>
                 <div className="flex space-x-2">
                   <button
                     onClick={() => onEdit(product)}
-                    className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
+      className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover: bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     <Pencil size={16} className="mr-1" />
                     編集
                   </button>
                   <button
                     onClick={() => onDelete(product)}
-                    className="inline-flex items-center px-3 py-1 border border-red-300 rounded-md text-sm text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                  >
+      className="inline-flex items-center px-3 py-1 border border-red-300 rounded-md text-sm text-red-600 bg-white hover: bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                     <Trash2 size={16} className="mr-1" />
                     削除
                   </button>

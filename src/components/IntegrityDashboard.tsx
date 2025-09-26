@@ -9,11 +9,7 @@ import {
 import { AlertTriangle, CheckCircle, Info, AlertCircle, Play, RefreshCw, Clock } from 'lucide-react';
 
 interface IntegrityDashboardProps {
-  className?: string;
-  showDetailedResults?: boolean;
-  enableMonitoring?: boolean;
-  monitoringInterval?: number;
-}
+      className?: string; showDetailedResults?: boolean; enableMonitoring?: boolean; monitoringInterval?: number; }
 
 export const IntegrityDashboard: React.FC<IntegrityDashboardProps> = ({
   className = '',
@@ -36,12 +32,9 @@ export const IntegrityDashboard: React.FC<IntegrityDashboardProps> = ({
   } = useSystemIntegrity();
 
   const { summary: monitoringSummary, isMonitoring } = useIntegrityMonitoring(
-    enableMonitoring ? monitoringInterval : 0
-  );
+      enableMonitoring ? monitoringInterval : 0 );
 
-  const displaySummary = enableMonitoring && monitoringSummary ? monitoringSummary : summary;
-
-  // 重要度別の結果をフィルタリング
+      const displaySummary = enableMonitoring && monitoringSummary ? monitoringSummary : summary; // 重要度別の結果をフィルタリング
   const criticalResults = results?.filter(r => r.severity === 'critical') || [];
   const warningResults = results?.filter(r => r.severity === 'warning') || [];
   const infoResults = results?.filter(r => r.severity === 'info') || [];
@@ -50,10 +43,7 @@ export const IntegrityDashboard: React.FC<IntegrityDashboardProps> = ({
   // カテゴリ別の結果をフィルタリング
   const categoryResults = selectedCategory
     ? results?.filter(r => r.category === selectedCategory) || []
-    : results || [];
-
-  const getSeverityIcon = (severity: string) => {
-    switch (severity) {
+      : results || []; const getSeverityIcon = (severity: string) => { switch (severity) {
       case 'critical':
         return <AlertTriangle className="h-5 w-5 text-red-500" />;
       case 'warning':
@@ -67,8 +57,7 @@ export const IntegrityDashboard: React.FC<IntegrityDashboardProps> = ({
     }
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
+      const getSeverityColor = (severity: string) => { switch (severity) {
       case 'critical':
         return 'bg-red-50 border-red-200 text-red-800';
       case 'warning':
@@ -82,8 +71,7 @@ export const IntegrityDashboard: React.FC<IntegrityDashboardProps> = ({
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
+      const getStatusColor = (status: string) => { switch (status) {
       case 'critical':
         return 'text-red-600 bg-red-100';
       case 'needs_attention':
@@ -101,8 +89,7 @@ export const IntegrityDashboard: React.FC<IntegrityDashboardProps> = ({
     delivery: '分納データ',
     reference: '参照整合性',
     business_rule: 'ビジネスルール',
-    data_quality: 'データ品質'
-  };
+      data_quality: 'データ品質' };
 
   if (isLoading && !displaySummary) {
     return (
@@ -136,16 +123,14 @@ export const IntegrityDashboard: React.FC<IntegrityDashboardProps> = ({
             <button
               onClick={refreshData}
               disabled={isRunning}
-              className="flex items-center px-3 py-1 text-sm text-gray-600 hover:text-gray-800 disabled:opacity-50"
-            >
+      className="flex items-center px-3 py-1 text-sm text-gray-600 hover: text-gray-800 disabled:opacity-50">
               <RefreshCw className={`h-4 w-4 mr-1 ${isRunning ? 'animate-spin' : ''}`} />
               更新
             </button>
             <button
               onClick={executeCheck}
               disabled={isRunning}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50"
-            >
+      className="flex items-center px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover: bg-blue-700 disabled:opacity-50">
               <Play className="h-4 w-4 mr-1" />
               完全チェック実行
             </button>
@@ -190,8 +175,7 @@ export const IntegrityDashboard: React.FC<IntegrityDashboardProps> = ({
           )}
 
           {/* サマリーカード */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className={`p-4 rounded-lg border ${getStatusColor(displaySummary.overall_status)}`}>
+      <div className="grid grid-cols-1 md: grid-cols-2 lg:grid-cols-4 gap-4 mb-6"><div className={`p-4 rounded-lg border ${getStatusColor(displaySummary.overall_status)}`}>
               <div className="flex items-center">
                 {getSeverityIcon(displaySummary.overall_status)}
                 <div className="ml-3">
@@ -252,8 +236,7 @@ export const IntegrityDashboard: React.FC<IntegrityDashboardProps> = ({
                   className={`px-3 py-1 text-sm rounded-full transition-colors ${
                     selectedCategory === null
                       ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
+      : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }`}
                 >
                   全カテゴリ ({results.length})
                 </button>
@@ -266,8 +249,7 @@ export const IntegrityDashboard: React.FC<IntegrityDashboardProps> = ({
                       className={`px-3 py-1 text-sm rounded-full transition-colors ${
                         selectedCategory === key
                           ? 'bg-blue-600 text-white'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
+      : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }`}
                     >
                       {name} ({count})
                     </button>
@@ -305,8 +287,7 @@ export const IntegrityDashboard: React.FC<IntegrityDashboardProps> = ({
 
                       {result.sample_data && result.sample_data.length > 0 && (
                         <details className="mt-3">
-                          <summary className="text-xs cursor-pointer hover:text-opacity-80">
-                            サンプルデータを表示 ({result.sample_data.length}件)
+      <summary className="text-xs cursor-pointer hover: text-opacity-80">サンプルデータを表示 ({result.sample_data.length}件)
                           </summary>
                           <div className="mt-2 p-2 bg-white bg-opacity-50 rounded text-xs">
                             <pre className="overflow-x-auto">
@@ -318,8 +299,7 @@ export const IntegrityDashboard: React.FC<IntegrityDashboardProps> = ({
 
                       {result.suggested_actions.length > 0 && (
                         <div className="mt-3">
-                          <p className="text-xs font-medium">推奨アクション:</p>
-                          <ul className="text-xs mt-1 list-disc list-inside space-y-1">
+      <p className="text-xs font-medium">推奨アクション: </p> <ul className="text-xs mt-1 list-disc list-inside space-y-1">
                             {result.suggested_actions.map((action, index) => (
                               <li key={index}>{action}</li>
                             ))}
@@ -329,8 +309,7 @@ export const IntegrityDashboard: React.FC<IntegrityDashboardProps> = ({
 
                       {result.query_used && (
                         <details className="mt-3">
-                          <summary className="text-xs cursor-pointer hover:text-opacity-80">
-                            使用クエリを表示
+      <summary className="text-xs cursor-pointer hover: text-opacity-80">使用クエリを表示
                           </summary>
                           <div className="mt-2 p-2 bg-white bg-opacity-50 rounded">
                             <code className="text-xs whitespace-pre-wrap">{result.query_used}</code>

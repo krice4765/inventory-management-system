@@ -3,26 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Check, Search } from 'lucide-react';
 
 interface SelectOption {
-  value: string;
-  label: string;
-  description?: string;
-  icon?: React.ReactNode;
-  disabled?: boolean;
-}
+      value: string; label: string; description?: string; icon?: React.ReactNode; disabled?: boolean; }
 
 interface ModernSelectProps {
-  label?: string;
-  placeholder?: string;
-  options: SelectOption[];
-  value?: string;
-  onChange?: (value: string) => void;
-  error?: string;
-  disabled?: boolean;
-  searchable?: boolean;
-  size?: 'sm' | 'md' | 'lg';
-  variant?: 'default' | 'filled' | 'outlined';
-  className?: string;
-}
+      label?: string; placeholder?: string; options: SelectOption[]; value?: string; onChange?: (value: string) => void; error?: string; disabled?: boolean; searchable?: boolean; size?: 'sm' | 'md' | 'lg'; variant?: 'default' | 'filled' | 'outlined'; className?: string; }
 
 export const ModernSelect: React.FC<ModernSelectProps> = ({
   label,
@@ -49,35 +33,36 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
     ? options.filter(option =>
         option.label.toLowerCase().includes(searchTerm.toLowerCase())
       )
-    : options;
-
-  const sizeClasses = {
+      : options; const sizeClasses = {
     sm: 'px-3 py-2 text-sm min-h-[36px]',
     md: 'px-4 py-3 text-base min-h-[44px]',
-    lg: 'px-5 py-4 text-lg min-h-[52px]'
-  };
+      lg: 'px-5 py-4 text-lg min-h-[52px]' };
 
   const variantClasses = {
-    default: `
-      border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900
-      focus-within:border-blue-500 dark:focus-within:border-blue-400
-      ${error ? 'border-red-500 dark:border-red-400' : ''}
-    `,
-    filled: `
-      border-0 bg-gray-100 dark:bg-gray-800
-      focus-within:bg-white dark:focus-within:bg-gray-900 focus-within:ring-2 focus-within:ring-blue-500
-      ${error ? 'ring-2 ring-red-500' : ''}
-    `,
-    outlined: `
-      border-2 border-gray-300 dark:border-gray-600 bg-transparent
-      focus-within:border-blue-500 dark:focus-within:border-blue-400 focus-within:bg-white dark:focus-within:bg-gray-900
-      ${error ? 'border-red-500 dark:border-red-400' : ''}
-    `
+      default: `
+        border-2 border-gray-200 dark:border-gray-700
+        bg-white dark:bg-gray-900
+        focus-within:border-blue-500 dark:focus-within:border-blue-400
+        ${error ? 'border-red-500 dark:border-red-400' : ''}
+      `,
+      filled: `
+        border-0
+        bg-gray-100 dark:bg-gray-800
+        focus-within:bg-white dark:focus-within:bg-gray-900
+        focus-within:ring-2 focus-within:ring-blue-500
+        ${error ? 'ring-2 ring-red-500' : ''}
+      `,
+      outlined: `
+        border-2 border-gray-300 dark:border-gray-600
+        bg-transparent
+        focus-within:border-blue-500 dark:focus-within:border-blue-400
+        focus-within:bg-white dark:focus-within:bg-gray-900
+        ${error ? 'border-red-500 dark:border-red-400' : ''}
+      `
   };
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
+      const handleClickOutside = (event: MouseEvent) => { if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
         setIsOpen(false);
         setSearchTerm('');
       }
@@ -87,8 +72,7 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (disabled) return;
+      const handleKeyDown = (event: React.KeyboardEvent) => { if (disabled) return;
 
     switch (event.key) {
       case 'Enter':
@@ -107,16 +91,14 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
           setIsOpen(true);
         } else {
           setFocusedIndex(prev =>
-            prev < filteredOptions.length - 1 ? prev + 1 : 0
-          );
+      prev < filteredOptions.length - 1 ? prev + 1 : 0 );
         }
         event.preventDefault();
         break;
       case 'ArrowUp':
         if (isOpen) {
           setFocusedIndex(prev =>
-            prev > 0 ? prev - 1 : filteredOptions.length - 1
-          );
+      prev > 0 ? prev - 1 : filteredOptions.length - 1 );
           event.preventDefault();
         }
         break;
@@ -127,8 +109,7 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
     }
   };
 
-  const handleOptionClick = (option: SelectOption) => {
-    if (option.disabled) return;
+      const handleOptionClick = (option: SelectOption) => { if (option.disabled) return;
     onChange?.(option.value);
     setIsOpen(false);
     setSearchTerm('');
@@ -141,8 +122,7 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
         <motion.label
           initial={false}
           animate={{
-            color: isOpen ? '#3B82F6' : error ? '#EF4444' : '#6B7280'
-          }}
+      color: isOpen ? '#3B82F6' : error ? '#EF4444' : '#6B7280' }}
           className="block text-sm font-semibold mb-2 transition-colors duration-200"
         >
           {label}
@@ -170,18 +150,15 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
             <div className="flex-1 min-w-0">
               {selectedOption ? (
                 <>
-                  <div className="text-gray-900 dark:text-gray-100 font-medium">
-                    {selectedOption.label}
+      <div className="text-gray-900 dark:text-gray-100 font-medium">{selectedOption.label}
                   </div>
                   {selectedOption.description && (
-                    <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                      {selectedOption.description}
+      <div className="text-sm text-gray-500 dark:text-gray-400 truncate">{selectedOption.description}
                     </div>
                   )}
                 </>
-              ) : (
-                <span className="text-gray-500 dark:text-gray-400">
-                  {placeholder}
+      ) : (
+                <span className="text-gray-500 dark:text-gray-400">{placeholder}
                 </span>
               )}
             </div>
@@ -200,8 +177,7 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
           initial={false}
           animate={{
             opacity: isOpen ? 1 : 0,
-            scale: isOpen ? 1 : 0.95
-          }}
+      scale: isOpen ? 1 : 0.95 }}
           className="absolute inset-0 rounded-xl bg-blue-500/10 pointer-events-none"
         />
       </motion.div>
@@ -214,20 +190,17 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute z-50 w-full mt-2 bg-white dark:bg-gray-900 rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-2xl overflow-hidden"
-          >
+      className="absolute z-50 w-full mt-2 bg-white dark: bg-gray-900 rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-2xl overflow-hidden">
             {/* Search */}
             {searchable && (
-              <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-                <div className="relative">
+      <div className="p-3 border-b border-gray-200 dark: border-gray-700"><div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
                     placeholder="Search options..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    onClick={(e) => e.stopPropagation()}
+      className="w-full pl-10 pr-4 py-2 bg-gray-50 dark: bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"onClick={(e) => e.stopPropagation()}
                   />
                 </div>
               </div>
@@ -236,11 +209,9 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
             {/* Options */}
             <div className="max-h-60 overflow-y-auto" ref={listRef}>
               {filteredOptions.length === 0 ? (
-                <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                  No options found
+      <div className="px-4 py-8 text-center text-gray-500 dark: text-gray-400">No options found
                 </div>
-              ) : (
-                filteredOptions.map((option, index) => (
+      ) : ( filteredOptions.map((option, index) => (
                   <motion.div
                     key={option.value}
                     className={`
@@ -257,16 +228,14 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-900 dark:text-gray-100 font-medium">
-                          {option.label}
+      <span className="text-gray-900 dark: text-gray-100 font-medium">{option.label}
                         </span>
                         {option.value === value && (
                           <Check className="w-4 h-4 text-blue-500" />
                         )}
                       </div>
                       {option.description && (
-                        <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                          {option.description}
+      <div className="text-sm text-gray-500 dark: text-gray-400 truncate">{option.description}
                         </div>
                       )}
                     </div>

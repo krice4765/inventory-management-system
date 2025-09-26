@@ -42,24 +42,19 @@ export default function OrderNew() {
       unit_price: 0, 
       total_amount: 0,
       quantity_locked: false,
-      unit_price_locked: false
-    }
+      unit_price_locked: false }
   ]);
 
-  const toggleQuantityLock = (index: number) => {
-    setItems(prev => prev.map((item, i) => 
+      const toggleQuantityLock = (index: number) => { setItems(prev => prev.map((item, i) => 
       i === index 
         ? { ...item, quantity_locked: !item.quantity_locked }
-        : item
-    ));
+      : item ));
   };
 
-  const toggleUnitPriceLock = (index: number) => {
-    setItems(prev => prev.map((item, i) => 
+      const toggleUnitPriceLock = (index: number) => { setItems(prev => prev.map((item, i) => 
       i === index 
         ? { ...item, unit_price_locked: !item.unit_price_locked }
-        : item
-    ));
+      : item ));
   };
 
   useEffect(() => {
@@ -104,11 +99,8 @@ export default function OrderNew() {
       if (i !== index) return row;
 
       // 単価ロックされていない場合のみ商品マスターの価格を自動設定
-      const nextUnitPrice = row.unit_price_locked ? row.unit_price : standardPrice;
-      const nextQuantity = row.quantity_locked ? row.quantity : (isNaN(row.quantity) ? 1 : Math.max(1, Math.floor(row.quantity)));
-      const nextTotal = (isNaN(nextQuantity) ? 0 : nextQuantity) * (isNaN(nextUnitPrice) ? 0 : nextUnitPrice);
-
-      return {
+      const nextUnitPrice = row.unit_price_locked ? row.unit_price : standardPrice; const nextQuantity = row.quantity_locked ? row.quantity : (isNaN(row.quantity) ? 1 : Math.max(1, Math.floor(row.quantity)));
+      const nextTotal = (isNaN(nextQuantity) ? 0 : nextQuantity) * (isNaN(nextUnitPrice) ? 0 : nextUnitPrice); return {
         ...row,
         product_id: productId,
         unit_price: nextUnitPrice,
@@ -124,10 +116,8 @@ export default function OrderNew() {
         ? { 
             ...item, 
             quantity: quantity, // 一時的にNaNや0を許容
-            total_amount: quantity * item.unit_price 
-          }
-        : item
-    ));
+      total_amount: quantity * item.unit_price  }
+      : item ));
   };
 
   const handleUnitPriceChange = (index: number, unitPrice: number) => {
@@ -136,10 +126,8 @@ export default function OrderNew() {
         ? { 
             ...item, 
             unit_price: unitPrice, // 一時的にNaNを許容
-            total_amount: item.quantity * unitPrice 
-          }
-        : item
-    ));
+      total_amount: item.quantity * unitPrice  }
+      : item ));
   };
 
   const addItem = () => {
@@ -151,13 +139,11 @@ export default function OrderNew() {
         unit_price: 0, 
         total_amount: 0,
         quantity_locked: false,
-        unit_price_locked: false
-      }
+      unit_price_locked: false }
     ]);
   };
 
-  const removeItem = (index: number) => {
-    if (items.length === 1) {
+      const removeItem = (index: number) => { if (items.length === 1) {
       toast.error('明細行は最低1行必要です');
       return;
     }
@@ -165,16 +151,13 @@ export default function OrderNew() {
   };
 
   // 担当者変更ハンドラー
-  const handleAssignedUserChange = (userId: string | null) => {
-    setFormData(prev => ({
+      const handleAssignedUserChange = (userId: string | null) => { setFormData(prev => ({
       ...prev,
-      assigned_user_id: userId || ''
-    }));
+      assigned_user_id: userId || '' }));
   };
 
   // 送料自動計算（取引先変更時）
-  const handlePartnerChange = async (partnerId: string) => {
-    setFormData(prev => ({ ...prev, partner_id: partnerId }));
+      const handlePartnerChange = async (partnerId: string) => { setFormData(prev => ({ ...prev, partner_id: partnerId }));
 
     // 送料自動計算
     if (partnerId && items.some(item => item.product_id)) {
@@ -189,14 +172,12 @@ export default function OrderNew() {
           supplierId: partnerId,
           orderValue,
           totalWeight,
-          shippingMethod: 'standard'
-        });
+      shippingMethod: 'standard' });
 
         setFormData(prev => ({
           ...prev,
           shipping_cost: shippingResult.shipping_cost,
-          shipping_tax_rate: shippingResult.calculation_details.effective_tax_rate
-        }));
+      shipping_tax_rate: shippingResult.calculation_details.effective_tax_rate }));
 
         if (shippingResult.is_free_shipping) {
           toast.success('送料無料が適用されました');
@@ -210,8 +191,7 @@ export default function OrderNew() {
 
   const getTotalAmount = () => {
     return items.reduce((sum, item) => {
-      const amount = isNaN(item.total_amount) ? 0 : item.total_amount;
-      return sum + amount;
+      const amount = isNaN(item.total_amount) ? 0 : item.total_amount; return sum + amount;
     }, 0);
   };
 
@@ -225,10 +205,7 @@ export default function OrderNew() {
     return getTotalAmount() + getTaxAmount() + shippingCost;
   };
 
-  const sanitizeRow = (row: OrderItem) => {
-    const q = Math.max(1, isNaN(Number(row.quantity)) ? 1 : Math.floor(row.quantity));
-    const p = Math.max(0, isNaN(Number(row.unit_price)) ? 0 : row.unit_price);
-    return {
+      const sanitizeRow = (row: OrderItem) => { const q = Math.max(1, isNaN(Number(row.quantity)) ? 1 : Math.floor(row.quantity)); const p = Math.max(0, isNaN(Number(row.unit_price)) ? 0 : row.unit_price); return {
       ...row,
       quantity: q,
       unit_price: p,
@@ -236,8 +213,7 @@ export default function OrderNew() {
     };
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+      const handleSubmit = async (e: React.FormEvent) => { e.preventDefault();
 
     if (!formData.partner_id) {
       toast.error('仕入先を選択してください');
@@ -274,12 +250,10 @@ export default function OrderNew() {
       
       toast.error(`🚫 重複商品があります\n\n同じ商品が複数の明細行で選択されています:\n${duplicateNames}\n\n各商品は1つの明細行でのみ選択してください。`, {
         duration: 4000,
-        style: {
-          background: '#FEF2F2',
+      style: { background: '#FEF2F2',
           border: '2px solid #F87171',
           color: '#DC2626',
-          fontSize: '14px'
-        }
+      fontSize: '14px' }
       });
       return;
     }
@@ -317,15 +291,12 @@ export default function OrderNew() {
         p_memo: formData.memo || '',
         p_assigned_user_id: formData.assigned_user_id || null,
         p_shipping_cost: formData.shipping_cost || 0,
-        p_shipping_tax_rate: formData.shipping_tax_rate || 0.1
-      });
+      p_shipping_tax_rate: formData.shipping_tax_rate || 0.1 });
 
       if (orderError) throw orderError;
 
       // 🔧 RPC関数のJSONレスポンスを正しく処理
-      const order = typeof orderResponse === 'string' ? JSON.parse(orderResponse) : orderResponse;
-
-      const orderItems = validItems.map(item => ({
+      const order = typeof orderResponse === 'string' ? JSON.parse(orderResponse) : orderResponse; const orderItems = validItems.map(item => ({
         purchase_order_id: order.id,
         product_id: item.product_id,
         quantity: item.quantity,
@@ -351,51 +322,40 @@ export default function OrderNew() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-        <div className="flex items-center justify-center h-64">
+      <div className="min-h-screen bg-gray-50 dark: bg-gray-900 transition-colors duration-300"><div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600 dark:text-gray-400">データを読み込み中...</span>
-        </div>
+      <span className="ml-3 text-gray-600 dark: text-gray-400">データを読み込み中...</span> </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      <div className="p-6 space-y-6">
+      <div className="min-h-screen bg-gray-50 dark: bg-gray-900 transition-colors duration-300"><div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate('/orders')}
-              className="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-            >
+      className="flex items-center text-gray-600 dark: text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
               <ArrowLeft className="w-4 h-4 mr-2" />
               発注管理に戻る
             </button>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">新規発注書作成</h1>
-          </div>
+      <h1 className="text-3xl font-bold text-gray-900 dark: text-white">新規発注書作成</h1> </div>
           <button
             onClick={toggleDarkMode}
-            className="p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm hover:shadow-md"
-          >
+      className="p-2 rounded-lg bg-white dark: bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm hover:shadow-md">
             {isDark ? '☀️' : '🌙'}
           </button>
         </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700 transition-colors duration-300">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center">
+      <div className="bg-gray-800/90 dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700 transition-colors duration-300"><div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700"><div className="flex items-center">
             <FileText className="h-6 w-6 text-blue-600 mr-2" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">発注書情報</h2>
-          </div>
+      <h2 className="text-lg font-semibold text-gray-900 dark: text-white">発注書情報</h2> </div>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* ヘッダー情報 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">仕入先</label>
-              <SearchableSelect
+      <div className="grid grid-cols-1 md: grid-cols-2 gap-6"><div>
+      <label className="block text-sm font-medium text-gray-700 dark: text-gray-300 mb-1">仕入先</label> <SearchableSelect
                 options={partners.map(partner => ({
                   value: partner.id,
                   label: partner.name,
@@ -411,32 +371,26 @@ export default function OrderNew() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">発注日</label>
-              <input
+      <label className="block text-sm font-medium text-gray-700 dark: text-gray-300">発注日</label> <input
                 type="date"
                 required
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                value={formData.order_date}
+      className="mt-1 block w-full border border-gray-300 dark: border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"value={formData.order_date}
                 onChange={(e) => setFormData({ ...formData, order_date: e.target.value })}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">希望納期</label>
-              <input
+      <label className="block text-sm font-medium text-gray-700 dark: text-gray-300">希望納期</label> <input
                 type="date"
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                value={formData.delivery_deadline}
+      className="mt-1 block w-full border border-gray-300 dark: border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"value={formData.delivery_deadline}
                 onChange={(e) => setFormData({ ...formData, delivery_deadline: e.target.value })}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">備考</label>
-              <input
+      <label className="block text-sm font-medium text-gray-700 dark: text-gray-300">備考</label> <input
                 type="text"
-                className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                value={formData.memo}
+      className="mt-1 block w-full border border-gray-300 dark: border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"value={formData.memo}
                 onChange={(e) => setFormData({ ...formData, memo: e.target.value })}
                 placeholder="備考を入力"
               />
@@ -444,8 +398,7 @@ export default function OrderNew() {
 
             {/* 担当者選択 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                発注担当者 <span className="text-red-500">*</span>
+      <label className="block text-sm font-medium text-gray-700 dark: text-gray-300 mb-2">発注担当者 <span className="text-red-500">*</span>
               </label>
               <AssignedUserSelect
                 value={formData.assigned_user_id}
@@ -459,8 +412,7 @@ export default function OrderNew() {
 
             {/* 送料入力 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                送料設定
+      <label className="block text-sm font-medium text-gray-700 dark: text-gray-300 mb-2">送料設定
               </label>
               <ShippingCostInput
                 supplierId={formData.partner_id}
@@ -474,8 +426,7 @@ export default function OrderNew() {
                   setFormData(prev => ({
                     ...prev,
                     shipping_cost: shippingCost,
-                    shipping_tax_rate: shippingTax / shippingCost || 0.1
-                  }));
+      shipping_tax_rate: shippingTax / shippingCost || 0.1 }));
                 }}
               />
             </div>
@@ -484,12 +435,10 @@ export default function OrderNew() {
           {/* 明細行 */}
           <div>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">明細</h3>
-              <button
+      <h3 className="text-lg font-medium text-gray-900 dark: text-white">明細</h3> <button
                 type="button"
                 onClick={addItem}
-                className="flex items-center px-3 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700"
-              >
+      className="flex items-center px-3 py-2 bg-green-600 text-white text-sm rounded-md hover: bg-green-700">
                 <Plus className="w-4 h-4 mr-1" />
                 行追加
               </button>
@@ -520,32 +469,25 @@ export default function OrderNew() {
                       {item.product_id && (() => {
                         const selectedProduct = products.find(p => p.id === item.product_id);
                         return selectedProduct ? (
-                          <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-2 rounded border border-blue-200 dark:border-blue-700">
-                            <div className="font-medium text-blue-900 dark:text-blue-100">{selectedProduct.product_name}</div>
+      <div className="mt-2 text-xs text-gray-600 dark: text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-2 rounded border border-blue-200 dark:border-blue-700"><div className="font-medium text-blue-900 dark:text-blue-100">{selectedProduct.product_name}</div>
                             <div className="flex justify-between mt-1">
                               <span>コード: {selectedProduct.product_code}</span>
                               <span>標準価格: ¥{Number(selectedProduct.standard_price || 0).toLocaleString()}</span>
                             </div>
                           </div>
-                        ) : null;
-                      })()}
+      ) : null; })()}
                     </div>
 
                     {/* 数量エリア */}
-                    <div className="lg:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        数量 <span className="text-red-500">*</span>
+      <div className="lg: col-span-2"><label className="block text-sm font-medium text-gray-700 dark: text-gray-300 mb-2">数量 <span className="text-red-500">*</span>
                       </label>
                       <div className="flex items-center space-x-2">
                         <input
                           type="number"
                           min="1"
                           step="1"
-                          className={`flex-1 border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                            item.quantity_locked 
-                              ? 'bg-yellow-50 dark:bg-yellow-900 border-yellow-300 dark:border-yellow-600 text-gray-900 dark:text-white' 
-                              : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
-                          }`}
+      className={`flex-1 border rounded-md px-3 py-2 text-sm focus: outline-none focus:ring-blue-500 focus:border-blue-500 ${ item.quantity_locked 
+      ? 'bg-yellow-50 dark: bg-yellow-900 border-yellow-300 dark:border-yellow-600 text-gray-900 dark:text-white'  : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white' }`}
                           value={isNaN(item.quantity) ? '' : item.quantity}
                           onChange={(e) => {
                             const value = e.target.value;
@@ -554,8 +496,7 @@ export default function OrderNew() {
                           }}
                           onBlur={(e) => {
                             const value = parseInt(e.target.value, 10);
-                            const validatedQuantity = Math.max(1, isNaN(value) ? 1 : Math.floor(value));
-                            if (validatedQuantity !== item.quantity) {
+      const validatedQuantity = Math.max(1, isNaN(value) ? 1 : Math.floor(value)); if (validatedQuantity !== item.quantity) {
                               handleQuantityChange(index, validatedQuantity);
                             }
                           }}
@@ -565,9 +506,7 @@ export default function OrderNew() {
                           onClick={() => toggleQuantityLock(index)}
                           className={`p-2 rounded transition-colors ${
                             item.quantity_locked
-                              ? 'bg-yellow-200 text-yellow-800 hover:bg-yellow-300'
-                              : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                          }`}
+      ? 'bg-yellow-200 text-yellow-800 hover: bg-yellow-300' : 'bg-gray-200 text-gray-600 hover:bg-gray-300' }`}
                           title={item.quantity_locked ? '数量固定を解除' : '数量を固定'}
                         >
                           {item.quantity_locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
@@ -576,20 +515,15 @@ export default function OrderNew() {
                     </div>
 
                     {/* 単価エリア */}
-                    <div className="lg:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        単価 <span className="text-red-500">*</span>
+      <div className="lg: col-span-2"><label className="block text-sm font-medium text-gray-700 dark: text-gray-300 mb-2">単価 <span className="text-red-500">*</span>
                       </label>
                       <div className="flex items-center space-x-2">
                         <input
                           type="number"
                           step="0.01"
                           min="0"
-                          className={`flex-1 border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
-                            item.unit_price_locked 
-                              ? 'bg-orange-50 dark:bg-orange-900 border-orange-300 dark:border-orange-600 text-gray-900 dark:text-white' 
-                              : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
-                          }`}
+      className={`flex-1 border rounded-md px-3 py-2 text-sm focus: outline-none focus:ring-blue-500 focus:border-blue-500 ${ item.unit_price_locked 
+      ? 'bg-orange-50 dark: bg-orange-900 border-orange-300 dark:border-orange-600 text-gray-900 dark:text-white'  : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white' }`}
                           value={isNaN(item.unit_price) ? '' : item.unit_price}
                           onChange={(e) => {
                             const value = e.target.value;
@@ -598,8 +532,7 @@ export default function OrderNew() {
                           }}
                           onBlur={(e) => {
                             const value = parseFloat(e.target.value);
-                            const validatedPrice = Math.max(0, isNaN(value) ? 0 : value);
-                            if (validatedPrice !== item.unit_price) {
+      const validatedPrice = Math.max(0, isNaN(value) ? 0 : value); if (validatedPrice !== item.unit_price) {
                               handleUnitPriceChange(index, validatedPrice);
                             }
                           }}
@@ -609,9 +542,7 @@ export default function OrderNew() {
                           onClick={() => toggleUnitPriceLock(index)}
                           className={`p-2 rounded transition-colors ${
                             item.unit_price_locked
-                              ? 'bg-orange-200 text-orange-800 hover:bg-orange-300'
-                              : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                          }`}
+      ? 'bg-orange-200 text-orange-800 hover: bg-orange-300' : 'bg-gray-200 text-gray-600 hover:bg-gray-300' }`}
                           title={item.unit_price_locked ? '単価固定を解除' : '単価を固定'}
                         >
                           {item.unit_price_locked ? <Lock className="w-4 h-4" /> : <DollarSign className="w-4 h-4" />}
@@ -620,22 +551,17 @@ export default function OrderNew() {
                     </div>
 
                     {/* 合計金額エリア */}
-                    <div className="lg:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        合計金額
+      <div className="lg: col-span-2"><label className="block text-sm font-medium text-gray-700 dark: text-gray-300 mb-2">合計金額
                       </label>
-                      <div className="bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm font-medium text-gray-900 dark:text-white">
-                        ¥{(isNaN(item.total_amount) ? 0 : item.total_amount).toLocaleString()}
+      <div className="bg-gray-100 dark: bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm font-medium text-gray-900 dark:text-white">¥{(isNaN(item.total_amount) ? 0 : item.total_amount).toLocaleString()}
                       </div>
                     </div>
 
                     {/* 操作ボタンエリア */}
-                    <div className="lg:col-span-1 flex items-end">
-                      <button
+      <div className="lg: col-span-1 flex items-end"><button
                         type="button"
                         onClick={() => removeItem(index)}
-                        className="w-full bg-red-50 dark:bg-red-900 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-800 border border-red-200 dark:border-red-700 rounded-md px-3 py-2 text-sm font-medium transition-colors"
-                        title="この明細行を削除"
+      className="w-full bg-red-50 dark: bg-red-900 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-800 border border-red-200 dark:border-red-700 rounded-md px-3 py-2 text-sm font-medium transition-colors"title="この明細行を削除"
                       >
                         <Trash2 className="w-4 h-4 mx-auto" />
                       </button>
@@ -646,42 +572,32 @@ export default function OrderNew() {
             </div>
 
             {/* 合計計算 */}
-            <div className="mt-6 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-              <div className="text-right space-y-2 text-gray-900 dark:text-white">
-                <div className="flex justify-between text-sm">
-                  <span>小計:</span>
-                  <span>¥{getTotalAmount().toLocaleString()}</span>
+      <div className="mt-6 bg-gray-50 dark: bg-gray-700 p-4 rounded-lg"><div className="text-right space-y-2 text-gray-900 dark: text-white"><div className="flex justify-between text-sm">
+      <span>小計: </span> <span>¥{getTotalAmount().toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>消費税 (10%):</span>
-                  <span>¥{getTaxAmount().toLocaleString()}</span>
+      <span>消費税 (10%): </span> <span>¥{getTaxAmount().toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>送料:</span>
-                  <span>¥{(formData.shipping_cost || 0).toLocaleString()}</span>
+      <span>送料: </span> <span>¥{(formData.shipping_cost || 0).toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-lg font-bold border-t border-gray-300 dark:border-gray-600 pt-2">
-                  <span>合計:</span>
-                  <span>¥{getGrandTotal().toLocaleString()}</span>
+      <div className="flex justify-between text-lg font-bold border-t border-gray-300 dark: border-gray-600 pt-2"><span>合計: </span> <span>¥{getGrandTotal().toLocaleString()}</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* 送信ボタン */}
-          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <button
+      <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark: border-gray-700"><button
               type="button"
               onClick={() => navigate('/orders')}
-              className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
+      className="px-6 py-2 border border-gray-300 dark: border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
               キャンセル
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
+      className="px-6 py-2 bg-blue-600 text-white rounded-md hover: bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
               {submitting ? '作成中...' : '発注書作成'}
             </button>
           </div>

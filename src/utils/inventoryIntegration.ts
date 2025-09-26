@@ -109,11 +109,7 @@ export async function processInventoryFromOrder(
     const orderTotalAmount = orderData.total_amount;
     const deliveryRatio = deliveredAmount / orderTotalAmount;
 
-      purchaseOrderId,
-      orderTotalAmount,
-      deliveredAmount,
-      deliveryRatio: `${(deliveryRatio * 100).toFixed(2)}%`
-    });
+    // ログ出力（削除済み）
 
     // 4. 各商品の入庫処理
     const inventoryUpdates = [];
@@ -133,32 +129,19 @@ export async function processInventoryFromOrder(
       if (deliveryType === 'amount_and_quantity' && quantities && quantities[item.products.id] && quantities[item.products.id] > 0) {
         // 個数指定分納: ユーザー指定数量を入庫
         deliveryQuantity = quantities[item.products.id];
-        
-          発注数量: item.quantity,
-          指定入庫数量: deliveryQuantity,
-          実際単価: actualUnitPrice,
-          在庫価値: deliveryQuantity * actualUnitPrice,
-          処理方式: '個数指定入庫'
-        });
+
+        // ログ出力（削除済み）
       } else if (deliveryType === 'amount_and_quantity') {
         // 個数指定分納だが、この商品は指定されていない -> スキップ
         continue;
       } else if (deliveryType === 'full') {
         // 全納登録: 残り数量の100%を入庫
         deliveryQuantity = item.remaining_quantity || item.quantity;
-        
-          発注数量: item.quantity,
-          入庫数量: deliveryQuantity,
-          実際単価: actualUnitPrice,
-          在庫価値: deliveryQuantity * actualUnitPrice,
-          処理方式: '全納入庫（残り数量100%）'
-        });
+
+        // ログ出力（削除済み）
       } else {
         // 金額のみ分納: 在庫変動なし（会計のみの処理）
-          発注数量: item.quantity,
-          入庫数量: '在庫変動なし',
-          処理方式: '金額のみ分納（在庫変動なし）'
-        });
+        // ログ出力（削除済み）
         continue; // 在庫処理をスキップ
       }
       
@@ -207,11 +190,7 @@ export async function processInventoryFromOrder(
         });
       }
 
-        product: item.products.product_name,
-        code: item.products.product_code,
-        deliveryQuantity,
-        newStock: newStockQuantity
-      });
+      // ログ出力（削除済み）
     }
 
     // 5. データベース更新（トランザクション処理）
@@ -258,13 +237,7 @@ export async function processInventoryFromOrder(
     }
 
     // 💰 会計配分情報の記録（将来的に別テーブルに保存予定）
-    
-      更新商品数: inventoryUpdates.length,
-      在庫移動記録数: inventoryTransactions.length,
-      会計配分記録数: accountingAllocations.length,
-      分納金額: deliveredAmount,
-      在庫価値合計: inventoryTransactions.reduce((sum, tx) => sum + (tx.quantity * tx.actual_unit_price), 0)
-    });
+    // ログ出力（削除済み）
 
     return { 
       success: true, 

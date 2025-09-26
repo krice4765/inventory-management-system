@@ -91,14 +91,7 @@ export const useOrderWithProducts = (orderId: string | null) => {
         total_amount: item.total_amount
       })) || [];
 
-        orderId,
-        orderNo: orderData.order_no,
-        productsCount: products.length,
-        products,
-        installmentCount,
-        allocatedAmount,
-        remainingAmount
-      });
+      // ログ出力（削除済み）
 
       return {
         purchase_order_id: String(orderData.id),

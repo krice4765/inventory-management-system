@@ -9,34 +9,13 @@ import { useErrorHandler, UserFriendlyError } from '../utils/error-handler';
 import { ErrorDisplay } from './shared/ErrorDisplay';
 
 interface PurchaseOrder {
-  id: string;
-  total_amount: number;
-  status: string;
-  order_number: string;
-  created_at: string;
-  assignee_name?: string;
-  installments?: Installment[];
-}
+      id: string; total_amount: number; status: string; order_number: string; created_at: string; assignee_name?: string; installments?: Installment[]; }
 
 interface Installment {
-  id: string;
-  amount: number;
-  status: string;
-  transaction_no: string;
-  created_at: string;
-}
+      id: string; amount: number; status: string; transaction_no: string; created_at: string; }
 
 interface TestScenario {
-  id: string;
-  name: string;
-  description: string;
-  expectedResult: string;
-  order: PurchaseOrder | null;
-  testAmount: number;
-  executed: boolean;
-  success: boolean | null;
-  error?: string;
-  resultData?: Record<string, unknown>;
+      id: string; name: string; description: string; expectedResult: string; order: PurchaseOrder | null; testAmount: number; executed: boolean; success: boolean | null; error?: string; resultData?: Record<string, unknown>;
 }
 
 export const ProductionInstallmentTest: React.FC = () => {
@@ -85,8 +64,7 @@ export const ProductionInstallmentTest: React.FC = () => {
 
           return {
             ...order,
-            installments: installments || []
-          };
+      installments: installments || [] };
         })
       );
 
@@ -106,16 +84,12 @@ export const ProductionInstallmentTest: React.FC = () => {
   }, [handleError, generateTestScenarios]);
 
   // テストシナリオの自動生成
-  const generateTestScenarios = useCallback((orders: PurchaseOrder[]) => {
-    const scenarios: TestScenario[] = [];
-
-    orders.forEach((order, index) => {
+      const generateTestScenarios = useCallback((orders: PurchaseOrder[]) => { const scenarios: TestScenario[] = []; orders.forEach((order, index) => {
       const existingTotal = order.installments?.reduce((sum, inst) => sum + inst.amount, 0) || 0;
       const remainingAmount = order.total_amount - existingTotal;
 
       if (remainingAmount > 0) {
-        // シナリオ1: 正常な分納作成
-        scenarios.push({
+      // シナリオ1: 正常な分納作成 scenarios.push({
           id: `normal_${order.id}`,
           name: `正常分納作成 (発注${index + 1})`,
           description: `発注番号: ${order.order_number}, 残り金額: ¥${remainingAmount.toLocaleString()}`,
@@ -123,11 +97,9 @@ export const ProductionInstallmentTest: React.FC = () => {
           order,
           testAmount: Math.min(remainingAmount * 0.5, 50000), // 50%か5万円の小さい方
           executed: false,
-          success: null
-        });
+      success: null });
 
-        // シナリオ2: 上限超過エラー（P0001）テスト
-        if (remainingAmount > 1000) {
+      // シナリオ2: 上限超過エラー（P0001）テスト if (remainingAmount > 1000) {
           scenarios.push({
             id: `overflow_${order.id}`,
             name: `P0001エラー検証 (発注${index + 1})`,
@@ -136,8 +108,7 @@ export const ProductionInstallmentTest: React.FC = () => {
             order,
             testAmount: remainingAmount * 1.2, // 残り金額の120%
             executed: false,
-            success: null
-          });
+      success: null });
         }
       }
     });
@@ -146,16 +117,14 @@ export const ProductionInstallmentTest: React.FC = () => {
   }, []);
 
   // 個別テストシナリオの実行
-  const executeScenario = useCallback(async (scenarioId: string) => {
-    const scenario = scenarios.find(s => s.id === scenarioId);
+      const executeScenario = useCallback(async (scenarioId: string) => { const scenario = scenarios.find(s => s.id === scenarioId);
     if (!scenario || !scenario.order) return;
 
     setScenarios(prev => 
       prev.map(s => 
         s.id === scenarioId 
           ? { ...s, executed: true, success: null, error: undefined, resultData: undefined }
-          : s
-      )
+      : s )
     );
 
     try {
@@ -171,15 +140,13 @@ export const ProductionInstallmentTest: React.FC = () => {
       let errorMessage = '';
 
       if (scenario.id.startsWith('normal_')) {
-        // 正常ケース: 成功を期待
-        success = !error && data?.success === true;
+      // 正常ケース: 成功を期待 success = !error && data?.success === true;
         resultData = data?.data;
         if (!success) {
           errorMessage = error?.message || data?.error?.message || '不明なエラー';
         }
       } else if (scenario.id.startsWith('overflow_')) {
-        // エラーケース: P0001エラーを期待
-        success = (error || !data?.success) && (
+      // エラーケース: P0001エラーを期待 success = (error || !data?.success) && (
           error?.message?.includes('P0001') || 
           data?.error?.code === 'P0001'
         );
@@ -193,8 +160,7 @@ export const ProductionInstallmentTest: React.FC = () => {
         prev.map(s => 
           s.id === scenarioId 
             ? { ...s, success, error: errorMessage || undefined, resultData }
-            : s
-        )
+      : s )
       );
 
     } catch (err) {
@@ -203,8 +169,7 @@ export const ProductionInstallmentTest: React.FC = () => {
         prev.map(s => 
           s.id === scenarioId 
             ? { ...s, success: false, error: userError.message }
-            : s
-        )
+      : s )
       );
     }
   }, [scenarios, handleError]);
@@ -261,8 +226,7 @@ export const ProductionInstallmentTest: React.FC = () => {
       {orders.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">📊 発注データ概要</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div className="text-center p-3 bg-gray-50 rounded">
+      <div className="grid grid-cols-1 md: grid-cols-3 gap-4 mb-4"><div className="text-center p-3 bg-gray-50 rounded">
               <div className="text-2xl font-bold text-gray-900">{orders.length}</div>
               <div className="text-sm text-gray-600">確認済み発注</div>
             </div>
@@ -344,8 +308,7 @@ export const ProductionInstallmentTest: React.FC = () => {
             <button
               onClick={executeAllScenarios}
               disabled={scenarios.every(s => s.executed)}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg"
-            >
+      className="bg-blue-600 hover: bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg">
               全シナリオ実行
             </button>
           </div>
@@ -357,12 +320,9 @@ export const ProductionInstallmentTest: React.FC = () => {
                 className={`border rounded-lg p-4 ${
                   scenario.success === true
                     ? 'border-green-200 bg-green-50'
-                    : scenario.success === false
-                    ? 'border-red-200 bg-red-50'
-                    : scenario.executed
-                    ? 'border-yellow-200 bg-yellow-50'
-                    : 'border-gray-200 bg-white'
-                }`}
+      : scenario.success === false ? 'border-red-200 bg-red-50'
+      : scenario.executed ? 'border-yellow-200 bg-yellow-50'
+      : 'border-gray-200 bg-white' }`}
               >
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
@@ -389,10 +349,8 @@ export const ProductionInstallmentTest: React.FC = () => {
                       <div className="mt-2 p-2 bg-gray-100 rounded text-sm">
                         {scenario.success ? (
                           <div className="text-green-700">
-                            ✅ テスト成功: 期待通りの結果が得られました
-                          </div>
-                        ) : (
-                          <div className="text-red-700">
+      ✅ テスト成功: 期待通りの結果が得られました </div>
+      ) : ( <div className="text-red-700">
                             ❌ テスト失敗: {scenario.error || '期待と異なる結果'}
                           </div>
                         )}
@@ -413,8 +371,7 @@ export const ProductionInstallmentTest: React.FC = () => {
                   <button
                     onClick={() => executeScenario(scenario.id)}
                     disabled={scenario.executed}
-                    className="ml-4 px-3 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded text-sm"
-                  >
+      className="ml-4 px-3 py-1 bg-blue-600 hover: bg-blue-700 disabled:bg-gray-400 text-white rounded text-sm">
                     {scenario.executed ? '実行済み' : '実行'}
                   </button>
                 </div>
@@ -456,8 +413,7 @@ export const ProductionInstallmentTest: React.FC = () => {
         <button
           onClick={fetchProductionData}
           disabled={isLoading}
-          className="px-6 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white rounded-lg"
-        >
+      className="px-6 py-2 bg-gray-600 hover: bg-gray-700 disabled:bg-gray-400 text-white rounded-lg">
           {isLoading ? '読み込み中...' : '🔄 データを再読み込み'}
         </button>
       </div>

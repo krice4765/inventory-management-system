@@ -10,38 +10,15 @@ import { Loader2, Truck, Package, Calendar, BarChart3, AlertCircle } from 'lucid
 import { motion } from 'framer-motion';
 
 interface ShippingInfo {
-  method: string;
-  carrier: string;
-  tracking_number: string;
-  estimated_delivery: string;
-  shipping_cost: number;
-  special_instructions?: string;
-}
+      method: string; carrier: string; tracking_number: string; estimated_delivery: string; shipping_cost: number; special_instructions?: string; }
 
 interface OutboundOrder {
-  id: string;
-  order_number: string;
-  customer_name: string;
-  destination: string;
-  total_items: number;
-  total_amount: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  items?: {
-    product_name: string;
-    product_code: string;
-    quantity: number;
-    unit_price: number;
-    total_price: number;
-  }[];
+      id: string; order_number: string; customer_name: string; destination: string; total_items: number; total_amount: number; status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'; items?: { product_name: string; product_code: string; quantity: number; unit_price: number; total_price: number; }[];
 }
 
 interface ShippingProcessModalProps {
-  order: OutboundOrder | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onProcessShipping: (orderId: string, shippingInfo: ShippingInfo) => Promise<void>;
-  isDark?: boolean;
-}
+      order: OutboundOrder | null; isOpen: boolean; onClose: () => void; onProcessShipping: (orderId: string, shippingInfo: ShippingInfo) => Promise<void>;
+      isDark?: boolean; }
 
 const ShippingProcessModal: React.FC<ShippingProcessModalProps> = ({
   order,
@@ -56,8 +33,7 @@ const ShippingProcessModal: React.FC<ShippingProcessModalProps> = ({
     tracking_number: '',
     estimated_delivery: '',
     shipping_cost: 0,
-    special_instructions: ''
-  });
+      special_instructions: '' });
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -76,8 +52,7 @@ const ShippingProcessModal: React.FC<ShippingProcessModalProps> = ({
         tracking_number: '',
         estimated_delivery: defaultDeliveryDate.toISOString().split('T')[0],
         shipping_cost: 0,
-        special_instructions: ''
-      });
+      special_instructions: '' });
       setConfirmationStep(false);
       setErrors({});
     }
@@ -92,8 +67,7 @@ const ShippingProcessModal: React.FC<ShippingProcessModalProps> = ({
   };
 
   // 配送方法に基づく自動設定
-  const handleMethodChange = (method: string) => {
-    updateShippingData('method', method);
+      const handleMethodChange = (method: string) => { updateShippingData('method', method);
 
     // 配送方法に応じてデフォルト値を設定
     switch (method) {
@@ -178,8 +152,7 @@ const ShippingProcessModal: React.FC<ShippingProcessModalProps> = ({
     }
   };
 
-  const getMethodInfo = (method: string) => {
-    switch (method) {
+      const getMethodInfo = (method: string) => { switch (method) {
       case 'standard':
         return { label: '標準配送', icon: Package, color: 'text-blue-600', description: '通常3-5営業日' };
       case 'express':
@@ -201,12 +174,10 @@ const ShippingProcessModal: React.FC<ShippingProcessModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={`max-w-4xl max-h-[90vh] overflow-y-auto ${
-        isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
-      }`}>
+      isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200' }`}>
         <DialogHeader>
           <DialogTitle className={`text-xl font-bold ${
-            isDark ? 'text-white' : 'text-gray-900'
-          }`}>
+      isDark ? 'text-white' : 'text-gray-900' }`}>
             {confirmationStep ? '出荷処理確認' : '出荷処理'} - {order.order_number}
           </DialogTitle>
         </DialogHeader>
@@ -219,16 +190,13 @@ const ShippingProcessModal: React.FC<ShippingProcessModalProps> = ({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className={`p-4 rounded-lg ${
-                isDark ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'
-              }`}
+      isDark ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200' }`}
             >
               <h3 className={`text-lg font-semibold mb-3 ${
-                isDark ? 'text-white' : 'text-gray-900'
-              }`}>
+      isDark ? 'text-white' : 'text-gray-900' }`}>
                 出荷対象オーダー
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
+      <div className="grid grid-cols-1 md: grid-cols-3 gap-4"><div>
                   <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>顧客名</p>
                   <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     {order.customer_name}
@@ -255,17 +223,14 @@ const ShippingProcessModal: React.FC<ShippingProcessModalProps> = ({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               className={`p-4 rounded-lg ${
-                isDark ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'
-              }`}
+      isDark ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200' }`}
             >
               <h3 className={`text-lg font-semibold mb-4 ${
-                isDark ? 'text-white' : 'text-gray-900'
-              }`}>
+      isDark ? 'text-white' : 'text-gray-900' }`}>
                 配送情報
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+      <div className="grid grid-cols-1 md: grid-cols-2 gap-4"><div className="space-y-2">
                   <Label htmlFor="method" className={isDark ? 'text-gray-300' : 'text-gray-700'}>
                     <Truck className="w-4 h-4 inline mr-2" />
                     配送方法 *
@@ -392,8 +357,7 @@ const ShippingProcessModal: React.FC<ShippingProcessModalProps> = ({
               </div>
             </motion.div>
           </div>
-        ) : (
-          // 確認ステップ
+      ) : ( // 確認ステップ
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -403,8 +367,7 @@ const ShippingProcessModal: React.FC<ShippingProcessModalProps> = ({
             <div className={`p-4 rounded-lg border ${
               isDark
                 ? 'bg-yellow-900/20 border-yellow-600 text-yellow-200'
-                : 'bg-yellow-50 border-yellow-200 text-yellow-800'
-            }`}>
+      : 'bg-yellow-50 border-yellow-200 text-yellow-800' }`}>
               <div className="flex items-center">
                 <AlertCircle className="w-5 h-5 mr-2" />
                 <span className="font-medium">出荷処理の確認</span>
@@ -417,15 +380,12 @@ const ShippingProcessModal: React.FC<ShippingProcessModalProps> = ({
 
             {/* 確認内容 */}
             <div className={`p-4 rounded-lg ${
-              isDark ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'
-            }`}>
+      isDark ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200' }`}>
               <h3 className={`text-lg font-semibold mb-4 ${
-                isDark ? 'text-white' : 'text-gray-900'
-              }`}>
+      isDark ? 'text-white' : 'text-gray-900' }`}>
                 出荷情報確認
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+      <div className="grid grid-cols-1 md: grid-cols-2 gap-4"><div>
                   <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>配送方法</p>
                   <div className="flex items-center space-x-2">
                     <MethodIcon className={`w-4 h-4 ${methodInfo.color}`} />
@@ -478,14 +438,12 @@ const ShippingProcessModal: React.FC<ShippingProcessModalProps> = ({
           </motion.div>
         )}
 
-        <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-6">
-          <Button
+      <DialogFooter className="flex flex-col sm: flex-row gap-3 pt-6"><Button
             variant="outline"
             size="lg"
             onClick={confirmationStep ? () => setConfirmationStep(false) : onClose}
             disabled={isProcessing}
-            className="w-full sm:w-auto order-2 sm:order-1"
-          >
+      className="w-full sm: w-auto order-2 sm:order-1">
             {confirmationStep ? '戻る' : 'キャンセル'}
           </Button>
 
@@ -494,17 +452,14 @@ const ShippingProcessModal: React.FC<ShippingProcessModalProps> = ({
               size="lg"
               onClick={handleProcessShipping}
               disabled={isProcessing}
-              className="bg-red-600 hover:bg-red-700 w-full sm:w-auto order-1 sm:order-2"
-            >
+      className="bg-red-600 hover: bg-red-700 w-full sm:w-auto order-1 sm:order-2">
               {isProcessing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               出荷処理実行
             </Button>
-          ) : (
-            <Button
+      ) : ( <Button
               size="lg"
               onClick={proceedToConfirmation}
-              className="w-full sm:w-auto order-1 sm:order-2 bg-blue-600 hover:bg-blue-700"
-            >
+      className="w-full sm: w-auto order-1 sm:order-2 bg-blue-600 hover:bg-blue-700">
               確認画面へ
             </Button>
           )}

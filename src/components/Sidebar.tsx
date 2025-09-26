@@ -146,11 +146,11 @@ export default function Sidebar() {
         transition={{ type: "spring", stiffness: 100 }}
       >
       {/* ヘッダー */}
-      <motion.div
-        className="flex items-center justify-center h-16 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700 relative overflow-hidden"
-        whileHover={{ scale: 1.02 }}
-        transition={{ duration: 0.2 }}
-      >
+        <motion.div
+          className="flex items-center justify-center h-16 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700 relative overflow-hidden"
+          whileHover={{ scale: 1.02 }}
+          transition={{ duration: 0.2 }}
+        >
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 animate-pulse"></div>
         <div className="relative flex items-center gap-2">
           <Sparkles className="w-6 h-6 text-white animate-pulse" />

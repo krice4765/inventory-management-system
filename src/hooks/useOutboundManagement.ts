@@ -194,14 +194,13 @@ const checkStockAllocation = async (items: CreateOutboundRequest['items']): Prom
 
   // 現在の在庫情報を取得
   const { data: inventoryData, error } = await supabase
-    .from('inventory')
+    .from('products')
     .select(`
-      product_id,
+      id,
       current_stock,
-      reserved_quantity,
-      product:products(product_name)
+      product_name
     `)
-    .in('product_id', productIds);
+    .in('id', productIds);
 
   if (error) {
     console.error('❌ Failed to fetch inventory data:', error);
@@ -210,16 +209,14 @@ const checkStockAllocation = async (items: CreateOutboundRequest['items']): Prom
 
   // 引当結果を計算
   const results: StockAllocationResult[] = items.map(item => {
-    const inventory = inventoryData?.find(inv => inv.product_id === item.product_id);
-    const available_quantity = inventory
-      ? (inventory.current_stock - (inventory.reserved_quantity || 0))
-      : 0;
+    const product = inventoryData?.find(prod => prod.id === item.product_id);
+    const available_quantity = product ? product.current_stock : 0;
     const can_fulfill = available_quantity >= item.quantity_requested;
     const shortage = can_fulfill ? 0 : item.quantity_requested - available_quantity;
 
     return {
       product_id: item.product_id,
-      product_name: inventory?.product?.product_name || '不明な商品',
+      product_name: product?.product_name || '不明な商品',
       requested_quantity: item.quantity_requested,
       available_quantity,
       can_fulfill,
@@ -335,23 +332,9 @@ const createOutboundOrder = async (request: CreateOutboundRequest): Promise<Outb
     .update({ total_amount: totalAmount })
     .eq('id', orderData.id);
 
-  // 4. 在庫引当（reserved_quantity更新）
-  for (const item of request.items) {
-    await supabase.rpc('update_inventory_with_lock', {
-      target_product_id: item.product_id,
-      quantity_change: 0, // 実際の減算は出庫実績時
-      unit_price: null,
-      tax_rate: null
-    });
-
-    // 引当数量を増加
-    await supabase
-      .from('inventory')
-      .update({
-        reserved_quantity: supabase.raw('COALESCE(reserved_quantity, 0) + ?', [item.quantity_requested])
-      })
-      .eq('product_id', item.product_id);
-  }
+  // 4. 在庫引当は簡略化（productsテーブルのcurrent_stockのみ使用）
+  // 実際の在庫管理はproductsテーブルで行うため、RPCの代わりにシンプルなチェックのみ実装
+  console.log('在庫引当処理: 出庫オーダー作成完了');
 
   const result = {
     ...orderData,
@@ -382,7 +365,7 @@ const registerShipment = async (request: ShipmentRequest): Promise<void> => {
     const { error: updateError } = await supabase
       .from('outbound_order_items')
       .update({
-        quantity_shipped: supabase.raw('quantity_shipped + ?', [item.quantity_shipped])
+        quantity_shipped: itemData.quantity_shipped + item.quantity_shipped
       })
       .eq('id', item.item_id);
 
@@ -390,21 +373,43 @@ const registerShipment = async (request: ShipmentRequest): Promise<void> => {
       throw updateError;
     }
 
-    // 実在庫減算（FIFO方式）
-    await supabase.rpc('update_inventory_with_lock', {
-      target_product_id: itemData.product_id,
-      quantity_change: -item.quantity_shipped,
-      unit_price: null,
-      tax_rate: null
-    });
+    // 実在庫減算（productsテーブルのcurrent_stockから減算）
+    const { data: productData } = await supabase
+      .from('products')
+      .select('current_stock')
+      .eq('id', itemData.product_id)
+      .single();
 
-    // 引当数量減算
-    await supabase
-      .from('inventory')
-      .update({
-        reserved_quantity: supabase.raw('GREATEST(COALESCE(reserved_quantity, 0) - ?, 0)', [item.quantity_shipped])
-      })
-      .eq('product_id', itemData.product_id);
+    if (productData) {
+      const newStock = Math.max(0, productData.current_stock - item.quantity_shipped);
+
+      const { error: stockError } = await supabase
+        .from('products')
+        .update({
+          current_stock: newStock
+        })
+        .eq('id', itemData.product_id);
+
+      if (stockError) {
+        console.error('在庫更新エラー:', stockError);
+      } else {
+        // 在庫移動履歴を記録（出庫）
+        const { error: movementError } = await supabase
+          .from('inventory_movements')
+          .insert({
+            product_id: itemData.product_id,
+            movement_type: 'out',
+            quantity: item.quantity_shipped, // out typeなので正の値
+            reference_type: 'outbound_order',
+            reference_id: request.outbound_order_id,
+            memo: `出庫実績: ${item.quantity_shipped}個`
+          });
+
+        if (movementError) {
+          console.error('在庫移動履歴記録エラー:', movementError);
+        }
+      }
+    }
   }
 
   // 出庫指示のステータス更新判定

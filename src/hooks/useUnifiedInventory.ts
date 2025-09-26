@@ -48,9 +48,7 @@ async function getAmountOnlyTransactions(filters: MovementFilters = {}) {
       throw amountOnlyError;
     }
 
-      count: amountOnlyData?.length || 0,
-      sampleData: amountOnlyData?.slice(0, 2) || []
-    });
+    // ログ出力（削除済み）
 
     if (!amountOnlyData || amountOnlyData.length === 0) {
       return [];
@@ -342,10 +340,7 @@ export function useUnifiedInventoryMovements(filters: MovementFilters = {}) {
         // 分納回数フィルタ
         if (filters.installmentNo && filters.installmentNo.trim()) {
           const installmentNum = parseInt(filters.installmentNo, 10);
-            入力値: filters.installmentNo,
-            数値変換後: installmentNum,
-            isNaN: isNaN(installmentNum)
-          });
+          // ログ出力（削除済み）
 
           if (!isNaN(installmentNum)) {
             const beforeCount = filteredRecords.length;
@@ -353,15 +348,7 @@ export function useUnifiedInventoryMovements(filters: MovementFilters = {}) {
               const matches = record.installment_no === installmentNum ||
                              record.delivery_sequence === installmentNum;
 
-              // デバッグ用ログ
-              if (record.record_type === 'amount_only_transaction' || record.memo?.includes('分納入力')) {
-                  memo: record.memo?.slice(0, 50),
-                  installment_no: record.installment_no,
-                  delivery_sequence: record.delivery_sequence,
-                  検索回数: installmentNum,
-                  マッチ: matches
-                });
-              }
+              // ログ出力（削除済み）
 
               return matches;
             });
@@ -399,10 +386,7 @@ export function useUnifiedInventoryMovements(filters: MovementFilters = {}) {
           }
         });
 
-          total: filteredRecords.length,
-          inventory_movements: filteredRecords.filter(r => r.record_type === 'inventory_movement').length,
-          amount_only_transactions: filteredRecords.filter(r => r.record_type === 'amount_only_transaction').length
-        });
+        // ログ出力（削除済み）
 
         return { data: filteredRecords as UnifiedInventoryRecord[] };
 

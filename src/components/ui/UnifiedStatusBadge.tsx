@@ -9,25 +9,11 @@ import {
 
 interface UnifiedStatusBadgeProps {
   // 統一ステータスを直接指定する場合
-  status?: UnifiedOrderStatus;
-
-  // 注文データから自動計算する場合
-  orderData?: {
-    status?: string;
-    delivery_progress?: number;
-    ordered_amount?: number;
-    delivered_amount?: number;
-    is_cancelled?: boolean;
-  };
+      status?: UnifiedOrderStatus; // 注文データから自動計算する場合
+      orderData?: { status?: string; delivery_progress?: number; ordered_amount?: number; delivered_amount?: number; is_cancelled?: boolean; };
 
   // 表示オプション
-  variant?: 'badge' | 'text' | 'icon' | 'full';
-  size?: 'sm' | 'md' | 'lg';
-  showIcon?: boolean;
-  showDescription?: boolean;
-  animated?: boolean;
-  className?: string;
-}
+      variant?: 'badge' | 'text' | 'icon' | 'full'; size?: 'sm' | 'md' | 'lg'; showIcon?: boolean; showDescription?: boolean; animated?: boolean; className?: string; }
 
 export const UnifiedStatusBadge: React.FC<UnifiedStatusBadgeProps> = ({
   status,
@@ -42,25 +28,19 @@ export const UnifiedStatusBadge: React.FC<UnifiedStatusBadgeProps> = ({
   const { isDark } = useDarkMode();
 
   // ステータスを決定
-  const finalStatus: UnifiedOrderStatus = status ||
-    (orderData ? OrderStatusCalculator.calculateUnifiedStatus(orderData) : 'undelivered');
-
-  const statusInfo = StatusDisplayUtils.getSafeStatusInfo(finalStatus);
+      const finalStatus: UnifiedOrderStatus = status || (orderData ? OrderStatusCalculator.calculateUnifiedStatus(orderData) : 'undelivered'); const statusInfo = StatusDisplayUtils.getSafeStatusInfo(finalStatus);
 
   // サイズ別のスタイル
   const sizeStyles = {
-    sm: {
-      badge: 'px-2 py-1 text-xs',
+      sm: { badge: 'px-2 py-1 text-xs',
       text: 'text-xs',
       icon: 'text-sm',
     },
-    md: {
-      badge: 'px-3 py-1 text-sm',
+      md: { badge: 'px-3 py-1 text-sm',
       text: 'text-sm',
       icon: 'text-base',
     },
-    lg: {
-      badge: 'px-4 py-2 text-base',
+      lg: { badge: 'px-4 py-2 text-base',
       text: 'text-base',
       icon: 'text-lg',
     },
@@ -140,17 +120,8 @@ export const UnifiedStatusBadge: React.FC<UnifiedStatusBadgeProps> = ({
 
 // 進捗付きステータス表示コンポーネント
 interface StatusWithProgressProps {
-  orderData: {
-    status?: string;
-    delivery_progress?: number;
-    ordered_amount?: number;
-    delivered_amount?: number;
-    is_cancelled?: boolean;
-  };
-  showProgressBar?: boolean;
-  showPercentage?: boolean;
-  className?: string;
-}
+      orderData: { status?: string; delivery_progress?: number; ordered_amount?: number; delivered_amount?: number; is_cancelled?: boolean; };
+      showProgressBar?: boolean; showPercentage?: boolean; className?: string; }
 
 export const StatusWithProgress: React.FC<StatusWithProgressProps> = ({
   orderData,
@@ -173,8 +144,7 @@ export const StatusWithProgress: React.FC<StatusWithProgressProps> = ({
       {showProgressBar && status !== 'cancelled' && (
         <div className="space-y-1">
           <div className={`w-full rounded-full h-2 ${
-            isDark ? 'bg-gray-700' : 'bg-gray-200'
-          }`}>
+      isDark ? 'bg-gray-700' : 'bg-gray-200' }`}>
             <motion.div
               className={`h-2 rounded-full ${progressBarColor}`}
               initial={{ width: 0 }}
@@ -185,8 +155,7 @@ export const StatusWithProgress: React.FC<StatusWithProgressProps> = ({
 
           {showPercentage && (
             <div className={`text-xs text-right ${
-              isDark ? 'text-gray-400' : 'text-gray-600'
-            }`}>
+      isDark ? 'text-gray-400' : 'text-gray-600' }`}>
               {progress.toFixed(1)}%
             </div>
           )}
@@ -198,12 +167,7 @@ export const StatusWithProgress: React.FC<StatusWithProgressProps> = ({
 
 // ステータス変更選択コンポーネント
 interface StatusSelectorProps {
-  currentStatus: UnifiedOrderStatus;
-  onChange: (newStatus: UnifiedOrderStatus) => void;
-  disabled?: boolean;
-  restrictTransitions?: boolean;
-  className?: string;
-}
+      currentStatus: UnifiedOrderStatus; onChange: (newStatus: UnifiedOrderStatus) => void; disabled?: boolean; restrictTransitions?: boolean; className?: string; }
 
 export const StatusSelector: React.FC<StatusSelectorProps> = ({
   currentStatus,
@@ -218,9 +182,7 @@ export const StatusSelector: React.FC<StatusSelectorProps> = ({
 
   const availableStatuses = restrictTransitions
     ? allStatuses // 遷移制限は親コンポーネントで実装
-    : allStatuses;
-
-  return (
+      : allStatuses; return (
     <select
       value={currentStatus}
       onChange={(e) => onChange(e.target.value as UnifiedOrderStatus)}
@@ -229,12 +191,9 @@ export const StatusSelector: React.FC<StatusSelectorProps> = ({
         px-3 py-2 border rounded-lg
         ${disabled
           ? 'bg-gray-100 cursor-not-allowed'
-          : isDark
-            ? 'bg-gray-800 border-gray-700 text-white'
-            : 'bg-white border-gray-300 text-gray-900'
-        }
-        focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500
-        ${className}
+      : isDark ? 'bg-gray-800 border-gray-700 text-white'
+      : 'bg-white border-gray-300 text-gray-900' }
+      focus: outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${className}
       `}
     >
       {availableStatuses.map((status) => {
@@ -252,11 +211,7 @@ export const StatusSelector: React.FC<StatusSelectorProps> = ({
 // ステータス統計表示コンポーネント
 interface StatusStatsDisplayProps {
   stats: Record<UnifiedOrderStatus, number>;
-  type?: 'count' | 'amount';
-  layout?: 'horizontal' | 'grid';
-  showIcons?: boolean;
-  className?: string;
-}
+      type?: 'count' | 'amount'; layout?: 'horizontal' | 'grid'; showIcons?: boolean; className?: string; }
 
 export const StatusStatsDisplay: React.FC<StatusStatsDisplayProps> = ({
   stats,
@@ -267,22 +222,17 @@ export const StatusStatsDisplay: React.FC<StatusStatsDisplayProps> = ({
 }) => {
   const { isDark } = useDarkMode();
 
-  const formatValue = (value: number) => {
-    if (type === 'amount') {
+      const formatValue = (value: number) => { if (type === 'amount') {
       return `¥${value.toLocaleString()}`;
     }
     return value.toLocaleString();
   };
 
   const containerClass = layout === 'grid'
-    ? 'grid grid-cols-2 lg:grid-cols-4 gap-4'
-    : 'flex flex-wrap gap-4';
-
-  return (
+      ? 'grid grid-cols-2 lg: grid-cols-4 gap-4' : 'flex flex-wrap gap-4'; return (
     <div className={`${containerClass} ${className}`}>
       {(Object.keys(stats) as UnifiedOrderStatus[])
-        .filter((status): status is UnifiedOrderStatus => {
-          // 有効なステータスのみをフィルタリング
+      .filter((status): status is UnifiedOrderStatus => { // 有効なステータスのみをフィルタリング
           return ['undelivered', 'partial', 'completed', 'cancelled'].includes(status);
         })
         .map((status) => {
@@ -303,9 +253,7 @@ export const StatusStatsDisplay: React.FC<StatusStatsDisplayProps> = ({
               relative group overflow-hidden rounded-xl p-6 cursor-pointer
               transition-all duration-300 ease-out
               ${isDark
-                ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover:border-gray-600'
-                : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg'
-              }
+      ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover: border-gray-600' : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg' }
               ${!showIcons ? 'backdrop-blur-sm' : ''}
             `}
           >
@@ -332,8 +280,7 @@ export const StatusStatsDisplay: React.FC<StatusStatsDisplayProps> = ({
               {/* プログレスインジケーター（オプション） */}
               <div className="mt-4">
                 <div className={`h-1 rounded-full overflow-hidden ${
-                  isDark ? 'bg-gray-700' : 'bg-gray-200'
-                }`}>
+      isDark ? 'bg-gray-700' : 'bg-gray-200' }`}>
                   <motion.div
                     className={`h-full ${statusInfo.bgColor.replace('bg-', 'bg-').replace('-100', '-500').replace('-900', '-500')}`}
                     initial={{ width: 0 }}

@@ -16,27 +16,16 @@ const generateOrderNo = (): string => {
 
 // **型定義**
 interface Supplier {
-  id: string;
-  name: string;
-}
+      id: string; name: string; }
 
 interface Product {
-  id: string;
-  product_name: string;
-  standard_price: number;
-}
+      id: string; product_name: string; standard_price: number; }
 
 interface OrderItem {
-  product_id: string;
-  quantity: number | string;
-  unit_price: number;
-  note?: string;
-}
+      product_id: string; quantity: number | string; unit_price: number; note?: string; }
 
 interface PurchaseOrderFormProps {
-  onSuccess: () => void;
-  onCancel: () => void;
-}
+      onSuccess: () => void; onCancel: () => void; }
 
 export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({ 
   onSuccess, 
@@ -66,10 +55,8 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   // **数値変換ヘルパー（NaN防止）**
-  const toNumber = (value: unknown): number => {
-    const num = Number(value);
-    return Number.isFinite(num) && num >= 0 ? num : 0;
-  };
+      const toNumber = (value: unknown): number => { const num = Number(value);
+      return Number.isFinite(num) && num >= 0 ? num : 0; };
 
   // **データ取得（仕入先・商品）**
   useEffect(() => {
@@ -126,8 +113,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
         // 商品選択時に単価を自動設定
         const selectedProduct = products.find(p => p.id === value);
         updatedItem.product_id = value;
-        updatedItem.unit_price = selectedProduct ? selectedProduct.standard_price : 0;
-      } else {
+      updatedItem.unit_price = selectedProduct ? selectedProduct.standard_price : 0; } else {
         updatedItem[field] = value;
       }
 
@@ -141,8 +127,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
     setItems(prev => [...prev, { product_id: '', quantity: 1, unit_price: 0, note: '' }]);
   };
 
-  const removeItem = (index: number) => {
-    if (items.length > 1) {
+      const removeItem = (index: number) => { if (items.length > 1) {
       setItems(prev => prev.filter((_, i) => i !== index));
     }
   };
@@ -174,8 +159,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
   }, [items]);
 
   // **エラーメッセージ抽出ヘルパー関数**
-  const extractSupabaseError = (err: unknown): string => {
-    if (!err) return 'Unknown error';
+      const extractSupabaseError = (err: unknown): string => { if (!err) return 'Unknown error';
     if (typeof err === 'string') return err;
     if (typeof err === 'object') {
       const e = err as Record<string, unknown>;
@@ -185,8 +169,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
   };
 
   // **フォーム送信**
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+      const handleSubmit = async (e: React.FormEvent) => { e.preventDefault();
 
     // バリデーション
     if (!supplierId) {
@@ -217,13 +200,11 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
         `発注金額を制限額以下に調整してください。`,
         {
           duration: 6000,
-          style: {
-            background: '#FEF2F2',
+      style: { background: '#FEF2F2',
             border: '2px solid #F87171',
             color: '#DC2626',
             fontSize: '14px',
-            maxWidth: '500px'
-          }
+      maxWidth: '500px' }
         }
       );
       return;
@@ -256,13 +237,11 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
             `発注額を調整するか、別の日に分けて発注してください。`,
             {
               duration: 8000,
-              style: {
-                background: '#FEF2F2',
+      style: { background: '#FEF2F2',
                 border: '2px solid #F87171',
                 color: '#DC2626',
                 fontSize: '14px',
-                maxWidth: '500px'
-              }
+      maxWidth: '500px' }
             }
           );
           return;
@@ -284,12 +263,10 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
       
       toast.error(`🚫 重複商品があります\n\n同じ商品が複数の明細行で選択されています:\n${duplicateNames}\n\n各商品は1つの明細行でのみ選択してください。`, {
         duration: 4000,
-        style: {
-          background: '#FEF2F2',
+      style: { background: '#FEF2F2',
           border: '2px solid #F87171',
           color: '#DC2626',
-          fontSize: '14px'
-        }
+      fontSize: '14px' }
       });
       return;
     }
@@ -304,16 +281,10 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
         delivery_deadline: expectedDate || null,     // due_date → delivery_deadline
         total_amount: Number(calculations.total),    // 数値型に明示変換
         memo: notes?.trim() || null,                // notes → memo
-        status: 'active'                            // デフォルトステータス
-        // transaction_type は存在しないため送信しない
+      status: 'active'                            // デフォルトステータス // transaction_type は存在しないため送信しない
       };
 
-        'order_date (DB)': orderData.order_date,
-        'delivery_deadline (DB)': orderData.delivery_deadline,
-        'memo (DB)': orderData.memo,
-        'order_no': orderData.order_no,
-        'total_amount_type': typeof orderData.total_amount
-      });
+      // ログ出力（削除済み）
 
       // **Supabase挿入処理**
       const { data: newOrder, error: orderError } = await supabase
@@ -340,8 +311,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
           product_id: item.product_id,
           quantity: quantity,
           unit_price: unitPrice,
-          total_amount: quantity * unitPrice
-        };
+      total_amount: quantity * unitPrice };
       });
 
 
@@ -357,11 +327,9 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
         // ユーザーフレンドリーなエラーメッセージ
         toast.error(`🚫 重複商品エラー\n\n同じ商品を複数の明細行で選択することはできません。\n\n重複商品: ${duplicateNames}\n\n各商品は1つの明細行でのみ選択してください。`, {
           duration: 6000,
-          style: {
-            background: '#FEF2F2',
+      style: { background: '#FEF2F2',
             border: '2px solid #F87171',
-            color: '#DC2626'
-          }
+      color: '#DC2626' }
         });
         
         throw new Error(`重複商品: ${duplicateNames}`);
@@ -383,10 +351,8 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
         
         throw new Error(`明細保存でエラーが発生しました: ${extractSupabaseError(itemsError)}`);
       }
-      
-        saved_items: orderItemsData.length,
-        order_id: newOrder.id
-      });
+
+      // ログ出力（削除済み）
 
       // **🚨 データベーストリガーを使用するため、以下の処理を削除**
       // transactions への直接INSERT処理は不要（トリガーが自動実行）
@@ -407,8 +373,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
         ]);
 
         await queryClient.invalidateQueries({
-          predicate: (query) => {
-            const keyString = JSON.stringify(query.queryKey).toLowerCase();
+      predicate: (query) => { const keyString = JSON.stringify(query.queryKey).toLowerCase();
             return /transaction|purchase|order|stats|dashboard|unified/i.test(keyString);
           }
         });
@@ -430,19 +395,16 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-gray-600 dark:text-gray-400">データを読み込み中...</div>
-      </div>
+      <div className="text-gray-600 dark: text-gray-400">データを読み込み中...</div> </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-        <div className="text-red-600 dark:text-red-400">{error}</div>
+      <div className="p-4 bg-red-50 dark: bg-red-900/20 rounded-lg"><div className="text-red-600 dark:text-red-400">{error}</div>
         <button 
           onClick={() => window.location.reload()} 
-          className="mt-2 text-sm text-red-700 dark:text-red-300 underline"
-        >
+      className="mt-2 text-sm text-red-700 dark: text-red-300 underline">
           ページを再読み込み
         </button>
       </div>
@@ -453,10 +415,8 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* **基本情報セクション** */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            仕入先 <span className="text-red-500">*</span>
+      <div className="grid grid-cols-1 md: grid-cols-2 gap-4"><div>
+      <label className="block text-sm font-medium text-gray-700 dark: text-gray-300 mb-1">仕入先 <span className="text-red-500">*</span>
           </label>
           <SearchableSelect
             options={suppliers.map(supplier => ({
@@ -473,29 +433,25 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            発注日 <span className="text-red-500">*</span>
+      <label className="block text-sm font-medium text-gray-700 dark: text-gray-300 mb-1">発注日 <span className="text-red-500">*</span>
           </label>
           <input
             type="date"
             value={orderDate}
             onChange={(e) => setOrderDate(e.target.value)}
-            className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            required
+      className="w-full rounded-md border border-gray-300 dark: border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            納入予定日
+      <label className="block text-sm font-medium text-gray-700 dark: text-gray-300 mb-1">納入予定日
           </label>
           <input
             type="date"
             value={expectedDate}
             onChange={(e) => setExpectedDate(e.target.value)}
             required
-            className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          />
+      className="w-full rounded-md border border-gray-300 dark: border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"/>
         </div>
       </div>
 
@@ -510,12 +466,10 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
       {/* **明細セクション** */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">明細</h3>
-          <button
+      <h3 className="text-lg font-semibold text-gray-900 dark: text-white">明細</h3> <button
             type="button"
             onClick={addItem}
-            className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-          >
+      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-green-600 hover: bg-green-700 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
             ➕ 行追加
           </button>
         </div>
@@ -523,16 +477,11 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
 
         {/* 重複防止の注意メッセージ（明細行が複数ある場合のみ表示） */}
         {items.length > 1 && (
-          <div className="p-4 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/30 dark:to-red-900/30 border-2 border-orange-200 dark:border-orange-700 rounded-lg shadow-md">
-            <div className="flex items-center mb-2">
+      <div className="p-4 bg-gradient-to-r from-orange-50 to-red-50 dark: from-orange-900/30 dark:to-red-900/30 border-2 border-orange-200 dark:border-orange-700 rounded-lg shadow-md"><div className="flex items-center mb-2">
               <span className="text-2xl mr-2">🚫</span>
-              <h4 className="text-lg font-bold text-orange-800 dark:text-orange-200">重複商品選択防止</h4>
-            </div>
-            <p className="text-sm text-orange-700 dark:text-orange-300 mb-2">
-              <strong>重要:</strong> 同じ商品を複数の明細行で選択することはできません。
-            </p>
-            <p className="text-xs text-orange-600 dark:text-orange-400">
-              💡 既に選択された商品は「🚫(既に選択済み)」と表示され、選択できません。
+      <h4 className="text-lg font-bold text-orange-800 dark: text-orange-200">重複商品選択防止</h4> </div>
+      <p className="text-sm text-orange-700 dark: text-orange-300 mb-2"><strong>重要: </strong> 同じ商品を複数の明細行で選択することはできません。 </p>
+      <p className="text-xs text-orange-600 dark: text-orange-400">💡 既に選択された商品は「🚫(既に選択済み)」と表示され、選択できません。
             </p>
           </div>
         )}
@@ -552,11 +501,9 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
                     return {
                       value: product.id,
                       label: product.product_name + (isAlreadySelected ? ' 🚫(既に選択済み)' : ''),
-                      description: isAlreadySelected 
-                        ? `⚠️ この商品は他の明細行で選択されています` 
+      description: isAlreadySelected  ? `⚠️ この商品は他の明細行で選択されています` 
                         : `標準価格: ¥${Number(product.standard_price || 0).toLocaleString()}`,
-                      disabled: isAlreadySelected
-                    };
+      disabled: isAlreadySelected };
                   })}
                   value={item.product_id}
                   onChange={(value) => updateItem(index, 'product_id', value)}
@@ -572,27 +519,23 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
                   min="1"
                   value={item.quantity}
                   onChange={(e) => updateItem(index, 'quantity', e.target.value)}
-                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-2 py-1.5 text-sm text-right bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                  placeholder="数量"
+      className="w-full rounded-md border border-gray-300 dark: border-gray-600 px-2 py-1.5 text-sm text-right bg-white dark:bg-gray-800 text-gray-900 dark:text-white"placeholder="数量"
                   required
                 />
               </div>
               <div className="col-span-2">
-                <div className="text-sm text-right text-gray-600 dark:text-gray-300 py-1.5">
-                  ¥{toNumber(item.unit_price).toLocaleString()}
+      <div className="text-sm text-right text-gray-600 dark: text-gray-300 py-1.5">¥{toNumber(item.unit_price).toLocaleString()}
                 </div>
               </div>
               <div className="col-span-2">
-                <div className="text-sm text-right font-medium text-gray-900 dark:text-white py-1.5">
-                  ¥{item.lineSubtotal.toLocaleString()}
+      <div className="text-sm text-right font-medium text-gray-900 dark: text-white py-1.5">¥{item.lineSubtotal.toLocaleString()}
                 </div>
               </div>
               <div className="col-span-2 text-right">
                 <button
                   type="button"
                   onClick={() => removeItem(index)}
-                  className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 text-sm"
-                  disabled={items.length <= 1}
+      className="text-red-600 hover: text-red-800 dark:text-red-400 dark:hover:text-red-200 text-sm"disabled={items.length <= 1}
                 >
                   削除
                 </button>
@@ -603,23 +546,17 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
       </div>
 
       {/* **🧮 合計表示セクション** */}
-      <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-        <div className="space-y-2 text-right">
+      <div className="bg-blue-50 dark: bg-blue-900/20 p-4 rounded-lg"><div className="space-y-2 text-right">
           <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-300">小計:</span>
-            <span className="font-medium text-gray-900 dark:text-white">
-              ¥{calculations.subtotal.toLocaleString()}
+      <span className="text-gray-600 dark: text-gray-300">小計:</span> <span className="font-medium text-gray-900 dark: text-white">¥{calculations.subtotal.toLocaleString()}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-300">消費税 (10%):</span>
-            <span className="font-medium text-gray-900 dark:text-white">
-              ¥{calculations.tax.toLocaleString()}
+      <span className="text-gray-600 dark: text-gray-300">消費税 (10%):</span> <span className="font-medium text-gray-900 dark: text-white">¥{calculations.tax.toLocaleString()}
             </span>
           </div>
           <div className="flex justify-between text-lg font-bold border-t pt-2">
-            <span className="text-gray-900 dark:text-white">合計:</span>
-            <span className={`${calculations.total > 10000000 ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`}>
+      <span className="text-gray-900 dark: text-white">合計:</span> <span className={`${calculations.total > 10000000 ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`}>
               ¥{calculations.total.toLocaleString()}
             </span>
           </div>
@@ -627,27 +564,21 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
       </div>
 
       {/* **🛡️ 金額制限情報表示** */}
-      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-2 border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
-        <div className="flex items-center mb-3">
+      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 dark: from-yellow-900/20 dark:to-orange-900/20 border-2 border-yellow-200 dark:border-yellow-700 rounded-lg p-4"><div className="flex items-center mb-3">
           <span className="text-2xl mr-2">💰</span>
-          <h4 className="text-lg font-bold text-yellow-800 dark:text-yellow-200">発注金額制限</h4>
-        </div>
+      <h4 className="text-lg font-bold text-yellow-800 dark: text-yellow-200">発注金額制限</h4> </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="space-y-2">
+      <div className="grid grid-cols-1 md: grid-cols-2 gap-4 text-sm"><div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-gray-700 dark:text-gray-300">単件発注上限:</span>
-              <span className="font-semibold text-gray-900 dark:text-white">¥10,000,000</span>
+      <span className="text-gray-700 dark: text-gray-300">単件発注上限:</span> <span className="font-semibold text-gray-900 dark:text-white">¥10,000,000</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-700 dark:text-gray-300">今回発注額:</span>
-              <span className={`font-bold ${calculations.total > 10000000 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+      <span className="text-gray-700 dark: text-gray-300">今回発注額:</span> <span className={`font-bold ${calculations.total > 10000000 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
                 ¥{calculations.total.toLocaleString()}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-700 dark:text-gray-300">残り利用可能額:</span>
-              <span className={`font-semibold ${10000000 - calculations.total < 1000000 ? 'text-orange-600 dark:text-orange-400' : 'text-blue-600 dark:text-blue-400'}`}>
+      <span className="text-gray-700 dark: text-gray-300">残り利用可能額:</span> <span className={`font-semibold ${10000000 - calculations.total < 1000000 ? 'text-orange-600 dark:text-orange-400' : 'text-blue-600 dark:text-blue-400'}`}>
                 ¥{Math.max(0, 10000000 - calculations.total).toLocaleString()}
               </span>
             </div>
@@ -655,13 +586,10 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
 
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-gray-700 dark:text-gray-300">同日発注制限:</span>
-              <span className="font-semibold text-gray-900 dark:text-white">¥30,000,000</span>
+      <span className="text-gray-700 dark: text-gray-300">同日発注制限:</span> <span className="font-semibold text-gray-900 dark:text-white">¥30,000,000</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-700 dark:text-gray-300">制限まで:</span>
-              <span className="font-semibold text-blue-600 dark:text-blue-400">
-                {calculations.total <= 10000000 ? '✅ 制限内' : '❌ 制限超過'}
+      <span className="text-gray-700 dark: text-gray-300">制限まで:</span> <span className="font-semibold text-blue-600 dark: text-blue-400">{calculations.total <= 10000000 ? '✅ 制限内' : '❌ 制限超過'}
               </span>
             </div>
           </div>
@@ -669,15 +597,12 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
 
         {/* 制限超過警告 */}
         {calculations.total > 10000000 && (
-          <div className="mt-3 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-600 rounded-md">
-            <div className="flex items-center">
+      <div className="mt-3 p-3 bg-red-100 dark: bg-red-900/30 border border-red-300 dark:border-red-600 rounded-md"><div className="flex items-center">
               <span className="text-red-500 mr-2">⚠️</span>
-              <span className="text-red-700 dark:text-red-300 font-semibold">
-                発注額が制限を¥{(calculations.total - 10000000).toLocaleString()}超過しています
+      <span className="text-red-700 dark: text-red-300 font-semibold">発注額が制限を¥{(calculations.total - 10000000).toLocaleString()}超過しています
               </span>
             </div>
-            <p className="text-red-600 dark:text-red-400 text-xs mt-1">
-              発注額を調整するか、複数の発注書に分けてください。
+      <p className="text-red-600 dark: text-red-400 text-xs mt-1">発注額を調整するか、複数の発注書に分けてください。
             </p>
           </div>
         )}
@@ -685,15 +610,13 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
 
       {/* **備考** */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          備考
+      <label className="block text-sm font-medium text-gray-700 dark: text-gray-300 mb-1">備考
         </label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
-          className="w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          placeholder="備考を入力してください"
+      className="w-full rounded-md border border-gray-300 dark: border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"placeholder="備考を入力してください"
         />
       </div>
 
@@ -702,18 +625,14 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500"
-        >
+      className="px-6 py-2 text-gray-700 dark: text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
           キャンセル
         </button>
         <button
           type="submit"
           disabled={calculations.total > 10000000}
-          className={`px-6 py-2 text-white rounded-md focus:outline-none focus:ring-2 transition-colors ${
-            calculations.total > 10000000
-              ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed focus:ring-gray-400'
-              : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
-          }`}
+      className={`px-6 py-2 text-white rounded-md focus: outline-none focus:ring-2 transition-colors ${ calculations.total > 10000000
+      ? 'bg-gray-400 dark: bg-gray-600 cursor-not-allowed focus:ring-gray-400' : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500' }`}
           title={calculations.total > 10000000 ? '発注金額が制限を超過しているため作成できません' : '発注を作成'}
         >
           {calculations.total > 10000000 ? '制限超過のため作成不可' : '発注を作成'}

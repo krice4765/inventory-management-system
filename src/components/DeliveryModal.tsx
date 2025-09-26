@@ -16,27 +16,27 @@ import { useInventoryOverride } from '../hooks/usePermissions'
 import { useSimplifiedInstallment } from '../utils/simplifiedInstallmentSystem'
 
 interface DeliveryFormData {
-  amount: number
-  deliveryType: 'amount_only' | 'amount_and_quantity'
-  quantities?: { [productId: string]: number }
-  memo?: string
-  scheduled_delivery_date?: string
-  delivery_reason?: string
+  amount: number;
+  deliveryType: 'amount_only' | 'amount_and_quantity';
+  quantities?: { [productId: string]: number };
+  memo?: string;
+  scheduled_delivery_date?: string;
+  delivery_reason?: string;
 }
 
 interface OrderItem {
-  product_id: string
-  product_name: string
-  product_code?: string
-  quantity: number
-  delivered_quantity?: number
-  remaining_quantity?: number
-  unit_price: number
-  current_stock?: number
-  stock_status?: 'sufficient' | 'insufficient' | 'out_of_stock'
-  stock_shortage?: number
-  has_stock_for_delivery?: boolean
-  drawing_number?: string
+  product_id: string;
+  product_name: string;
+  product_code?: string;
+  quantity: number;
+  delivered_quantity?: number;
+  remaining_quantity?: number;
+  unit_price: number;
+  current_stock?: number;
+  stock_status?: 'sufficient' | 'insufficient' | 'out_of_stock';
+  stock_shortage?: number;
+  has_stock_for_delivery?: boolean;
+  drawing_number?: string;
 }
 
 
@@ -51,34 +51,23 @@ export const DeliveryModal = () => {
 
   // 分納完了後の状態管理
   const [lastDeliveryResult, setLastDeliveryResult] = useState<{
-    success: boolean;
-    deliverySequence: number;
-    deliveredAmount: number;
-    transactionId: string;
-  } | null>(null)
+      success: boolean; deliverySequence: number; deliveredAmount: number; transactionId: string; } | null>(null)
 
   // 在庫オーバーライド管理
   const [pendingStockOverride, setPendingStockOverride] = useState<{
-    productId: string;
-    productName: string;
-    requestedQuantity: number;
-    currentStock: number;
-    shortage: number;
-  } | null>(null)
+      productId: string; productName: string; requestedQuantity: number; currentStock: number; shortage: number; } | null>(null)
   const [isOverrideModalOpen, setIsOverrideModalOpen] = useState(false)
   const [overrideApproved, setOverrideApproved] = useState(false)
 
   const { data: orderData, isLoading, isError, error } = useOrderForDelivery(selectedOrderId)
 
   const form = useForm<DeliveryFormData>({
-    defaultValues: {
-      amount: 0,
+      defaultValues: { amount: 0,
       deliveryType: 'amount_only' as const,
       quantities: {},
       memo: '',
       scheduled_delivery_date: '',
-      delivery_reason: ''
-    },
+      delivery_reason: '' },
     mode: 'onChange',
   })
 
@@ -92,14 +81,12 @@ export const DeliveryModal = () => {
         // 個数指定分納で、入力されたすべての商品が満了の場合
         if (deliveryType === 'amount_and_quantity') {
           // 入力された商品のみをチェック
-          const inputItems = orderData.items.filter((item: OrderItem) => {
-            const inputQuantity = quantities[item.product_id] || 0;
+      const inputItems = orderData.items.filter((item: OrderItem) => { const inputQuantity = quantities[item.product_id] || 0;
             return inputQuantity > 0;
           });
 
           // 全商品が満了の場合のみ自動設定（一部分納では設定しない）
-          const allOrderItemsComplete = orderData.items.every((item: OrderItem) => {
-            const inputQuantity = quantities[item.product_id] || 0;
+      const allOrderItemsComplete = orderData.items.every((item: OrderItem) => { const inputQuantity = quantities[item.product_id] || 0;
             const remainingQuantity = item.remaining_quantity || item.quantity;
             return remainingQuantity === 0 || inputQuantity >= remainingQuantity;
           });
@@ -120,8 +107,7 @@ export const DeliveryModal = () => {
       return false;
     }
 
-    const shortageItems = orderData.items.filter((item: OrderItem) =>
-      item.stock_status === 'insufficient' ||
+      const shortageItems = orderData.items.filter((item: OrderItem) => item.stock_status === 'insufficient' ||
       item.stock_status === 'out_of_stock' ||
       ((item.current_stock || 0) < (item.remaining_quantity || item.quantity))
     );
@@ -134,6 +120,7 @@ export const DeliveryModal = () => {
   // orderDataとdeliveryTypeが更新されたときにフォームを初期化
   useEffect(() => {
     if (orderData && deliveryType) {
+      console.log('DeliveryModal debug:', {
         配送タイプ: deliveryType,
         発注額: orderData.ordered_amount,
         既納品: orderData.delivered_amount,
@@ -157,8 +144,7 @@ export const DeliveryModal = () => {
         // 個数指定モードで全商品の残り数量を設定
         form.setValue('deliveryType', 'amount_and_quantity');
         const fullQuantities: { [productId: string]: number } = {};
-        orderData.items.forEach((item: OrderItem) => {
-          fullQuantities[item.product_id] = item.remaining_quantity || item.quantity;
+      orderData.items.forEach((item: OrderItem) => { fullQuantities[item.product_id] = item.remaining_quantity || item.quantity;
         });
         form.setValue('quantities', fullQuantities);
       } else {
@@ -176,8 +162,7 @@ export const DeliveryModal = () => {
 
   // 分納処理のMutation
   const deliveryMutation = useMutation({
-    mutationFn: async (data: DeliveryFormData) => {
-      if (!orderData) throw new Error('発注情報が取得できていません')
+      mutationFn: async (data: DeliveryFormData) => { if (!orderData) throw new Error('発注情報が取得できていません')
 
       // 🛡️ 納期予定日必須チェック
       if (!data.scheduled_delivery_date) {
@@ -204,8 +189,7 @@ export const DeliveryModal = () => {
           }
 
           // 今回の入力ですべての商品が完了する場合、残額と一致するかチェック
-          const allItemsCompleteWithThisInput = orderData.items?.every((item: OrderItem) => {
-            const inputQuantity = data.quantities![item.product_id] || 0
+      const allItemsCompleteWithThisInput = orderData.items?.every((item: OrderItem) => { const inputQuantity = data.quantities![item.product_id] || 0
             const remainingQuantity = item.remaining_quantity || item.quantity
             // 残り個数がある商品について、今回の入力で完了するかチェック
             return remainingQuantity === 0 || inputQuantity === remainingQuantity
@@ -232,15 +216,13 @@ export const DeliveryModal = () => {
         // 🚨 重要: 全分納タイプ共通 - 個数満了時の金額チェック
         if (data.quantities && orderData.items) {
           // 今回入力で個数がすべて完了するかチェック
-          const allQuantitiesComplete = orderData.items.every((item: OrderItem) => {
-            const inputQuantity = data.quantities![item.product_id] || 0
+      const allQuantitiesComplete = orderData.items.every((item: OrderItem) => { const inputQuantity = data.quantities![item.product_id] || 0
             const remainingQuantity = item.remaining_quantity || item.quantity
             return remainingQuantity === 0 || inputQuantity >= remainingQuantity
           })
 
           // 個数入力がある商品があるかチェック
-          const hasQuantityInput = orderData.items.some((item: OrderItem) => {
-            const inputQuantity = data.quantities![item.product_id] || 0
+      const hasQuantityInput = orderData.items.some((item: OrderItem) => { const inputQuantity = data.quantities![item.product_id] || 0
             return inputQuantity > 0
           })
 
@@ -253,8 +235,7 @@ export const DeliveryModal = () => {
 
       // 🛡️ 在庫チェック（個数指定モードの場合）
       if (data.deliveryType === 'amount_and_quantity' && data.quantities) {
-        const stockWarnings: string[] = []
-
+        const stockWarnings: string[] = [];
         for (const [productId, requestedQuantity] of Object.entries(data.quantities)) {
           if (requestedQuantity > 0) {
             // 該当商品の現在在庫を取得
@@ -334,8 +315,7 @@ export const DeliveryModal = () => {
         deliveryType: data.deliveryType || 'amount_only',
         quantities: data.quantities,
         userId: 'current-user',
-        memo: data.memo
-      };
+      memo: data.memo };
 
 
       const installmentResult = await createInstallment(simplifiedData);
@@ -352,14 +332,13 @@ export const DeliveryModal = () => {
         deliveryType: data.deliveryType,
         quantities: data.quantities,
         transactionId: installmentResult.transactionId,
-        deliverySequence: nextSequence
-      };
+      deliverySequence: nextSequence };
     },
-    onSuccess: async (result) => {
-      const { deliveredAmount, memo, deliveryType, quantities, transactionId, deliverySequence } = result;
+      onSuccess: async (result) => { const { deliveredAmount, memo, deliveryType, quantities, transactionId, deliverySequence } = result;
       try {
         // 🔄 在庫連動処理を実行
         if (orderData && selectedOrderId) {
+          console.log('Processing inventory:', {
             orderId: selectedOrderId,
             deliveredAmount,
             memo: memo || `分納入力 - ${orderData.order_no}`
@@ -412,32 +391,27 @@ export const DeliveryModal = () => {
           success: true,
           deliverySequence: deliverySequence,
           deliveredAmount: deliveredAmount,
-          transactionId: transactionId
-        });
+      transactionId: transactionId });
 
         // useOrdersSync が正常に動作する場合
         if (syncOrderData && typeof syncOrderData === 'function') {
           await syncOrderData('分納を登録し、在庫を更新しました');
         } else {
-          toast.success(deliveryType === 'full' ? '全納を登録しました' : '分納を登録しました');
-        }
+      toast.success(deliveryType === 'full' ? '全納を登録しました' : '分納を登録しました'); }
         form.reset();
       } catch (error) {
         console.error('データ同期エラー:', error);
         // 登録は成功しているので、同期エラーでもUIは更新
         await queryClient.invalidateQueries({ queryKey: ['orders'] });
-        toast.success(deliveryType === 'full' ? '全納を登録しました' : '分納を登録しました');
-        form.reset();
+      toast.success(deliveryType === 'full' ? '全納を登録しました' : '分納を登録しました'); form.reset();
       }
     },
-    onError: (error: Error) => {
-      toast.error(`登録に失敗しました: ${error?.message ?? '不明なエラー'}`)
+      onError: (error: Error) => { toast.error(`登録に失敗しました: ${error?.message ?? '不明なエラー'}`)
     }
   })
 
   // 分納処理実行関数（オーバーライド用）
-  const handleDeliverySubmit = async (data: DeliveryFormData) => {
-    deliveryMutation.mutate(data);
+      const handleDeliverySubmit = async (data: DeliveryFormData) => { deliveryMutation.mutate(data);
   };
 
   // 納品書PDF生成機能
@@ -449,8 +423,7 @@ export const DeliveryModal = () => {
 
     try {
       // 分納データから納品書データを構築
-      const deliveryNoteData: DeliveryNotePDFData = {
-        id: lastDeliveryResult.transactionId,
+      const deliveryNoteData: DeliveryNotePDFData = { id: lastDeliveryResult.transactionId,
         delivery_no: `DEL-${orderData.order_no}-${lastDeliveryResult.deliverySequence}`,
         delivery_date: new Date().toISOString().split('T')[0],
         order_no: orderData.order_no,
@@ -458,14 +431,12 @@ export const DeliveryModal = () => {
         delivery_sequence: lastDeliveryResult.deliverySequence,
         total_amount: lastDeliveryResult.deliveredAmount,
         notes: form.getValues('memo') || '分納による納品',
-        items: orderData.items.map((item: OrderItem) => ({
-          product_name: item.product_name,
+      items: orderData.items.map((item: OrderItem) => ({ product_name: item.product_name,
           product_code: item.product_code || '',
           drawing_number: item.drawing_number || '',
           delivered_quantity: item.quantity, // 簡略化: 実際には分納数量を計算
           unit_price: item.unit_price,
-          total_amount: item.quantity * item.unit_price
-        }))
+      total_amount: item.quantity * item.unit_price }))
       };
 
 
@@ -484,8 +455,7 @@ export const DeliveryModal = () => {
   };
 
   // クイック金額設定
-  const setQuickAmount = (percentage: number) => {
-    if (!orderData) return
+      const setQuickAmount = (percentage: number) => { if (!orderData) return
     const amount = Math.floor(orderData.remaining_amount * percentage)
     form.setValue('amount', amount, { shouldValidate: true })
   }
@@ -514,15 +484,13 @@ export const DeliveryModal = () => {
                 <p className="text-sm text-gray-600">
                   {deliveryType === 'full'
                     ? '残り全量の納品処理を行います'
-                    : '商品の分納処理を行います'
-                  }
+      : '商品の分納処理を行います' }
                 </p>
               </div>
             </div>
             <button
               onClick={handleClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600"
-            >
+      className="p-2 hover: bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -553,20 +521,16 @@ export const DeliveryModal = () => {
                 </h4>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <span className="text-blue-700">仕入先:</span>
-                    <p className="font-medium">{orderData.partner_name}</p>
+      <span className="text-blue-700">仕入先: </span> <p className="font-medium">{orderData.partner_name}</p>
                   </div>
                   <div>
-                    <span className="text-blue-700">発注額:</span>
-                    <p className="font-medium">¥{orderData.ordered_amount.toLocaleString()}</p>
+      <span className="text-blue-700">発注額: </span> <p className="font-medium">¥{orderData.ordered_amount.toLocaleString()}</p>
                   </div>
                   <div>
-                    <span className="text-blue-700">既納品:</span>
-                    <p className="font-medium">¥{orderData.delivered_amount.toLocaleString()}</p>
+      <span className="text-blue-700">既納品: </span> <p className="font-medium">¥{orderData.delivered_amount.toLocaleString()}</p>
                   </div>
                   <div>
-                    <span className="text-blue-700 font-semibold">残額:</span>
-                    <p className="font-bold text-lg">¥{orderData.remaining_amount.toLocaleString()}</p>
+      <span className="text-blue-700 font-semibold">残額: </span> <p className="font-bold text-lg">¥{orderData.remaining_amount.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
@@ -596,29 +560,25 @@ export const DeliveryModal = () => {
                 <button
                   type="button"
                   onClick={() => setQuickAmount(0.25)}
-                  className="p-2 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-                >
+      className="p-2 text-xs bg-blue-100 text-blue-700 rounded hover: bg-blue-200 transition-colors">
                   25%<br/>¥{Math.floor(orderData.remaining_amount * 0.25).toLocaleString()}
                 </button>
                 <button
                   type="button"
                   onClick={() => setQuickAmount(0.4)}
-                  className="p-2 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
-                >
+      className="p-2 text-xs bg-green-100 text-green-700 rounded hover: bg-green-200 transition-colors">
                   40%<br/>¥{Math.floor(orderData.remaining_amount * 0.4).toLocaleString()}
                 </button>
                 <button
                   type="button"
                   onClick={() => setQuickAmount(0.6)}
-                  className="p-2 text-xs bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition-colors"
-                >
+      className="p-2 text-xs bg-yellow-100 text-yellow-700 rounded hover: bg-yellow-200 transition-colors">
                   60%<br/>¥{Math.floor(orderData.remaining_amount * 0.6).toLocaleString()}
                 </button>
                 <button
                   type="button"
                   onClick={() => setQuickAmount(1.0)}
-                  className="p-2 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
-                >
+      className="p-2 text-xs bg-red-100 text-red-700 rounded hover: bg-red-200 transition-colors">
                   全額<br/>¥{orderData.remaining_amount.toLocaleString()}
                 </button>
                 </div>
@@ -636,8 +596,7 @@ export const DeliveryModal = () => {
                   const deliveryType = form.watch('deliveryType');
                   if (deliveryType === 'amount_and_quantity' && orderData?.items) {
                     const quantities = form.watch('quantities') || {};
-                    return orderData.items.every((item: OrderItem) => {
-                      const inputQuantity = quantities[item.product_id] || 0;
+      return orderData.items.every((item: OrderItem) => { const inputQuantity = quantities[item.product_id] || 0;
                       const remainingQuantity = item.remaining_quantity || item.quantity;
                       return remainingQuantity === 0 || inputQuantity >= remainingQuantity;
                     });
@@ -648,8 +607,7 @@ export const DeliveryModal = () => {
                   valueAsNumber: true,
                   required: '納品金額は必須です',
                   min: { value: 1, message: '0より大きい値を入力してください' },
-                  validate: (value) => {
-                    if (!orderData) return true;
+      validate: (value) => { if (!orderData) return true;
                     if (value > orderData.remaining_amount) {
                       return `残額¥${orderData.remaining_amount.toLocaleString()}を超えています`;
                     }
@@ -706,8 +664,12 @@ export const DeliveryModal = () => {
                     }
 
                     return true;
-                  }
+                  },
                 })}
+              />
+              <input
+                type="number"
+                {...form.register('amount')}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   form.formState.errors.amount ? 'border-red-300' : 'border-gray-300'
                 } ${(() => {
@@ -720,13 +682,11 @@ export const DeliveryModal = () => {
                   const deliveryTypeValue = form.watch('deliveryType');
                   if (deliveryTypeValue === 'amount_and_quantity' && orderData?.items) {
                     const quantities = form.watch('quantities') || {};
-                    const allWillBeZero = orderData.items.every((item: OrderItem) => {
-                      const inputQuantity = quantities[item.product_id] || 0;
+      const allWillBeZero = orderData.items.every((item: OrderItem) => { const inputQuantity = quantities[item.product_id] || 0;
                       const remainingQuantity = item.remaining_quantity || item.quantity;
                       return remainingQuantity === 0 || inputQuantity >= remainingQuantity;
                     });
-                    return allWillBeZero ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '';
-                  }
+      return allWillBeZero ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''; }
                   return '';
                 })()}`}
                 placeholder="0"
@@ -750,8 +710,7 @@ export const DeliveryModal = () => {
                 const deliveryTypeValue = form.watch('deliveryType');
                 if (deliveryTypeValue === 'amount_and_quantity' && orderData?.items) {
                   const quantities = form.watch('quantities') || {};
-                  const allWillBeZero = orderData.items.every((item: OrderItem) => {
-                    const inputQuantity = quantities[item.product_id] || 0;
+      const allWillBeZero = orderData.items.every((item: OrderItem) => { const inputQuantity = quantities[item.product_id] || 0;
                     const remainingQuantity = item.remaining_quantity || item.quantity;
                     return remainingQuantity === 0 || inputQuantity >= remainingQuantity;
                   });
@@ -775,15 +734,13 @@ export const DeliveryModal = () => {
 
                 if (enteredAmount > 0 && isAmountFull && orderData?.items) {
                   const quantities = form.watch('quantities') || {};
-                  const allRemainingQuantitiesWillBeZero = orderData.items.every((item: OrderItem) => {
-                    const inputQuantity = quantities[item.product_id] || 0;
+      const allRemainingQuantitiesWillBeZero = orderData.items.every((item: OrderItem) => { const inputQuantity = quantities[item.product_id] || 0;
                     const remainingQuantity = item.remaining_quantity || item.quantity;
                     return remainingQuantity === 0 || inputQuantity >= remainingQuantity;
                   });
 
                   if (!allRemainingQuantitiesWillBeZero) {
-                    const incompleteItems = orderData.items.filter((item: OrderItem) => {
-                      const inputQuantity = quantities[item.product_id] || 0;
+      const incompleteItems = orderData.items.filter((item: OrderItem) => { const inputQuantity = quantities[item.product_id] || 0;
                       const remainingQuantity = item.remaining_quantity || item.quantity;
                       // 現在既に完了済みの商品は除外
                       if (remainingQuantity <= 0) return false;
@@ -855,16 +812,13 @@ export const DeliveryModal = () => {
               <div className={`mb-4 border rounded-lg p-4 ${
                 deliveryType === 'full'
                   ? 'border-green-200 bg-green-50'
-                  : 'border-blue-200 bg-blue-50'
-              }`}>
+      : 'border-blue-200 bg-blue-50' }`}>
                 <h4 className={`font-medium mb-3 ${
-                  deliveryType === 'full' ? 'text-green-900' : 'text-blue-900'
-                }`}>
+      deliveryType === 'full' ? 'text-green-900' : 'text-blue-900' }`}>
                   {deliveryType === 'full' ? '📋 発注内容確認' : '個数指定'}
                 </h4>
                 <div className="space-y-4">
-                  {orderData.items.map((item: OrderItem) => (
-                    <div key={item.product_id} className="border border-gray-200 rounded-lg p-4 bg-white">
+      {orderData.items.map((item: OrderItem) => ( <div key={item.product_id} className="border border-gray-200 rounded-lg p-4 bg-white">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-1">
@@ -908,10 +862,8 @@ export const DeliveryModal = () => {
                               <span className={`px-3 py-1 text-sm rounded-lg font-semibold border ${
                                 item.stock_status === 'sufficient'
                                   ? 'bg-green-200 text-green-900 border-green-300'
-                                  : item.stock_status === 'insufficient'
-                                  ? 'bg-yellow-200 text-yellow-900 border-yellow-300'
-                                  : 'bg-red-200 text-red-900 border-red-300'
-                              }`}>
+      : item.stock_status === 'insufficient' ? 'bg-yellow-200 text-yellow-900 border-yellow-300'
+      : 'bg-red-200 text-red-900 border-red-300' }`}>
                                 📦 {item.current_stock}個
                               </span>
                               {item.stock_status === 'insufficient' && (
@@ -936,11 +888,9 @@ export const DeliveryModal = () => {
                             納品予定: {(item.remaining_quantity !== undefined && item.remaining_quantity <= 1) ? 0 : (item.remaining_quantity || item.quantity)}個
                           </span>
                         </div>
-                      ) : (
-                        /* 分納時は入力フィールド */
+      ) : ( /* 分納時は入力フィールド */
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-700">分納数量:</span>
-                          <div className="w-32">
+      <span className="text-sm font-medium text-gray-700">分納数量: </span> <div className="w-32">
                             <input
                             type="number"
                             min="0"
@@ -949,17 +899,14 @@ export const DeliveryModal = () => {
                             className={`w-full px-2 py-1 border rounded text-sm ${
                               item.stock_status === 'out_of_stock' || (item.remaining_quantity !== undefined && item.remaining_quantity <= 0)
                                 ? 'border-red-300 bg-red-50 cursor-not-allowed'
-                                : item.stock_status === 'insufficient'
-                                ? 'border-yellow-300 bg-yellow-50'
-                                : 'border-gray-300'
-                            }`}
+      : item.stock_status === 'insufficient' ? 'border-yellow-300 bg-yellow-50'
+      : 'border-gray-300' }`}
                             disabled={item.stock_status === 'out_of_stock' || (item.remaining_quantity !== undefined && item.remaining_quantity <= 0)}
                             title={item.stock_status === 'out_of_stock' ? '在庫切れのため入力不可' : (item.remaining_quantity !== undefined && item.remaining_quantity <= 0) ? '✅完了のため入力不可' : ''}
                             {...form.register(`quantities.${item.product_id}`, {
                               valueAsNumber: true,
                               min: { value: 0, message: '0以上の値を入力してください' },
-                              validate: (value) => {
-                                if (!value || value === 0) return true;
+      validate: (value) => { if (!value || value === 0) return true;
                                 const maxQuantity = item.remaining_quantity || item.quantity;
                                 const currentStock = item.current_stock || 0;
 
@@ -1026,8 +973,7 @@ export const DeliveryModal = () => {
 
                   {/* 在庫不足の統合警告 */}
                   {(() => {
-                    const stockShortageItems = orderData.items?.filter((item: OrderItem) =>
-                      item.stock_status === 'insufficient' || item.stock_status === 'out_of_stock'
+      const stockShortageItems = orderData.items?.filter((item: OrderItem) => item.stock_status === 'insufficient' || item.stock_status === 'out_of_stock'
                     ) || [];
 
                     if (stockShortageItems.length === 0) return null;
@@ -1039,8 +985,7 @@ export const DeliveryModal = () => {
                           以下の商品で在庫が不足しています。分納数量は現在在庫を超えて指定できません。
                         </div>
                         <div className="mt-2 space-y-1 max-h-20 overflow-y-auto">
-                          {stockShortageItems.map((item: OrderItem) => (
-                            <div key={item.product_id} className="text-xs bg-white p-1 rounded border-l-2 border-red-300">
+      {stockShortageItems.map((item: OrderItem) => ( <div key={item.product_id} className="text-xs bg-white p-1 rounded border-l-2 border-red-300">
                               <strong>{item.product_name}</strong>:
                               {item.stock_status === 'out_of_stock'
                                 ? ' 在庫切れ'
@@ -1068,10 +1013,8 @@ export const DeliveryModal = () => {
                       在庫不足のため全納登録ができません。在庫を確保後に再度実行してください。
                     </div>
                     <div className="text-xs text-red-600 bg-white p-2 rounded border border-red-200">
-                      <strong>不足商品一覧:</strong>
-                      {orderData.items
-                        .filter((item: OrderItem) =>
-                          item.stock_status === 'insufficient' ||
+      <strong>不足商品一覧: </strong> {orderData.items
+      .filter((item: OrderItem) => item.stock_status === 'insufficient' ||
                           item.stock_status === 'out_of_stock' ||
                           ((item.current_stock || 0) < (item.remaining_quantity || item.quantity))
                         )
@@ -1094,28 +1037,23 @@ export const DeliveryModal = () => {
                 <h4 className="font-semibold text-blue-900 mb-2 flex items-center">
                   📋 納期情報
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium text-gray-700">発注書の納期:</span>
-                    <p className="text-blue-700 font-semibold">
+      <div className="grid grid-cols-1 md: grid-cols-2 gap-4 text-sm"><div>
+      <span className="font-medium text-gray-700">発注書の納期: </span> <p className="text-blue-700 font-semibold">
                       {orderData.delivery_deadline ? new Date(orderData.delivery_deadline).toLocaleDateString('ja-JP') : '設定なし'}
                     </p>
                   </div>
                   <div>
-                    <span className="font-medium text-gray-700">ステータス:</span>
-                    <p className={`font-semibold ${
+      <span className="font-medium text-gray-700">ステータス: </span> <p className={`font-semibold ${
                       new Date(orderData.delivery_deadline || '') > new Date()
                         ? 'text-green-700'
-                        : 'text-red-700'
-                    }`}>
+      : 'text-red-700' }`}>
                       {new Date(orderData.delivery_deadline || '') > new Date() ? '✅ 期限内' : '⚠️ 期限超過'}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* 納期予定日 */}
+      <div className="grid grid-cols-1 md: grid-cols-2 gap-4">{/* 納期予定日 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     📅 この{deliveryType === 'full' ? '全納' : '分納'}の予定日 <span className="text-red-500">*</span>
@@ -1125,8 +1063,7 @@ export const DeliveryModal = () => {
                     {...form.register('scheduled_delivery_date', {
                       required: `${deliveryType === 'full' ? '全納' : '分納'}予定日を設定してください`
                     })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    min={new Date().toISOString().split('T')[0]} // 今日以降のみ選択可能
+      className="w-full px-3 py-2 border border-gray-300 rounded-md focus: outline-none focus:ring-2 focus:ring-blue-500"min={new Date().toISOString().split('T')[0]} // 今日以降のみ選択可能
                     required
                   />
                   <p className="mt-1 text-xs text-gray-500">
@@ -1174,8 +1111,7 @@ export const DeliveryModal = () => {
                 </label>
                 <select
                   {...form.register('delivery_reason')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
+      className="w-full px-3 py-2 border border-gray-300 rounded-md focus: outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="">理由を選択（任意）</option>
                   <option value="partial_ready">一部完成のため</option>
                   <option value="inventory_limit">在庫制約のため</option>
@@ -1200,8 +1136,7 @@ export const DeliveryModal = () => {
                   {...form.register('memo', {
                     maxLength: { value: 200, message: '備考は200文字以内で入力してください' }
                   })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="備考を入力..."
+      className="w-full px-3 py-2 border border-gray-300 rounded-md focus: outline-none focus:ring-2 focus:ring-blue-500"placeholder="備考を入力..."
                 />
                 {form.formState.errors.memo && (
                   <p className="mt-1 text-sm text-red-600">
@@ -1223,8 +1158,7 @@ export const DeliveryModal = () => {
                     <button
                       type="button"
                       onClick={generateDeliveryNotePDF}
-                      className="px-3 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors"
-                    >
+      className="px-3 py-2 bg-green-600 text-white text-sm rounded-md hover: bg-green-700 transition-colors">
                       📄 納品書PDF
                     </button>
                   </div>
@@ -1236,8 +1170,7 @@ export const DeliveryModal = () => {
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                >
+      className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover: bg-gray-50 transition-colors">
                   {lastDeliveryResult ? '閉じる' : 'キャンセル'}
                 </button>
                 {!lastDeliveryResult && (
@@ -1267,20 +1200,7 @@ export const DeliveryModal = () => {
                           const tolerance = 10;
                           const isAmountFull = Math.abs(enteredAmount - orderData.remaining_amount) <= tolerance;
 
-                          // デバッグ用ログ
-                            deliveryType,
-                            quantities,
-                            enteredAmount,
-                            remainingAmount: orderData.remaining_amount,
-                            allRemainingQuantitiesWillBeZero,
-                            isAmountFull,
-                            itemsCheck: orderData.items.map(item => ({
-                              name: item.product_name,
-                              inputQuantity: quantities[item.product_id] || 0,
-                              remainingQuantity: item.remaining_quantity || item.quantity,
-                              willBeZero: (item.remaining_quantity || item.quantity) === 0 || (quantities[item.product_id] || 0) >= (item.remaining_quantity || item.quantity)
-                            }))
-                          });
+                          // デバッグ用ログ（削除済み）
 
                           // 全商品完了なのに金額未満了の場合は無効化
                           if (allRemainingQuantitiesWillBeZero && !isAmountFull) {
@@ -1342,9 +1262,7 @@ export const DeliveryModal = () => {
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                           登録中...
                         </span>
-                      ) : (
-                        deliveryType === 'full' ? '全納登録' : '分納登録'
-                      )}
+      ) : ( deliveryType === 'full' ? '全納登録' : '分納登録' )}
                     </button>
                   </div>
                 )}

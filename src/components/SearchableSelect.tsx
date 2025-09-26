@@ -4,21 +4,10 @@ import { ChevronDown, X, Search } from 'lucide-react';
 // Updated: 2025-09-25 13:53 - Force component reload for UI improvements
 
 interface Option {
-  value: string;
-  label: string;
-  description?: string;
-  disabled?: boolean;
-}
+      value: string; label: string; description?: string; disabled?: boolean; }
 
 interface SearchableSelectProps {
-  options: Option[];
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  required?: boolean;
-  className?: string;
-  darkMode?: boolean;
-}
+      options: Option[]; value: string; onChange: (value: string) => void; placeholder?: string; required?: boolean; className?: string; darkMode?: boolean; }
 
 export default function SearchableSelect({
   options,
@@ -47,8 +36,7 @@ export default function SearchableSelect({
 
   // 外部クリック時に閉じる
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      function handleClickOutside(event: MouseEvent) { if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
         setSearchTerm('');
         setHighlightedIndex(-1);
@@ -67,8 +55,7 @@ export default function SearchableSelect({
   }, [isOpen]);
 
   // キーボード操作
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!isOpen) {
+      const handleKeyDown = (e: React.KeyboardEvent) => { if (!isOpen) {
       if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
         e.preventDefault();
         setIsOpen(true);
@@ -82,28 +69,21 @@ export default function SearchableSelect({
         setSearchTerm('');
         setHighlightedIndex(-1);
         break;
-      case 'ArrowDown': {
-        e.preventDefault();
-        let nextDown = prev < filteredOptions.length - 1 ? prev + 1 : 0;
-        // disabled項目をスキップ
+      case 'ArrowDown': { e.preventDefault();
+      let nextDown = prev < filteredOptions.length - 1 ? prev + 1 : 0; // disabled項目をスキップ
         while (filteredOptions[nextDown]?.disabled && nextDown !== prev) {
-          nextDown = nextDown < filteredOptions.length - 1 ? nextDown + 1 : 0;
-        }
+      nextDown = nextDown < filteredOptions.length - 1 ? nextDown + 1 : 0; }
         setHighlightedIndex(nextDown);
         break;
       }
-      case 'ArrowUp': {
-        e.preventDefault();
-        let nextUp = prev > 0 ? prev - 1 : filteredOptions.length - 1;
-        // disabled項目をスキップ
+      case 'ArrowUp': { e.preventDefault();
+      let nextUp = prev > 0 ? prev - 1 : filteredOptions.length - 1; // disabled項目をスキップ
         while (filteredOptions[nextUp]?.disabled && nextUp !== prev) {
-          nextUp = nextUp > 0 ? nextUp - 1 : filteredOptions.length - 1;
-        }
+      nextUp = nextUp > 0 ? nextUp - 1 : filteredOptions.length - 1; }
         setHighlightedIndex(nextUp);
         break;
       }
-      case 'Enter': {
-        e.preventDefault();
+      case 'Enter': { e.preventDefault();
         if (highlightedIndex >= 0 && filteredOptions[highlightedIndex] && !filteredOptions[highlightedIndex].disabled) {
           handleSelect(filteredOptions[highlightedIndex].value);
         }
@@ -119,21 +99,18 @@ export default function SearchableSelect({
       if (highlightedElement) {
         highlightedElement.scrollIntoView({
           block: 'nearest',
-          behavior: 'smooth'
-        });
+      behavior: 'smooth' });
       }
     }
   }, [highlightedIndex]);
 
-  const handleSelect = (optionValue: string) => {
-    onChange(optionValue);
+      const handleSelect = (optionValue: string) => { onChange(optionValue);
     setIsOpen(false);
     setSearchTerm('');
     setHighlightedIndex(-1);
   };
 
-  const handleClear = (e: React.MouseEvent) => {
-    e.stopPropagation();
+      const handleClear = (e: React.MouseEvent) => { e.stopPropagation();
     onChange('');
   };
 
@@ -157,19 +134,14 @@ export default function SearchableSelect({
         onClick={toggleDropdown}
         className={`
           flex items-center justify-between w-full px-3 py-2 border rounded-md cursor-pointer
-          transition-all duration-200 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500
-          ${darkMode 
-            ? 'bg-gray-800 border-gray-600 text-white hover:bg-gray-700' 
-            : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'
-          }
+      transition-all duration-200 focus-within: ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 ${darkMode 
+      ? 'bg-gray-800 border-gray-600 text-white hover: bg-gray-700'  : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50' }
           ${isOpen ? 'ring-2 ring-blue-500 border-blue-500' : ''}
         `}
       >
         <span className={`flex-1 text-left ${
           selectedOption 
-            ? darkMode ? 'text-white' : 'text-gray-900'
-            : darkMode ? 'text-gray-400' : 'text-gray-500'
-        }`}>
+      ? darkMode ? 'text-white' : 'text-gray-900' : darkMode ? 'text-gray-400' : 'text-gray-500' }`}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         
@@ -177,9 +149,7 @@ export default function SearchableSelect({
           {selectedOption && (
             <button
               onClick={handleClear}
-              className={`p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded ${
-                darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
-              }`}
+      className={`p-1 hover: bg-gray-200 dark:hover:bg-gray-600 rounded ${ darkMode ? 'text-gray-400 hover: text-gray-200' : 'text-gray-400 hover:text-gray-600' }`}
               type="button"
             >
               <X className="w-4 h-4" />
@@ -187,8 +157,7 @@ export default function SearchableSelect({
           )}
           <ChevronDown 
             className={`w-4 h-4 transition-transform ${
-              isOpen ? 'rotate-180' : ''
-            } ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
+      isOpen ? 'rotate-180' : '' } ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
           />
         </div>
       </div>
@@ -199,17 +168,14 @@ export default function SearchableSelect({
           absolute z-[9999] w-full mt-1 border rounded-lg shadow-2xl max-h-80 overflow-hidden min-w-max
           ${darkMode
             ? 'bg-gray-800 border-gray-600 shadow-gray-900/50'
-            : 'bg-white border-gray-300 shadow-gray-500/25'
-          }
+      : 'bg-white border-gray-300 shadow-gray-500/25' }
         `}>
           {/* 検索フィールド */}
           <div className={`sticky top-0 p-3 border-b ${
-            darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'
-          }`}>
+      darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200' }`}>
             <div className="relative">
               <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${
-                darkMode ? 'text-gray-400' : 'text-gray-500'
-              }`} />
+      darkMode ? 'text-gray-400' : 'text-gray-500' }`} />
               <input
                 ref={searchInputRef}
                 type="text"
@@ -220,11 +186,9 @@ export default function SearchableSelect({
                   setHighlightedIndex(-1);
                 }}
                 className={`
-                  w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500
-                  ${darkMode 
+      w-full pl-10 pr-3 py-2 border rounded-md focus: outline-none focus:ring-2 focus:ring-blue-500 ${darkMode 
                     ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                  }
+      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500' }
                 `}
               />
             </div>
@@ -233,20 +197,16 @@ export default function SearchableSelect({
           {/* オプションリスト */}
           <div
             ref={dropdownRef}
-            className="max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-800 hover:scrollbar-thumb-gray-500 dark:hover:scrollbar-thumb-gray-500"
-            style={{
+      className="max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 dark: scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-800 hover:scrollbar-thumb-gray-500 dark:hover:scrollbar-thumb-gray-500"style={{
               scrollbarWidth: 'thin',
-              scrollbarColor: 'rgb(156 163 175) rgb(243 244 246)'
-            }}
+      scrollbarColor: 'rgb(156 163 175) rgb(243 244 246)' }}
           >
             {filteredOptions.length === 0 ? (
               <div className={`px-3 py-2 text-sm ${
-                darkMode ? 'text-gray-400' : 'text-gray-500'
-              }`}>
+      darkMode ? 'text-gray-400' : 'text-gray-500' }`}>
                 該当する項目がありません
               </div>
-            ) : (
-              filteredOptions.map((option, index) => (
+      ) : ( filteredOptions.map((option, index) => (
                 <div
                   key={option.value}
                   onClick={() => {
@@ -260,28 +220,20 @@ export default function SearchableSelect({
                     transition-colors duration-150
                     ${option.disabled
                       ? 'cursor-not-allowed opacity-50'
-                      : 'cursor-pointer'
-                    }
+      : 'cursor-pointer' }
                     ${!option.disabled && index === highlightedIndex
-                      ? darkMode ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-900'
-                      : darkMode
-                        ? 'text-white hover:bg-gray-700'
-                        : 'text-gray-900 hover:bg-gray-50'
-                    }
+      ? darkMode ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-900' : darkMode ? 'text-white hover: bg-gray-700' : 'text-gray-900 hover:bg-gray-50' }
                     ${darkMode ? 'border-gray-600' : 'border-gray-300'}
                   `}
                   style={{
                     padding: '16px 20px',
                     borderBottom: index < filteredOptions.length - 1 ? '2px solid #d1d5db' : 'none',
-                    borderBottomColor: darkMode ? '#4b5563' : '#d1d5db'
-                  }}
+      borderBottomColor: darkMode ? '#4b5563' : '#d1d5db' }}
                 >
                   <div
                     className={`font-semibold mb-2 ${
                       index === highlightedIndex
-                        ? darkMode ? 'text-white' : 'text-blue-900'
-                        : darkMode ? 'text-white' : 'text-gray-900'
-                    }`}
+      ? darkMode ? 'text-white' : 'text-blue-900' : darkMode ? 'text-white' : 'text-gray-900' }`}
                     style={{ fontSize: '18px', fontWeight: '600', lineHeight: '1.4' }}
                   >
                     {option.label}
@@ -290,9 +242,7 @@ export default function SearchableSelect({
                     <div
                       className={`leading-relaxed ${
                         index === highlightedIndex
-                          ? darkMode ? 'text-blue-200' : 'text-blue-700'
-                          : darkMode ? 'text-gray-400' : 'text-gray-500'
-                      }`}
+      ? darkMode ? 'text-blue-200' : 'text-blue-700' : darkMode ? 'text-gray-400' : 'text-gray-500' }`}
                       style={{ fontSize: '11px', lineHeight: '1.5' }}
                     >
                       {option.description}

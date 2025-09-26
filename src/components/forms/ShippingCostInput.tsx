@@ -5,17 +5,8 @@ import { useDarkMode } from '../../hooks/useDarkMode';
 import { useShippingSettings, useAutoShippingInput, ShippingUtils } from '../../hooks/useShippingCost';
 
 interface ShippingCostInputProps {
-  supplierId?: string;
-  orderValue?: number;
-  totalWeight?: number;
-  value?: number;
-  onChange: (shippingCost: number, shippingTax: number, details?: any) => void;
-  disabled?: boolean;
-  error?: string;
-  className?: string;
-  showCalculationButton?: boolean;
-  autoCalculate?: boolean;
-}
+      supplierId?: string; orderValue?: number; totalWeight?: number; value?: number; onChange: (shippingCost: number, shippingTax: number, details?: any) => void;
+      disabled?: boolean; error?: string; className?: string; showCalculationButton?: boolean; autoCalculate?: boolean; }
 
 export const ShippingCostInput: React.FC<ShippingCostInputProps> = ({
   supplierId,
@@ -40,8 +31,7 @@ export const ShippingCostInput: React.FC<ShippingCostInputProps> = ({
 
   // 利用可能な配送方法
   const availableMethods = useMemo(() => {
-    const settings = supplierSettings.length > 0 ? supplierSettings : defaultSettings;
-    return settings.map(setting => ({
+      const settings = supplierSettings.length > 0 ? supplierSettings : defaultSettings; return settings.map(setting => ({
       value: setting.shipping_method,
       label: ShippingUtils.getShippingMethodLabel(setting.shipping_method),
       baseCost: setting.base_cost,
@@ -50,8 +40,7 @@ export const ShippingCostInput: React.FC<ShippingCostInputProps> = ({
   }, [supplierSettings, defaultSettings]);
 
   // 自動計算実行
-  const performCalculation = async (method?: string) => {
-    if (!supplierId) return;
+      const performCalculation = async (method?: string) => { if (!supplierId) return;
 
     setIsCalculating(true);
     try {
@@ -80,15 +69,13 @@ export const ShippingCostInput: React.FC<ShippingCostInputProps> = ({
   }, [supplierId, orderValue, totalWeight, selectedMethod, autoCalculate, availableMethods.length]);
 
   // 手動入力値の更新
-  const handleManualInput = (inputValue: string) => {
-    const numericValue = parseInt(inputValue) || 0;
+      const handleManualInput = (inputValue: string) => { const numericValue = parseInt(inputValue) || 0;
     setManualInput(true);
     onChange(numericValue, Math.floor(numericValue * 0.1), { manual: true }); // 10%税率で計算
   };
 
   // 配送方法変更
-  const handleMethodChange = (method: string) => {
-    setSelectedMethod(method);
+      const handleMethodChange = (method: string) => { setSelectedMethod(method);
     if (!manualInput) {
       performCalculation(method);
     }
@@ -108,8 +95,7 @@ export const ShippingCostInput: React.FC<ShippingCostInputProps> = ({
       {availableMethods.length > 1 && (
         <div>
           <label className={`block text-sm font-medium mb-2 ${
-            isDark ? 'text-gray-300' : 'text-gray-700'
-          }`}>
+      isDark ? 'text-gray-300' : 'text-gray-700' }`}>
             配送方法
           </label>
           <div className="grid grid-cols-2 gap-2">
@@ -122,11 +108,7 @@ export const ShippingCostInput: React.FC<ShippingCostInputProps> = ({
                 className={`
                   px-3 py-2 text-sm border rounded-lg transition-colors
                   ${selectedMethod === method.value
-                    ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
-                    : isDark
-                      ? 'border-gray-600 bg-gray-700 text-gray-300 hover:border-gray-500'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-                  }
+      ? 'border-blue-500 bg-blue-50 text-blue-700 dark: bg-blue-900 dark:text-blue-200' : isDark ? 'border-gray-600 bg-gray-700 text-gray-300 hover: border-gray-500' : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400' }
                   ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 `}
               >
@@ -147,8 +129,7 @@ export const ShippingCostInput: React.FC<ShippingCostInputProps> = ({
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className={`text-sm font-medium ${
-            isDark ? 'text-gray-300' : 'text-gray-700'
-          }`}>
+      isDark ? 'text-gray-300' : 'text-gray-700' }`}>
             送料
           </label>
           <div className="flex items-center space-x-2">
@@ -161,17 +142,14 @@ export const ShippingCostInput: React.FC<ShippingCostInputProps> = ({
                 className={`
                   flex items-center space-x-1 px-2 py-1 text-xs border rounded transition-colors
                   ${isDark
-                    ? 'border-gray-600 text-gray-400 hover:text-white hover:border-gray-500'
-                    : 'border-gray-300 text-gray-600 hover:text-gray-900 hover:border-gray-400'
-                  }
+      ? 'border-gray-600 text-gray-400 hover: text-white hover:border-gray-500' : 'border-gray-300 text-gray-600 hover:text-gray-900 hover:border-gray-400' }
                   ${disabled || isCalculating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 `}
                 title="自動計算"
               >
                 {isCalculating ? (
                   <Loader className="h-3 w-3 animate-spin" />
-                ) : (
-                  <Calculator className="h-3 w-3" />
+      ) : ( <Calculator className="h-3 w-3" />
                 )}
                 <span>自動計算</span>
               </button>
@@ -183,8 +161,7 @@ export const ShippingCostInput: React.FC<ShippingCostInputProps> = ({
                 type="button"
                 onClick={resetToAutoCalculation}
                 className={`
-                  flex items-center space-x-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-800
-                  border border-blue-300 rounded transition-colors
+      flex items-center space-x-1 px-2 py-1 text-xs text-blue-600 hover: text-blue-800 border border-blue-300 rounded transition-colors
                 `}
                 title="自動計算に戻る"
               >
@@ -197,8 +174,7 @@ export const ShippingCostInput: React.FC<ShippingCostInputProps> = ({
 
         <div className="relative">
           <Truck className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 ${
-            error ? 'text-red-500' : 'text-gray-400'
-          }`} />
+      error ? 'text-red-500' : 'text-gray-400' }`} />
 
           <input
             type="number"
@@ -210,14 +186,11 @@ export const ShippingCostInput: React.FC<ShippingCostInputProps> = ({
               w-full pl-10 pr-4 py-2 border rounded-lg transition-colors
               ${disabled
                 ? 'bg-gray-100 cursor-not-allowed'
-                : isDark
-                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400'
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-              }
+      : isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400'
+      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500' }
               ${error
                 ? 'border-red-500 ring-1 ring-red-500'
-                : 'focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500'
-              }
+      : 'focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500' }
             `}
           />
 
@@ -249,8 +222,7 @@ export const ShippingCostInput: React.FC<ShippingCostInputProps> = ({
               p-3 rounded-lg border
               ${isDark
                 ? 'bg-gray-800 border-gray-700'
-                : 'bg-gray-50 border-gray-200'
-              }
+      : 'bg-gray-50 border-gray-200' }
             `}
           >
             <div className="text-sm space-y-1">
@@ -267,8 +239,7 @@ export const ShippingCostInput: React.FC<ShippingCostInputProps> = ({
                 <div className="text-green-600 font-medium text-center">
                   🎉 送料無料適用
                 </div>
-              ) : (
-                <>
+      ) : ( <>
                   <div className="flex justify-between">
                     <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>
                       送料（税抜）:
@@ -316,8 +287,7 @@ export const ShippingCostInput: React.FC<ShippingCostInputProps> = ({
       {/* 読み込み状態 */}
       {isLoadingSettings && (
         <div className={`flex items-center space-x-2 text-sm ${
-          isDark ? 'text-gray-400' : 'text-gray-500'
-        }`}>
+      isDark ? 'text-gray-400' : 'text-gray-500' }`}>
           <Loader className="h-4 w-4 animate-spin" />
           <span>送料設定を読み込み中...</span>
         </div>

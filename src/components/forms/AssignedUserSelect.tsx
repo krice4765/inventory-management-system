@@ -5,16 +5,7 @@ import { useDarkMode } from '../../hooks/useDarkMode';
 import { useAssignedUsers, AssignedUserUtils, type AssignedUserOption } from '../../hooks/useAssignedUsers';
 
 interface AssignedUserSelectProps {
-  value?: string;
-  onChange: (userId: string | null) => void;
-  placeholder?: string;
-  required?: boolean;
-  disabled?: boolean;
-  error?: string;
-  className?: string;
-  showDepartment?: boolean;
-  allowClear?: boolean;
-}
+      value?: string; onChange: (userId: string | null) => void; placeholder?: string; required?: boolean; disabled?: boolean; error?: string; className?: string; showDepartment?: boolean; allowClear?: boolean; }
 
 export const AssignedUserSelect: React.FC<AssignedUserSelectProps> = ({
   value,
@@ -50,24 +41,20 @@ export const AssignedUserSelect: React.FC<AssignedUserSelectProps> = ({
   }, [activeUserOptions, searchTerm]);
 
   // 選択処理
-  const handleSelect = (userId: string | null) => {
-    onChange(userId);
+      const handleSelect = (userId: string | null) => { onChange(userId);
     setIsOpen(false);
     setSearchTerm('');
   };
 
   // クリア処理
-  const handleClear = (e: React.MouseEvent) => {
-    e.preventDefault();
+      const handleClear = (e: React.MouseEvent) => { e.preventDefault();
     e.stopPropagation();
     handleSelect(null);
   };
 
   // エラー状態の判定
   const hasError = !!error || !!fetchError;
-  const errorMessage = error || (fetchError ? 'データの取得に失敗しました' : '');
-
-  return (
+      const errorMessage = error || (fetchError ? 'データの取得に失敗しました' : ''); return (
     <div className={`relative ${className}`}>
       {/* メインの選択ボックス */}
       <div
@@ -76,24 +63,18 @@ export const AssignedUserSelect: React.FC<AssignedUserSelectProps> = ({
           relative w-full px-3 py-2 text-left border rounded-lg transition-colors cursor-pointer
           ${disabled
             ? 'bg-gray-100 cursor-not-allowed'
-            : isDark
-              ? 'bg-gray-800 border-gray-700 hover:border-gray-600'
-              : 'bg-white border-gray-300 hover:border-gray-400'
-          }
+      : isDark ? 'bg-gray-800 border-gray-700 hover: border-gray-600' : 'bg-white border-gray-300 hover:border-gray-400' }
           ${hasError
             ? 'border-red-500 ring-1 ring-red-500'
-            : isOpen
-              ? 'border-blue-500 ring-1 ring-blue-500'
-              : ''
-          }
+      : isOpen ? 'border-blue-500 ring-1 ring-blue-500'
+      : '' }
           ${disabled ? 'opacity-50' : ''}
         `}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2 flex-1 min-w-0">
             <User className={`h-4 w-4 flex-shrink-0 ${
-              hasError ? 'text-red-500' : 'text-gray-400'
-            }`} />
+      hasError ? 'text-red-500' : 'text-gray-400' }`} />
 
             <div className="flex-1 min-w-0">
               {isLoading ? (
@@ -103,25 +84,20 @@ export const AssignedUserSelect: React.FC<AssignedUserSelectProps> = ({
                     読み込み中...
                   </span>
                 </div>
-              ) : selectedUser ? (
-                <div>
+      ) : selectedUser ? ( <div>
                   <div className={`font-medium truncate ${
-                    isDark ? 'text-white' : 'text-gray-900'
-                  }`}>
+      isDark ? 'text-white' : 'text-gray-900' }`}>
                     {selectedUser.label}
                   </div>
                   {showDepartment && selectedUser.department && (
                     <div className={`text-xs truncate ${
-                      isDark ? 'text-gray-400' : 'text-gray-500'
-                    }`}>
+      isDark ? 'text-gray-400' : 'text-gray-500' }`}>
                       {selectedUser.department}
                     </div>
                   )}
                 </div>
-              ) : (
-                <span className={`text-sm ${
-                  isDark ? 'text-gray-400' : 'text-gray-500'
-                }`}>
+      ) : ( <span className={`text-sm ${
+      isDark ? 'text-gray-400' : 'text-gray-500' }`}>
                   {placeholder}
                   {required && <span className="text-red-500 ml-1">*</span>}
                 </span>
@@ -135,9 +111,7 @@ export const AssignedUserSelect: React.FC<AssignedUserSelectProps> = ({
               <button
                 type="button"
                 onClick={handleClear}
-                className={`p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${
-                  isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'
-                }`}
+      className={`p-1 rounded hover: bg-gray-200 dark:hover:bg-gray-700 transition-colors ${ isDark ? 'text-gray-400 hover: text-white' : 'text-gray-500 hover:text-gray-700' }`}
                 title="選択をクリア"
               >
                 ×
@@ -146,8 +120,7 @@ export const AssignedUserSelect: React.FC<AssignedUserSelectProps> = ({
 
             {/* 展開アイコン */}
             <ChevronDown className={`h-4 w-4 transition-transform ${
-              isOpen ? 'transform rotate-180' : ''
-            } ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+      isOpen ? 'transform rotate-180' : '' } ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
           </div>
         </div>
       </div>
@@ -172,13 +145,11 @@ export const AssignedUserSelect: React.FC<AssignedUserSelectProps> = ({
               absolute z-50 w-full mt-1 rounded-lg border shadow-lg
               ${isDark
                 ? 'bg-gray-800 border-gray-700'
-                : 'bg-white border-gray-300'
-              }
+      : 'bg-white border-gray-300' }
             `}
           >
             {/* 検索ボックス */}
-            <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-              <div className="relative">
+      <div className="p-3 border-b border-gray-200 dark: border-gray-700"><div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
@@ -189,10 +160,8 @@ export const AssignedUserSelect: React.FC<AssignedUserSelectProps> = ({
                     w-full pl-10 pr-4 py-2 text-sm border rounded-md
                     ${isDark
                       ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                    }
-                    focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500
-                  `}
+      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500' }
+      focus: outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 `}
                 />
               </div>
             </div>
@@ -201,12 +170,10 @@ export const AssignedUserSelect: React.FC<AssignedUserSelectProps> = ({
             <div className="max-h-64 overflow-y-auto">
               {filteredOptions.length === 0 ? (
                 <div className={`px-3 py-4 text-center text-sm ${
-                  isDark ? 'text-gray-400' : 'text-gray-500'
-                }`}>
+      isDark ? 'text-gray-400' : 'text-gray-500' }`}>
                   {searchTerm ? '該当する担当者が見つかりません' : '利用可能な担当者がいません'}
                 </div>
-              ) : (
-                <div className="py-1">
+      ) : ( <div className="py-1">
                   {filteredOptions.map((option) => (
                     <button
                       key={option.value}
@@ -221,11 +188,7 @@ export const AssignedUserSelect: React.FC<AssignedUserSelectProps> = ({
                         ${option.value === value
                           ? isDark
                             ? 'bg-blue-900 text-blue-200'
-                            : 'bg-blue-50 text-blue-900'
-                          : isDark
-                            ? 'hover:bg-gray-700 text-gray-300'
-                            : 'hover:bg-gray-50 text-gray-900'
-                        }
+      : 'bg-blue-50 text-blue-900' : isDark ? 'hover: bg-gray-700 text-gray-300' : 'hover:bg-gray-50 text-gray-900' }
                       `}
                     >
                       <div className="flex items-center justify-between">
@@ -241,9 +204,7 @@ export const AssignedUserSelect: React.FC<AssignedUserSelectProps> = ({
                           {showDepartment && option.department && (
                             <div className={`text-xs mt-1 ${
                               option.value === value
-                                ? isDark ? 'text-blue-300' : 'text-blue-700'
-                                : isDark ? 'text-gray-400' : 'text-gray-500'
-                            }`}>
+      ? isDark ? 'text-blue-300' : 'text-blue-700' : isDark ? 'text-gray-400' : 'text-gray-500' }`}>
                               {option.department}
                             </div>
                           )}
@@ -260,8 +221,7 @@ export const AssignedUserSelect: React.FC<AssignedUserSelectProps> = ({
               <div className={`px-3 py-2 text-xs border-t ${
                 isDark
                   ? 'border-gray-700 text-gray-400'
-                  : 'border-gray-200 text-gray-500'
-              }`}>
+      : 'border-gray-200 text-gray-500' }`}>
                 {filteredOptions.length} / {activeUserOptions.length} 人の担当者
                 {required && ' （※必須項目）'}
               </div>
@@ -294,8 +254,7 @@ export const ValidatedAssignedUserSelect: React.FC<ValidatedAssignedUserSelectPr
   const [validationError, setValidationError] = useState<string | undefined>();
 
   // バリデーション処理
-  const handleChange = (userId: string | null) => {
-    const validation = AssignedUserUtils.validateAssignedUser(userId, users);
+      const handleChange = (userId: string | null) => { const validation = AssignedUserUtils.validateAssignedUser(userId, users);
 
     setValidationError(validation.error);
 

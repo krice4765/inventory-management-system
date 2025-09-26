@@ -4,11 +4,7 @@ import { motion } from 'framer-motion';
 import { useDarkMode } from '../../hooks/useDarkMode';
 
 interface TaxDisplayToggleProps {
-  taxDisplayMode?: 'tax_included' | 'tax_excluded';
-  onToggle?: (mode: 'tax_included' | 'tax_excluded') => void;
-  className?: string;
-  size?: 'sm' | 'md' | 'lg';
-}
+      taxDisplayMode?: 'tax_included' | 'tax_excluded'; onToggle?: (mode: 'tax_included' | 'tax_excluded') => void; className?: string; size?: 'sm' | 'md' | 'lg'; }
 
 export const TaxDisplayToggle: React.FC<TaxDisplayToggleProps> = ({
   taxDisplayMode: propTaxDisplayMode,
@@ -23,8 +19,7 @@ export const TaxDisplayToggle: React.FC<TaxDisplayToggleProps> = ({
 
   const taxDisplayMode = propTaxDisplayMode || internalMode;
 
-  const handleToggle = (mode: 'tax_included' | 'tax_excluded') => {
-    if (onToggle) {
+      const handleToggle = (mode: 'tax_included' | 'tax_excluded') => { if (onToggle) {
       onToggle(mode);
     } else {
       setInternalMode(mode);
@@ -34,26 +29,22 @@ export const TaxDisplayToggle: React.FC<TaxDisplayToggleProps> = ({
   const sizeClasses = {
     sm: 'px-2 py-1 text-xs',
     md: 'px-3 py-2 text-sm',
-    lg: 'px-4 py-3 text-base'
-  };
+      lg: 'px-4 py-3 text-base' };
 
   const iconSizes = {
     sm: 'h-3 w-3',
     md: 'h-4 w-4',
-    lg: 'h-5 w-5'
-  };
+      lg: 'h-5 w-5' };
 
   return (
     <div className={`flex items-center space-x-1 ${className}`}>
       <span className={`text-sm font-medium ${
-        isDark ? 'text-gray-300' : 'text-gray-600'
-      }`}>
+      isDark ? 'text-gray-300' : 'text-gray-600' }`}>
         表示:
       </span>
 
       <div className={`relative flex rounded-lg p-1 ${
-        isDark ? 'bg-gray-700' : 'bg-gray-100'
-      }`}>
+      isDark ? 'bg-gray-700' : 'bg-gray-100' }`}>
         {/* 背景のアニメーション */}
         <motion.div
           className="absolute top-1 bottom-1 bg-blue-600 rounded-md"
@@ -66,8 +57,7 @@ export const TaxDisplayToggle: React.FC<TaxDisplayToggleProps> = ({
           transition={{
             type: 'spring',
             stiffness: 500,
-            damping: 30
-          }}
+      damping: 30 }}
         />
 
         {/* 税込ボタン */}
@@ -78,10 +68,7 @@ export const TaxDisplayToggle: React.FC<TaxDisplayToggleProps> = ({
           } ${
             taxDisplayMode === 'tax_included'
               ? 'text-white'
-              : isDark
-                ? 'text-gray-300 hover:text-white'
-                : 'text-gray-600 hover:text-gray-900'
-          }`}
+      : isDark ? 'text-gray-300 hover: text-white' : 'text-gray-600 hover:text-gray-900' }`}
         >
           <TrendingUp className={iconSizes[size]} />
           <span>税込</span>
@@ -95,10 +82,7 @@ export const TaxDisplayToggle: React.FC<TaxDisplayToggleProps> = ({
           } ${
             taxDisplayMode === 'tax_excluded'
               ? 'text-white'
-              : isDark
-                ? 'text-gray-300 hover:text-white'
-                : 'text-gray-600 hover:text-gray-900'
-          }`}
+      : isDark ? 'text-gray-300 hover: text-white' : 'text-gray-600 hover:text-gray-900' }`}
         >
           <Calculator className={iconSizes[size]} />
           <span>税抜</span>
@@ -107,8 +91,7 @@ export const TaxDisplayToggle: React.FC<TaxDisplayToggleProps> = ({
 
       {/* 表示モード説明（小さなヒント） */}
       <div className={`text-xs ${
-        isDark ? 'text-gray-500' : 'text-gray-400'
-      }`}>
+      isDark ? 'text-gray-500' : 'text-gray-400' }`}>
         {taxDisplayMode === 'tax_included' ? '(税込価格)' : '(税抜価格)'}
       </div>
     </div>

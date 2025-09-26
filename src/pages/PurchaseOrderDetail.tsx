@@ -8,55 +8,15 @@ import { ConfirmOrderButton } from '../components/transactions/ConfirmOrderButto
 import { calculateDeliveryStatus, getStatusColorClasses } from '../utils/deliveryStatus';
 
 interface PurchaseTransaction {
-  id: string;
-  transaction_no: string;
-  partner_name: string;
-  partner_code: string;
-  transaction_date: string;
-  status: string;
-  total_amount: number;
-  installment_no: number;
-  memo?: string;
-  confirmed_at?: string;
-  confirmed_by?: string;
-  transaction_items?: Array<{
-    id: string;
-    product_id: string;
-    quantity: number;
-    unit_price: number;
-    total_amount: number;
-    products?: {
-      id: string;
-      product_name: string;
-      product_code: string;
-    };
+      id: string; transaction_no: string; partner_name: string; partner_code: string; transaction_date: string; status: string; total_amount: number; installment_no: number; memo?: string; confirmed_at?: string; confirmed_by?: string; transaction_items?: Array<{ id: string; product_id: string; quantity: number; unit_price: number; total_amount: number; products?: { id: string; product_name: string; product_code: string; };
   }>;
 }
 
 interface PurchaseOrderDetail {
-  order_no: string;
-  partner_name: string;
-  partner_code: string;
-  order_date: string;
-  delivery_deadline?: string;
-  order_manager_name?: string;
-  order_manager_department?: string;
-  total_amount: number;
-  memo?: string;
-  created_at: string;
-}
+      order_no: string; partner_name: string; partner_code: string; order_date: string; delivery_deadline?: string; order_manager_name?: string; order_manager_department?: string; total_amount: number; memo?: string; created_at: string; }
 
 interface OrderItem {
-  id: string;
-  product_id: string;
-  quantity: number;
-  unit_price: number;
-  total_amount: number;
-  products?: {
-    id: string;
-    product_name: string;
-    product_code: string;
-  };
+      id: string; product_id: string; quantity: number; unit_price: number; total_amount: number; products?: { id: string; product_name: string; product_code: string; };
 }
 
 export default function PurchaseOrderDetail() {
@@ -69,8 +29,7 @@ export default function PurchaseOrderDetail() {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchPurchaseOrderDetail = useCallback(async (orderId: string) => {
-    try {
+      const fetchPurchaseOrderDetail = useCallback(async (orderId: string) => { try {
       setLoading(true);
 
       // 🚨 発注書基本データを取得
@@ -133,6 +92,7 @@ export default function PurchaseOrderDetail() {
         }
       }
 
+      console.log('PurchaseOrderDetail debug:', {
         orderNo: orderDetailData.order_no,
         assignedUser: { name: assignedUserName, department: assignedUserDepartment },
         deliveryDeadline: orderDetailData.delivery_deadline,
@@ -181,6 +141,7 @@ export default function PurchaseOrderDetail() {
       }
 
       // 🔍 デバッグログ: 取得されたtransactionデータを確認
+      console.log('Transaction data debug:', {
         orderId,
         transactionCount: transactionData?.length || 0,
         transactionData: transactionData?.map(tx => ({
@@ -218,8 +179,7 @@ export default function PurchaseOrderDetail() {
             // transaction_itemsに商品情報をマージ
             transactionItems = tx.transaction_items.map(item => ({
               ...item,
-              products: productsData?.find(p => p.id === item.product_id) || null
-            }));
+      products: productsData?.find(p => p.id === item.product_id) || null }));
           } else {
             transactionItems = tx.transaction_items;
           }
@@ -258,10 +218,10 @@ export default function PurchaseOrderDetail() {
                   quantity: estimatedQuantity,
                   unit_price: item.unit_price || 0,
                   total_amount: (item.unit_price || 0) * estimatedQuantity,
-                  products: item.products
-                };
+      products: item.products };
               }).filter(item => item.quantity > 0); // 数量0の商品は除外
 
+              console.log('Transaction items debug:', {
                 transactionId: tx.id,
                 totalAmount: tx.total_amount,
                 orderTotalAmount,
@@ -325,8 +285,7 @@ export default function PurchaseOrderDetail() {
     }
   }, [navigate]);
 
-  const fetchOrderDetail = useCallback(async (orderId: string) => {
-    await fetchPurchaseOrderDetail(orderId);
+      const fetchOrderDetail = useCallback(async (orderId: string) => { await fetchPurchaseOrderDetail(orderId);
   }, [fetchPurchaseOrderDetail]);
 
   useEffect(() => {
@@ -337,22 +296,12 @@ export default function PurchaseOrderDetail() {
     }
   }, [id, fetchOrderDetail]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'draft': return 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400';
-      case 'confirmed': return 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400';
-      case 'cancelled': return 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400';
-      default: return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-400';
-    }
+      const getStatusColor = (status: string) => { switch (status) {
+      case 'draft': return 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400'; case 'confirmed': return 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'; case 'cancelled': return 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'; default: return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-400'; }
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'draft': return '未確定';
-      case 'confirmed': return '確定';
-      case 'cancelled': return 'キャンセル';
-      default: return status;
-    }
+      const getStatusText = (status: string) => { switch (status) {
+      case 'draft': return '未確定'; case 'confirmed': return '確定'; case 'cancelled': return 'キャンセル'; default: return status; }
   };
 
   const getTotalConfirmedAmount = () => {
@@ -380,16 +329,11 @@ export default function PurchaseOrderDetail() {
       orderTotalAmount: orderDetail.total_amount,
       confirmedAmount: getTotalConfirmedAmount(),
       draftAmount: getTotalDraftAmount(),
-      orderItems: orderItems.map(item => ({
-        product_id: item.product_id,
-        quantity: item.quantity
-      })),
-      transactions: transactions.map(tx => ({
-        status: tx.status,
-        transaction_items: tx.transaction_items?.map(item => ({
-          product_id: item.product_id,
-          quantity: item.quantity || 0
-        }))
+      orderItems: orderItems.map(item => ({ product_id: item.product_id,
+      quantity: item.quantity })),
+      transactions: transactions.map(tx => ({ status: tx.status,
+      transaction_items: tx.transaction_items?.map(item => ({ product_id: item.product_id,
+      quantity: item.quantity || 0 }))
       }))
     });
   };
@@ -440,12 +384,10 @@ export default function PurchaseOrderDetail() {
         {/* 基本情報カード */}
         <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} shadow rounded-lg p-6 transition-colors duration-300`}>
           <h2 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>発注基本情報</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="space-y-4">
+      <div className="grid grid-cols-1 md: grid-cols-2 lg:grid-cols-3 gap-6"><div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/20' : 'bg-blue-50'}`}>
-                  <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                </div>
+      <User className="w-5 h-5 text-blue-600 dark: text-blue-400" /></div>
                 <div>
                   <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>仕入先</p>
                   <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{orderDetail.partner_name}</p>
@@ -456,8 +398,7 @@ export default function PurchaseOrderDetail() {
               {orderDetail.order_manager_name && (
                 <div className="flex items-center space-x-3">
                   <div className={`p-2 rounded-lg ${isDark ? 'bg-green-900/20' : 'bg-green-50'}`}>
-                    <User className="w-5 h-5 text-green-600 dark:text-green-400" />
-                  </div>
+      <User className="w-5 h-5 text-green-600 dark: text-green-400" /></div>
                   <div>
                     <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>発注担当者</p>
                     <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{orderDetail.order_manager_name}</p>
@@ -472,8 +413,7 @@ export default function PurchaseOrderDetail() {
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-900/20' : 'bg-purple-50'}`}>
-                  <Calendar className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                </div>
+      <Calendar className="w-5 h-5 text-purple-600 dark: text-purple-400" /></div>
                 <div>
                   <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>発注日</p>
                   <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -485,8 +425,7 @@ export default function PurchaseOrderDetail() {
               {orderDetail.delivery_deadline && (
                 <div className="flex items-center space-x-3">
                   <div className={`p-2 rounded-lg ${isDark ? 'bg-orange-900/20' : 'bg-orange-50'}`}>
-                    <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                  </div>
+      <Clock className="w-5 h-5 text-orange-600 dark: text-orange-400" /></div>
                   <div>
                     <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>納期</p>
                     <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -500,8 +439,7 @@ export default function PurchaseOrderDetail() {
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <div className={`p-2 rounded-lg ${isDark ? 'bg-green-900/20' : 'bg-green-50'}`}>
-                  <DollarSign className="w-5 h-5 text-green-600 dark:text-green-400" />
-                </div>
+      <DollarSign className="w-5 h-5 text-green-600 dark: text-green-400" /></div>
                 <div>
                   <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>発注総額</p>
                   <p className={`font-medium text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -539,9 +477,7 @@ export default function PurchaseOrderDetail() {
                   <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>残額</span>
                   <span className={`font-medium ${
                     deliveryStatus && deliveryStatus.remainingAmount === 0
-                      ? isDark ? 'text-green-400' : 'text-green-600'
-                      : isDark ? 'text-blue-400' : 'text-blue-600'
-                  }`}>
+      ? isDark ? 'text-green-400' : 'text-green-600' : isDark ? 'text-blue-400' : 'text-blue-600' }`}>
                     ¥{deliveryStatus ? deliveryStatus.remainingAmount.toLocaleString() : getRemainingAmount().toLocaleString()}
                   </span>
                 </div>
@@ -550,8 +486,7 @@ export default function PurchaseOrderDetail() {
           </div>
 
           {orderDetail.memo && (
-            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>備考</p>
+      <div className="mt-6 pt-6 border-t border-gray-200 dark: border-gray-700"><p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>備考</p>
               <p className={`mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{orderDetail.memo}</p>
             </div>
           )}
@@ -559,16 +494,14 @@ export default function PurchaseOrderDetail() {
 
         {/* 納品進捗カード */}
         <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} shadow rounded-lg overflow-hidden transition-colors duration-300`}>
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-            <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>納品進捗</h2>
+      <div className="px-6 py-4 border-b border-gray-200 dark: border-gray-700 flex justify-between items-center"><h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>納品進捗</h2>
             <span className={`text-sm px-3 py-1 rounded-full ${isDark ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-100 text-blue-800'}`}>
               {transactions.length}回分納
             </span>
           </div>
           
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className={`${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+      <table className="min-w-full divide-y divide-gray-200 dark: divide-gray-700"><thead className={`${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
                 <tr>
                   <th className={`px-6 py-3 text-left text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
                     分納回数・日付
@@ -600,8 +533,7 @@ export default function PurchaseOrderDetail() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className={`p-2 rounded-lg mr-3 ${isDark ? 'bg-blue-900/20' : 'bg-blue-50'}`}>
-                          <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                        </div>
+      <FileText className="w-4 h-4 text-blue-600 dark: text-blue-400" /></div>
                         <div>
                           <div className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                             第{transaction.installment_no}回分納
@@ -633,8 +565,7 @@ export default function PurchaseOrderDetail() {
                             </div>
                           ))}
                         </div>
-                      ) : (
-                        <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+      ) : ( <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                           商品情報なし
                         </div>
                       )}
@@ -646,15 +577,13 @@ export default function PurchaseOrderDetail() {
                         <div>
                           {transaction.transaction_items.reduce((total: number, item: any) => total + (item.quantity || 0), 0)}個
                         </div>
-                      ) : (
-                        <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>-</span>
+      ) : ( <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>-</span>
                       )}
                     </td>
 
                     {/* 分納金額 */}
                     <td className={`px-6 py-4 whitespace-nowrap text-right text-lg font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      <div className="text-green-600 dark:text-green-400">
-                        ¥{transaction.total_amount.toLocaleString()}
+      <div className="text-green-600 dark: text-green-400">¥{transaction.total_amount.toLocaleString()}
                       </div>
                     </td>
 
@@ -679,8 +608,7 @@ export default function PurchaseOrderDetail() {
                             </div>
                           )}
                         </div>
-                      ) : (
-                        <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>未確定</span>
+      ) : ( <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>未確定</span>
                       )}
                     </td>
 
@@ -692,8 +620,7 @@ export default function PurchaseOrderDetail() {
                           currentStatus={transaction.status}
                           orderNo={transaction.transaction_no}
                           onConfirmed={() => fetchOrderDetail(id!)}
-                          className="text-xs px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded"
-                        />
+      className="text-xs px-3 py-1 bg-blue-600 hover: bg-blue-700 text-white rounded"/>
                       )}
                       {transaction.status === 'confirmed' && (
                         <span className={`text-xs px-3 py-1 rounded ${isDark ? 'bg-green-900/20 text-green-400' : 'bg-green-100 text-green-600'}`}>
@@ -718,16 +645,14 @@ export default function PurchaseOrderDetail() {
 
         {/* 発注商品一覧カード */}
         <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} shadow rounded-lg overflow-hidden transition-colors duration-300`}>
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-            <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>発注商品一覧</h2>
+      <div className="px-6 py-4 border-b border-gray-200 dark: border-gray-700 flex justify-between items-center"><h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>発注商品一覧</h2>
             <span className={`text-sm px-3 py-1 rounded-full ${isDark ? 'bg-purple-900/20 text-purple-400' : 'bg-purple-100 text-purple-800'}`}>
               {orderItems.length}品目
             </span>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className={`${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+      <table className="min-w-full divide-y divide-gray-200 dark: divide-gray-700"><thead className={`${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
                 <tr>
                   <th className={`px-6 py-3 text-left text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-500'} uppercase tracking-wider`}>
                     商品名・コード
@@ -750,8 +675,7 @@ export default function PurchaseOrderDetail() {
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         <div className={`p-2 rounded-lg mr-3 ${isDark ? 'bg-purple-900/20' : 'bg-purple-50'}`}>
-                          <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                        </div>
+      <FileText className="w-4 h-4 text-purple-600 dark: text-purple-400" /></div>
                         <div>
                           <div className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                             {item.products?.product_name || '商品名未設定'}
@@ -777,8 +701,7 @@ export default function PurchaseOrderDetail() {
 
                     {/* 小計 */}
                     <td className={`px-6 py-4 whitespace-nowrap text-right text-lg font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      <div className="text-blue-600 dark:text-blue-400">
-                        ¥{item.total_amount.toLocaleString()}
+      <div className="text-blue-600 dark: text-blue-400">¥{item.total_amount.toLocaleString()}
                       </div>
                     </td>
                   </tr>

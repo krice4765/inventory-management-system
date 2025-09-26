@@ -21,49 +21,18 @@ import { useAuth } from '../hooks/useAuth';
 import toast from 'react-hot-toast';
 
 interface UserApplication {
-  id: string;
-  email: string;
-  company_name?: string;
-  department?: string;
-  position?: string;
-  requested_reason?: string;
-  application_status: 'pending' | 'approved' | 'rejected';
-  created_at: string;
-  reviewed_by?: string;
-  reviewed_at?: string;
-  review_notes?: string;
-}
+      id: string; email: string; company_name?: string; department?: string; position?: string; requested_reason?: string; application_status: 'pending' | 'approved' | 'rejected'; created_at: string; reviewed_by?: string; reviewed_at?: string; review_notes?: string; }
 
 // 申請理由から名前を抽出するヘルパー関数
 const extractFullNameFromReason = (reason?: string): string | null => {
   if (!reason) return null;
-  const match = reason.match(/【申請者名】(.+?)(?:\n|$)/);
-  return match ? match[1].trim() : null;
-};
+      const match = reason.match(/【申請者名】(.+?)(?: \n|$)/); return match ? match[1].trim() : null; };
 
 interface UserProfile {
-  id: string;
-  email: string;
-  full_name?: string;
-  company_name?: string;
-  department?: string;
-  position?: string;
-  role: 'admin' | 'manager' | 'user';
-  is_active: boolean;
-  last_login_at?: string;
-  created_at: string;
-}
+      id: string; email: string; full_name?: string; company_name?: string; department?: string; position?: string; role: 'admin' | 'manager' | 'user'; is_active: boolean; last_login_at?: string; created_at: string; }
 
 interface SystemNotification {
-  id: string;
-  user_id: string;
-  type: string;
-  title: string;
-  message: string;
-  metadata?: any;
-  is_read: boolean;
-  created_at: string;
-}
+      id: string; user_id: string; type: string; title: string; message: string; metadata?: any; is_read: boolean; created_at: string; }
 
 // 最終ログイン時刻のフォーマット関数
 const formatLastLoginTime = (lastLoginAt: string): string => {
@@ -76,15 +45,13 @@ const formatLastLoginTime = (lastLoginAt: string): string => {
   if (diffInDays === 0) {
     return `本日 ${loginDate.toLocaleTimeString('ja-JP', {
       hour: '2-digit',
-      minute: '2-digit'
-    })}`;
+      minute: '2-digit' })}`;
   }
   // 1日前の場合
   else if (diffInDays === 1) {
     return `昨日 ${loginDate.toLocaleTimeString('ja-JP', {
       hour: '2-digit',
-      minute: '2-digit'
-    })}`;
+      minute: '2-digit' })}`;
   }
   // それ以外は日付と時刻
   else {
@@ -93,8 +60,7 @@ const formatLastLoginTime = (lastLoginAt: string): string => {
       month: 'numeric',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
-    });
+      minute: '2-digit' });
   }
 };
 
@@ -137,10 +103,8 @@ export default function UserManagement() {
           console.warn('📋 解決方法: Supabaseダッシュボードでuser_profilesテーブルを再作成してください。');
         }
 
-        // フォールバック: メールベースチェック
-        const adminEmails = ['dev@inventory.test', 'Krice4765104@gmail.com', 'prod@inventory.test'];
-        const isAdminEmail = user?.email ? adminEmails.includes(user.email) : false;
-        setIsAdmin(isAdminEmail);
+      // フォールバック: メールベースチェック const adminEmails = ['dev@inventory.test', 'Krice4765104@gmail.com', 'prod@inventory.test'];
+      const isAdminEmail = user?.email ? adminEmails.includes(user.email) : false; setIsAdmin(isAdminEmail);
 
         if (isAdminEmail) {
         }
@@ -153,8 +117,7 @@ export default function UserManagement() {
 
       // 例外の場合もメールベースフォールバックを実行
       const adminEmails = ['dev@inventory.test', 'Krice4765104@gmail.com', 'prod@inventory.test'];
-      const isAdminEmail = user?.email ? adminEmails.includes(user.email) : false;
-      setIsAdmin(isAdminEmail);
+      const isAdminEmail = user?.email ? adminEmails.includes(user.email) : false; setIsAdmin(isAdminEmail);
 
       if (isAdminEmail) {
       }
@@ -275,8 +238,7 @@ export default function UserManagement() {
   const handleApplicationAction = async (
     applicationId: string,
     action: 'approved' | 'rejected',
-    notes?: string
-  ) => {
+      notes?: string ) => {
     try {
       // 申請データを取得
       const { data: application, error: fetchError } = await supabase
@@ -294,8 +256,7 @@ export default function UserManagement() {
           application_status: action,
           reviewed_by: user?.id,
           reviewed_at: new Date().toISOString(),
-          review_notes: notes
-        })
+      review_notes: notes })
         .eq('id', applicationId);
 
       if (updateError) throw updateError;
@@ -317,8 +278,7 @@ export default function UserManagement() {
   };
 
   // ランダムパスワード生成関数
-  const generateRandomPassword = (): string => {
-    const length = 12;
+      const generateRandomPassword = (): string => { const length = 12;
     const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
     let password = '';
     for (let i = 0; i < length; i++) {
@@ -350,8 +310,7 @@ export default function UserManagement() {
   };
 
   // 承認されたユーザーのプロファイル作成（手動ユーザー作成用）
-  const createUserProfile = async (application: UserApplication) => {
-    try {
+      const createUserProfile = async (application: UserApplication) => { try {
 
       // ランダムパスワード生成（管理者が手動でユーザー作成する際に使用）
       const randomPassword = generateRandomPassword();
@@ -375,9 +334,7 @@ export default function UserManagement() {
 5. 以下の情報を入力:
    - Email: ${application.email}
    - Password: ${randomPassword}
-   - Email confirm: チェック済みにする
-
-6. ユーザー作成後、自動的にuser_profilesテーブルにプロファイルが作成されます
+      - Email confirm: チェック済みにする 6. ユーザー作成後、自動的にuser_profilesテーブルにプロファイルが作成されます
 
 ログイン情報:
 メール: ${application.email}
@@ -422,8 +379,7 @@ export default function UserManagement() {
   };
 
   // 既存ユーザープロファイルの名前を更新する関数
-  const updateExistingUserProfile = async (application: UserApplication) => {
-    try {
+      const updateExistingUserProfile = async (application: UserApplication) => { try {
       const fullName = extractFullNameFromReason(application.requested_reason);
       if (!fullName) {
         return;
@@ -447,8 +403,7 @@ export default function UserManagement() {
           .from('user_profiles')
           .update({
             full_name: fullName,
-            updated_at: new Date().toISOString()
-          })
+      updated_at: new Date().toISOString() })
           .eq('id', existingProfile.id);
 
         if (updateError) {
@@ -463,8 +418,7 @@ export default function UserManagement() {
   };
 
   // user_profilesテーブルに直接レコードを作成する関数
-  const createUserProfileRecord = async (application: UserApplication) => {
-    try {
+      const createUserProfileRecord = async (application: UserApplication) => { try {
       const fullName = extractFullNameFromReason(application.requested_reason);
 
       // 一意のIDを生成（実際のSupabaseユーザーIDではなく、仮のID）
@@ -483,8 +437,7 @@ export default function UserManagement() {
         last_login_at: null,
         invited_by: user?.id,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
+      updated_at: new Date().toISOString() };
 
       // まず既存レコードをチェック
       const { data: existingUser } = await supabase
@@ -504,8 +457,7 @@ export default function UserManagement() {
             company_name: application.company_name,
             department: application.department,
             position: application.position,
-            updated_at: new Date().toISOString()
-          })
+      updated_at: new Date().toISOString() })
           .eq('id', existingUser.id);
         insertError = error;
       } else {
@@ -532,8 +484,7 @@ export default function UserManagement() {
   };
 
   // 招待レコードを作成する関数
-  const createInvitationRecord = async (application: UserApplication) => {
-    // 招待トークンを生成
+      const createInvitationRecord = async (application: UserApplication) => { // 招待トークンを生成
     const invitationToken = crypto.randomUUID();
 
     const invitationData = {
@@ -542,8 +493,7 @@ export default function UserManagement() {
       invitation_token: invitationToken,
       role: 'user',
       status: 'pending',
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-    };
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() };
 
     const { error: invitationError } = await supabase
       .from('user_invitations')
@@ -558,10 +508,8 @@ export default function UserManagement() {
   };
 
 
-  const sendInvitation = async (applicationId: string) => {
-    try {
-      // 実装: 招待メール送信機能
-      // 実際の実装では招待トークン生成とメール送信を行う
+      const sendInvitation = async (applicationId: string) => { try {
+      // 実装: 招待メール送信機能 // 実際の実装では招待トークン生成とメール送信を行う
       toast.success('招待メールを送信しました');
     } catch (error) {
       console.error('招待メール送信エラー:', error);
@@ -595,18 +543,15 @@ export default function UserManagement() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const styles = {
+      const getStatusBadge = (status: string) => { const styles = {
       pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
       approved: 'bg-green-100 text-green-800 border-green-200',
-      rejected: 'bg-red-100 text-red-800 border-red-200'
-    };
+      rejected: 'bg-red-100 text-red-800 border-red-200' };
 
     const icons = {
       pending: Clock,
       approved: CheckCircle,
-      rejected: XCircle
-    };
+      rejected: XCircle };
 
     const Icon = icons[status as keyof typeof icons];
 
@@ -646,13 +591,11 @@ export default function UserManagement() {
             <p><strong>Email:</strong> {user?.email || 'なし'}</p>
             <p><strong>isAdmin:</strong> {isAdmin ? '✅ true' : '❌ false'}</p>
             <p><strong>adminCheckLoading:</strong> {adminCheckLoading ? '⏳ true' : '✅ false'}</p>
-            <p><strong>データベース確認:</strong> 管理者権限がuser_profilesテーブルで確認済み</p>
-          </div>
+      <p><strong>データベース確認: </strong> 管理者権限がuser_profilesテーブルで確認済み</p> </div>
 
           <button
             onClick={checkAdminRole}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
+      className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover: bg-blue-700">
             🔄 権限を再チェック
           </button>
         </div>
@@ -662,8 +605,7 @@ export default function UserManagement() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* ヘッダー */}
+      <div className="max-w-7xl mx-auto px-4 sm: px-6 lg:px-8 py-8">{/* ヘッダー */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">ユーザー管理</h1>
           <p className="text-gray-600">システムユーザーの申請・承認・権限管理</p>
@@ -683,8 +625,7 @@ export default function UserManagement() {
                 className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                   activeTab === key
                     ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                }`}
+      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100' }`}
               >
                 <Icon className="w-4 h-4 mr-2" />
                 {label}
@@ -724,13 +665,8 @@ export default function UserManagement() {
 
 // 申請管理タブコンポーネント
 const ApplicationsTab: React.FC<{
-  applications: UserApplication[];
-  onAction: (id: string, action: 'approved' | 'rejected', notes?: string) => void;
-  selectedApplication: UserApplication | null;
-  onSelect: (app: UserApplication | null) => void;
-  loading: boolean;
-  onCreateTestApplication?: () => void;
-}> = ({ applications, onAction, selectedApplication, onSelect, loading, onCreateTestApplication }) => {
+      applications: UserApplication[]; onAction: (id: string, action: 'approved' | 'rejected', notes?: string) => void;
+      selectedApplication: UserApplication | null; onSelect: (app: UserApplication | null) => void; loading: boolean; onCreateTestApplication?: () => void; }> = ({ applications, onAction, selectedApplication, onSelect, loading, onCreateTestApplication }) => {
   const [reviewNotes, setReviewNotes] = useState('');
 
   if (loading) {
@@ -805,22 +741,19 @@ const ApplicationsTab: React.FC<{
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <button
                     onClick={() => onSelect(application)}
-                    className="text-blue-600 hover:text-blue-900 mr-3"
-                  >
+      className="text-blue-600 hover: text-blue-900 mr-3">
                     <Eye className="w-4 h-4" />
                   </button>
                   {application.application_status === 'pending' && (
                     <div className="flex space-x-2">
                       <button
                         onClick={() => onAction(application.id, 'approved')}
-                        className="text-green-600 hover:text-green-900"
-                      >
+      className="text-green-600 hover: text-green-900">
                         <CheckCircle className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => onAction(application.id, 'rejected')}
-                        className="text-red-600 hover:text-red-900"
-                      >
+      className="text-red-600 hover: text-red-900">
                         <XCircle className="w-4 h-4" />
                       </button>
                     </div>
@@ -840,8 +773,7 @@ const ApplicationsTab: React.FC<{
           {onCreateTestApplication && (
             <button
               onClick={onCreateTestApplication}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
+      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover: bg-blue-700 transition-colors">
               <UserPlus className="w-4 h-4 mr-2" />
               テスト申請を作成 (kurisu@ns-data.jp)
             </button>
@@ -858,8 +790,7 @@ const ApplicationsTab: React.FC<{
                 <h3 className="text-xl font-semibold text-gray-900">申請詳細</h3>
                 <button
                   onClick={() => onSelect(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
+      className="text-gray-400 hover: text-gray-600">
                   <XCircle className="w-6 h-6" />
                 </button>
               </div>
@@ -977,8 +908,7 @@ const ApplicationsTab: React.FC<{
                             onAction(selectedApplication.id, 'approved', reviewNotes);
                             setReviewNotes('');
                           }}
-                          className="flex-1 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors flex items-center justify-center"
-                        >
+      className="flex-1 bg-green-600 text-white px-4 py-2 rounded-md hover: bg-green-700 transition-colors flex items-center justify-center">
                           <CheckCircle className="w-4 h-4 mr-2" />
                           承認
                         </button>
@@ -987,8 +917,7 @@ const ApplicationsTab: React.FC<{
                             onAction(selectedApplication.id, 'rejected', reviewNotes);
                             setReviewNotes('');
                           }}
-                          className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors flex items-center justify-center"
-                        >
+      className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover: bg-red-700 transition-colors flex items-center justify-center">
                           <XCircle className="w-4 h-4 mr-2" />
                           拒否
                         </button>
@@ -1007,35 +936,22 @@ const ApplicationsTab: React.FC<{
 
 // ユーザー一覧タブコンポーネント
 const UsersTab: React.FC<{
-  users: UserProfile[];
-  loading: boolean;
-}> = ({ users, loading }) => {
+      users: UserProfile[]; loading: boolean; }> = ({ users, loading }) => {
   const [showOrderPermissionHelp, setShowOrderPermissionHelp] = useState(false);
 
   // 発注権限フィルタリング関数（発注担当者選択と同じロジック）
-  const canUserCreateOrders = (user: UserProfile): boolean => {
-    // 管理者または一般ユーザーで、かつアクティブなユーザーのみ発注権限あり
+      const canUserCreateOrders = (user: UserProfile): boolean => { // 管理者または一般ユーザーで、かつアクティブなユーザーのみ発注権限あり
     return user.is_active && (user.role === 'admin' || user.role === 'user');
   };
 
   // 権限レベルの表示名を取得
-  const getRoleDisplayName = (role: string): string => {
-    switch (role) {
-      case 'admin': return '管理者';
-      case 'manager': return 'マネージャー';
-      case 'user': return '一般ユーザー';
-      default: return role;
-    }
+      const getRoleDisplayName = (role: string): string => { switch (role) {
+      case 'admin': return '管理者'; case 'manager': return 'マネージャー'; case 'user': return '一般ユーザー'; default: return role; }
   };
 
   // 権限レベルの色を取得
-  const getRoleColor = (role: string): string => {
-    switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800 border-red-200';
-      case 'manager': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'user': return 'bg-blue-100 text-blue-800 border-blue-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+      const getRoleColor = (role: string): string => { switch (role) {
+      case 'admin': return 'bg-red-100 text-red-800 border-red-200'; case 'manager': return 'bg-yellow-100 text-yellow-800 border-yellow-200'; case 'user': return 'bg-blue-100 text-blue-800 border-blue-200'; default: return 'bg-gray-100 text-gray-800 border-gray-200'; }
   };
 
   if (loading) {
@@ -1067,20 +983,15 @@ const UsersTab: React.FC<{
           </div>
           <button
             onClick={() => setShowOrderPermissionHelp(!showOrderPermissionHelp)}
-            className="text-blue-600 hover:text-blue-800 text-sm"
-          >
+      className="text-blue-600 hover: text-blue-800 text-sm">
             {showOrderPermissionHelp ? '非表示' : '詳細表示'}
           </button>
         </div>
 
         {showOrderPermissionHelp && (
           <div className="mt-4 space-y-2 text-sm text-blue-800">
-            <p><strong>発注担当者として選択可能な条件:</strong></p>
-            <ul className="list-disc list-inside space-y-1 ml-4">
-              <li>権限レベル: <span className="font-mono bg-blue-100 px-1 rounded">admin</span> または <span className="font-mono bg-blue-100 px-1 rounded">user</span></li>
-              <li>ステータス: <span className="font-mono bg-blue-100 px-1 rounded">アクティブ</span></li>
-              <li>除外対象: <span className="font-mono bg-gray-100 px-1 rounded">manager</span>、非アクティブユーザー</li>
-            </ul>
+      <p><strong>発注担当者として選択可能な条件: </strong></p> <ul className="list-disc list-inside space-y-1 ml-4">
+      <li>権限レベル: <span className="font-mono bg-blue-100 px-1 rounded">admin</span> または <span className="font-mono bg-blue-100 px-1 rounded">user</span></li> <li>ステータス: <span className="font-mono bg-blue-100 px-1 rounded">アクティブ</span></li> <li>除外対象: <span className="font-mono bg-gray-100 px-1 rounded">manager</span>、非アクティブユーザー</li> </ul>
             <p className="text-xs text-blue-600 mt-2">
               ℹ️ 現在 {orderAuthorizedUsers.length}名のユーザーが発注担当者として選択可能です
             </p>
@@ -1120,8 +1031,7 @@ const UsersTab: React.FC<{
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${
-                        user.role === 'admin' ? 'bg-red-500' : user.role === 'manager' ? 'bg-yellow-500' : 'bg-blue-500'
-                      }`}>
+      user.role === 'admin' ? 'bg-red-500' : user.role === 'manager' ? 'bg-yellow-500' : 'bg-blue-500' }`}>
                         {(user.full_name || user.email.split('@')[0]).charAt(0).toUpperCase()}
                       </div>
                       <div className="ml-4">
@@ -1144,8 +1054,7 @@ const UsersTab: React.FC<{
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       hasOrderPermission
                         ? 'bg-green-100 text-green-800 border-green-200'
-                        : 'bg-red-100 text-red-800 border-red-200'
-                    }`}>
+      : 'bg-red-100 text-red-800 border-red-200' }`}>
                       {hasOrderPermission ? '✅ 権限あり' : '❌ 権限なし'}
                     </span>
                     {hasOrderPermission && (
@@ -1160,15 +1069,13 @@ const UsersTab: React.FC<{
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {user.last_login_at
                       ? formatLastLoginTime(user.last_login_at)
-                      : '未ログイン'
-                    }
+      : '未ログイン' }
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       user.is_active
                         ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
+      : 'bg-gray-100 text-gray-800' }`}>
                       {user.is_active ? 'アクティブ' : '無効'}
                     </span>
                   </td>
@@ -1195,9 +1102,7 @@ const UsersTab: React.FC<{
 
 // 通知タブコンポーネント
 const NotificationsTab: React.FC<{
-  notifications: SystemNotification[];
-  loading: boolean;
-}> = ({ notifications, loading }) => {
+      notifications: SystemNotification[]; loading: boolean; }> = ({ notifications, loading }) => {
   if (loading) {
     return <div className="p-8 text-center">読み込み中...</div>;
   }
@@ -1218,8 +1123,7 @@ const NotificationsTab: React.FC<{
             className={`p-4 rounded-lg border ${
               notification.is_read
                 ? 'bg-gray-50 border-gray-200'
-                : 'bg-blue-50 border-blue-200'
-            }`}
+      : 'bg-blue-50 border-blue-200' }`}
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -1256,14 +1160,12 @@ const getStatusBadge = (status: string) => {
   const styles = {
     pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     approved: 'bg-green-100 text-green-800 border-green-200',
-    rejected: 'bg-red-100 text-red-800 border-red-200'
-  };
+      rejected: 'bg-red-100 text-red-800 border-red-200' };
 
   const icons = {
     pending: Clock,
     approved: CheckCircle,
-    rejected: XCircle
-  };
+      rejected: XCircle };
 
   const Icon = icons[status as keyof typeof icons];
 

@@ -4,38 +4,19 @@ import { useUnifiedInventoryMovements, validateDataIntegrity } from '../hooks/us
 import { MovementFilters } from '../hooks/useOptimizedInventory';
 
 interface TestResults {
-  success: boolean;
-  performance?: {
-    fetchTime: number;
-    recordCount: number;
-    inventoryMovements: number;
-    amountOnlyTransactions: number;
-  };
-  integrity?: {
-    consistentCount: number;
-    inconsistentCount: number;
-    integrityRate: number;
-  };
-  functional?: {
-    hasUnifiedTimestamp: boolean;
-    hasRecordType: boolean;
-    hasProductInfo: boolean;
-    correctSorting: boolean;
-  };
-  sampleData?: unknown[];
-  error?: string;
-}
+      success: boolean; performance?: { fetchTime: number; recordCount: number; inventoryMovements: number; amountOnlyTransactions: number; };
+      integrity?: { consistentCount: number; inconsistentCount: number; integrityRate: number; };
+      functional?: { hasUnifiedTimestamp: boolean; hasRecordType: boolean; hasProductInfo: boolean; correctSorting: boolean; };
+      sampleData?: unknown[]; error?: string; }
 
 interface UnifiedInventoryTestProps {
-  onTestComplete?: (results: TestResults) => void;
-}
+      onTestComplete?: (results: TestResults) => void; }
 
 export const UnifiedInventoryTest: React.FC<UnifiedInventoryTestProps> = ({ onTestComplete }) => {
   const [testFilters, setTestFilters] = useState<MovementFilters>({
     recordType: 'all',
     sortBy: 'created_at',
-    sortOrder: 'desc'
-  });
+      sortOrder: 'desc' });
 
   const [testResults, setTestResults] = useState<TestResults | null>(null);
   const [isRunning, setIsRunning] = useState(false);
@@ -55,8 +36,7 @@ export const UnifiedInventoryTest: React.FC<UnifiedInventoryTestProps> = ({ onTe
 
     try {
 
-      // Step 1: データ取得テスト
-      await refetch();
+      // Step 1: データ取得テスト await refetch();
       const fetchTime = performance.now() - startTime;
 
       if (!unifiedData?.data) {
@@ -65,19 +45,15 @@ export const UnifiedInventoryTest: React.FC<UnifiedInventoryTestProps> = ({ onTe
 
       const records = unifiedData.data;
 
-      // Step 2: データ整合性検証
-      const integrityResults = validateDataIntegrity(records);
+      // Step 2: データ整合性検証 const integrityResults = validateDataIntegrity(records);
 
-      // Step 3: パフォーマンステスト
-      const performanceResults = {
+      // Step 3: パフォーマンステスト const performanceResults = {
         fetchTime: Math.round(fetchTime),
         recordCount: records.length,
         inventoryMovements: records.filter(r => r.record_type === 'inventory_movement').length,
-        amountOnlyTransactions: records.filter(r => r.record_type === 'amount_only_transaction').length
-      };
+      amountOnlyTransactions: records.filter(r => r.record_type === 'amount_only_transaction').length };
 
-      // Step 4: 機能テスト
-      const functionalTests = {
+      // Step 4: 機能テスト const functionalTests = {
         hasUnifiedTimestamp: records.every(r => r.unified_timestamp > 0),
         hasRecordType: records.every(r => r.record_type),
         hasProductInfo: records.every(r => r.products && r.products.product_name),
@@ -89,11 +65,9 @@ export const UnifiedInventoryTest: React.FC<UnifiedInventoryTestProps> = ({ onTe
       const results = {
         success: true,
         performance: performanceResults,
-        integrity: {
-          consistentCount: integrityResults.consistent.length,
+      integrity: { consistentCount: integrityResults.consistent.length,
           inconsistentCount: integrityResults.inconsistencies.length,
-          integrityRate: Math.round((integrityResults.consistent.length / records.length) * 100)
-        },
+      integrityRate: Math.round((integrityResults.consistent.length / records.length) * 100) },
         functional: functionalTests,
         sampleData: records.slice(0, 3).map(r => ({
           id: r.id,
@@ -101,8 +75,7 @@ export const UnifiedInventoryTest: React.FC<UnifiedInventoryTestProps> = ({ onTe
           product_name: r.products?.product_name,
           amount: r.total_amount,
           installment_no: r.installment_no,
-          created_at: r.created_at
-        }))
+      created_at: r.created_at }))
       };
 
       setTestResults(results);
@@ -127,22 +100,19 @@ export const UnifiedInventoryTest: React.FC<UnifiedInventoryTestProps> = ({ onTe
   const testFilters_AmountOnly = () => {
     setTestFilters({
       ...testFilters,
-      recordType: 'amount_only_transaction'
-    });
+      recordType: 'amount_only_transaction' });
   };
 
   const testFilters_InventoryOnly = () => {
     setTestFilters({
       ...testFilters,
-      recordType: 'inventory_movement'
-    });
+      recordType: 'inventory_movement' });
   };
 
   const testFilters_All = () => {
     setTestFilters({
       ...testFilters,
-      recordType: 'all'
-    });
+      recordType: 'all' });
   };
 
   return (
@@ -154,8 +124,7 @@ export const UnifiedInventoryTest: React.FC<UnifiedInventoryTestProps> = ({ onTe
         <button
           onClick={runTests}
           disabled={isRunning || isLoading}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
-        >
+      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover: bg-blue-600 disabled:opacity-50">
           {isRunning ? '🔄 テスト実行中...' : '🚀 テスト実行'}
         </button>
       </div>
@@ -166,20 +135,17 @@ export const UnifiedInventoryTest: React.FC<UnifiedInventoryTestProps> = ({ onTe
         <div className="space-x-2">
           <button
             onClick={testFilters_All}
-            className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
-          >
+      className="px-3 py-1 bg-gray-500 text-white rounded hover: bg-gray-600">
             全て (現在: {testFilters.recordType})
           </button>
           <button
             onClick={testFilters_InventoryOnly}
-            className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-          >
+      className="px-3 py-1 bg-green-500 text-white rounded hover: bg-green-600">
             在庫移動のみ
           </button>
           <button
             onClick={testFilters_AmountOnly}
-            className="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600"
-          >
+      className="px-3 py-1 bg-orange-500 text-white rounded hover: bg-orange-600">
             金額分納のみ
           </button>
         </div>
@@ -274,19 +240,13 @@ export const UnifiedInventoryTest: React.FC<UnifiedInventoryTestProps> = ({ onTe
                 <div className="mt-2 space-y-2">
                   {testResults.sampleData.map((sample: unknown, _index: number) => {
                     const sampleData = sample as {
-                      id: string;
-                      record_type: string;
-                      product_name: string;
-                      amount: number;
-                      installment_no?: number;
-                    };
+      id: string; record_type: string; product_name: string; amount: number; installment_no?: number; };
                     return (
                     <div key={sampleData.id} className="p-2 bg-white rounded text-sm">
                       <span className={`inline-block px-2 py-1 rounded text-xs ${
                         sampleData.record_type === 'inventory_movement'
                           ? 'bg-green-100 text-green-700'
-                          : 'bg-orange-100 text-orange-700'
-                      }`}>
+      : 'bg-orange-100 text-orange-700' }`}>
                         {sampleData.record_type === 'inventory_movement' ? '在庫移動' : '金額分納'}
                       </span>
                       <span className="ml-2 font-medium">{sampleData.product_name}</span>
@@ -302,8 +262,7 @@ export const UnifiedInventoryTest: React.FC<UnifiedInventoryTestProps> = ({ onTe
                 </div>
               </div>
             </div>
-          ) : (
-            <div className="p-4 bg-red-50 rounded">
+      ) : ( <div className="p-4 bg-red-50 rounded">
               <p className="text-red-700">エラー: {testResults.error}</p>
               <p className="text-sm text-gray-600">
                 実行時間: {testResults.performance?.fetchTime}ms

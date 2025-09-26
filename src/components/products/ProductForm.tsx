@@ -6,16 +6,7 @@ import { useSuppliers } from '../../hooks/useProducts';
 import type { ProductWithSupplier, ProductInsert, ProductUpdate } from '../../api/products';
 
 type FormValues = {
-  product_code: string;
-  name: string;
-  description: string;
-  purchase_price: number;
-  sell_price: number;
-  stock_quantity: number;
-  safety_stock_quantity: number;
-  main_supplier_id: number | null;
-  image_url: string;
-};
+      product_code: string; name: string; description: string; purchase_price: number; sell_price: number; stock_quantity: number; safety_stock_quantity: number; main_supplier_id: number | null; image_url: string; };
 
 const schema = yup.object({
   product_code: yup.string().required('商品コードは必須です').max(50, '50文字以内で入力してください'),
@@ -30,11 +21,7 @@ const schema = yup.object({
 });
 
 export type ProductFormProps = {
-  mode: 'create' | 'edit';
-  initial?: ProductWithSupplier;
-  onSubmit: (values: ProductInsert | ProductUpdate) => Promise<void>;
-  onCancel: () => void;
-};
+      mode: 'create' | 'edit'; initial?: ProductWithSupplier; onSubmit: (values: ProductInsert | ProductUpdate) => Promise<void>; onCancel: () => void; };
 
 export const ProductForm: React.FC<ProductFormProps> = ({ mode, initial, onSubmit, onCancel }) => {
   const { data: suppliers = [], isLoading: isLoadingSuppliers } = useSuppliers();
@@ -42,8 +29,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, initial, onSubmi
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<FormValues>({
     resolver: yupResolver(schema),
     shouldFocusError: true, // バリデーションエラー時の自動フォーカス
-    defaultValues: initial ? {
-      product_code: initial.product_code,
+      defaultValues: initial ? { product_code: initial.product_code,
       name: initial.name,
       description: initial.description || '',
       purchase_price: Number(initial.purchase_price),
@@ -52,7 +38,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, initial, onSubmi
       safety_stock_quantity: initial.safety_stock_quantity,
       main_supplier_id: initial.main_supplier_id,
       image_url: initial.image_url || '',
-    } : {
+      console.log("Debug:", { } : { });
       product_code: '',
       name: '',
       description: '',
@@ -65,8 +51,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, initial, onSubmi
     },
   });
 
-  const submitHandler = async (values: FormValues) => {
-    const payload = {
+      const submitHandler = async (values: FormValues) => { const payload = {
       product_code: values.product_code,
       name: values.name,
       description: values.description || null,
@@ -84,16 +69,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, initial, onSubmi
 
   return (
     <form onSubmit={handleSubmit(submitHandler)} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
+      <div className="grid grid-cols-1 md: grid-cols-2 gap-6"><div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             商品コード <span className="text-red-500">*</span>
           </label>
           <input 
             type="text"
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-            placeholder="例: P-0001"
-            {...register('product_code')} 
+      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus: border-indigo-500 focus:ring-1 focus:ring-indigo-500"placeholder="例: P-0001" {...register('product_code')} 
           />
           {errors.product_code && <p className="text-sm text-red-600 mt-1">{errors.product_code.message}</p>}
         </div>
@@ -104,8 +86,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, initial, onSubmi
           </label>
           <input 
             type="text"
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-            placeholder="商品名を入力"
+      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus: border-indigo-500 focus:ring-1 focus:ring-indigo-500"placeholder="商品名を入力"
             {...register('name')} 
           />
           {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>}
@@ -122,8 +103,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, initial, onSubmi
               step="0.01"
               min="0"
               onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-              className="w-full rounded-md border border-gray-300 pl-8 pr-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-              placeholder="0.00"
+      className="w-full rounded-md border border-gray-300 pl-8 pr-3 py-2 text-sm focus: border-indigo-500 focus:ring-1 focus:ring-indigo-500"placeholder="0.00"
               {...register('purchase_price', { valueAsNumber: true })} 
             />
           </div>
@@ -141,8 +121,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, initial, onSubmi
               step="0.01"
               min="0"
               onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-              className="w-full rounded-md border border-gray-300 pl-8 pr-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-              placeholder="0.00"
+      className="w-full rounded-md border border-gray-300 pl-8 pr-3 py-2 text-sm focus: border-indigo-500 focus:ring-1 focus:ring-indigo-500"placeholder="0.00"
               {...register('sell_price', { valueAsNumber: true })} 
             />
           </div>
@@ -157,8 +136,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, initial, onSubmi
             type="number"
             min="0"
             onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-            placeholder="0"
+      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus: border-indigo-500 focus:ring-1 focus:ring-indigo-500"placeholder="0"
             {...register('stock_quantity', { valueAsNumber: true })} 
           />
           {errors.stock_quantity && <p className="text-sm text-red-600 mt-1">{errors.stock_quantity.message}</p>}
@@ -172,18 +150,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, initial, onSubmi
             type="number"
             min="0"
             onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-            placeholder="0"
+      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus: border-indigo-500 focus:ring-1 focus:ring-indigo-500"placeholder="0"
             {...register('safety_stock_quantity', { valueAsNumber: true })} 
           />
           {errors.safety_stock_quantity && <p className="text-sm text-red-600 mt-1">{errors.safety_stock_quantity.message}</p>}
         </div>
 
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">メイン仕入先</label>
+      <div className="md: col-span-2"><label className="block text-sm font-medium text-gray-700 mb-2">メイン仕入先</label>
           <select 
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-            {...register('main_supplier_id', { setValueAs: (value) => value === '' ? null : Number(value) })}
+      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus: border-indigo-500 focus:ring-1 focus:ring-indigo-500"{...register('main_supplier_id', { setValueAs: (value) => value === '' ? null : Number(value) })}
             disabled={isLoadingSuppliers}
           >
             <option value="">選択してください</option>
@@ -198,8 +173,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, initial, onSubmi
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">商品説明</label>
         <textarea 
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-          rows={3} 
+      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus: border-indigo-500 focus:ring-1 focus:ring-indigo-500"rows={3} 
           placeholder="商品の詳細説明を入力（任意）"
           {...register('description')} 
         />
@@ -210,9 +184,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, initial, onSubmi
         <label className="block text-sm font-medium text-gray-700 mb-2">商品画像URL</label>
         <input 
           type="url"
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-          placeholder="https://example.com/image.jpg"
-          {...register('image_url')} 
+      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus: border-indigo-500 focus:ring-1 focus:ring-indigo-500"placeholder="https: //example.com/image.jpg" {...register('image_url')} 
         />
         {errors.image_url && <p className="text-sm text-red-600 mt-1">{errors.image_url.message}</p>}
       </div>
@@ -221,16 +193,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({ mode, initial, onSubmi
         <button 
           type="button" 
           onClick={onCancel} 
-          className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          disabled={isSubmitting}
+      className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover: bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"disabled={isSubmitting}
         >
           キャンセル
         </button>
         <button 
           type="submit" 
           disabled={isSubmitting}
-          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+      className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover: bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
           {isSubmitting ? '処理中...' : (mode === 'create' ? '登録' : '更新')}
         </button>
       </div>

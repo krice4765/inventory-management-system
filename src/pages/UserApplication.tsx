@@ -16,13 +16,7 @@ import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 
 interface ApplicationForm {
-  full_name: string;
-  email: string;
-  company_name: string;
-  department: string;
-  position: string;
-  requested_reason: string;
-}
+      full_name: string; email: string; company_name: string; department: string; position: string; requested_reason: string; }
 
 export default function UserApplication() {
   const [formData, setFormData] = useState<ApplicationForm>({
@@ -31,14 +25,12 @@ export default function UserApplication() {
     company_name: '',
     department: '',
     position: '',
-    requested_reason: ''
-  });
+      requested_reason: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<Partial<ApplicationForm>>({});
 
-  const validateForm = (): boolean => {
-    const newErrors: Partial<ApplicationForm> = {};
+      const validateForm = (): boolean => { const newErrors: Partial<ApplicationForm> = {};
 
     if (!formData.full_name) {
       newErrors.full_name = 'お名前は必須です';
@@ -74,8 +66,7 @@ export default function UserApplication() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+      const handleSubmit = async (e: React.FormEvent) => { e.preventDefault();
 
     if (!validateForm()) {
       toast.error('入力内容を確認してください');
@@ -129,8 +120,7 @@ export default function UserApplication() {
         position: formData.position,
         requested_reason: `【申請者名】${formData.full_name}\n\n【利用目的】\n${formData.requested_reason}`,
         application_status: 'pending',
-        created_at: new Date().toISOString()
-      };
+      created_at: new Date().toISOString() };
 
 
       const { error } = await supabase
@@ -179,8 +169,7 @@ export default function UserApplication() {
     }
   };
 
-  const createAdminNotification = async (email: string) => {
-    try {
+      const createAdminNotification = async (email: string) => { try {
       // 管理者ユーザーIDを取得
       const adminEmails = ['dev@inventory.test', 'Krice4765104@gmail.com', 'prod@inventory.test'];
 
@@ -209,8 +198,7 @@ export default function UserApplication() {
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> ) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
 
@@ -255,8 +243,7 @@ export default function UserApplication() {
 
           <Link
             to="/login"
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-          >
+      className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover: bg-blue-700 transition-colors">
             <ArrowLeft className="w-4 h-4 mr-2" />
             ログインページに戻る
           </Link>
@@ -292,9 +279,7 @@ export default function UserApplication() {
               name="full_name"
               value={formData.full_name}
               onChange={handleInputChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.full_name ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
+      className={`w-full px-4 py-3 border rounded-lg focus: ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${ errors.full_name ? 'border-red-300 bg-red-50' : 'border-gray-300' }`}
               placeholder="山田 太郎"
             />
             {errors.full_name && (
@@ -314,9 +299,7 @@ export default function UserApplication() {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
+      className={`w-full px-4 py-3 border rounded-lg focus: ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${ errors.email ? 'border-red-300 bg-red-50' : 'border-gray-300' }`}
               placeholder="your.email@company.com"
             />
             {errors.email && (
@@ -336,9 +319,7 @@ export default function UserApplication() {
               name="company_name"
               value={formData.company_name}
               onChange={handleInputChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.company_name ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
+      className={`w-full px-4 py-3 border rounded-lg focus: ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${ errors.company_name ? 'border-red-300 bg-red-50' : 'border-gray-300' }`}
               placeholder="株式会社○○"
             />
             {errors.company_name && (
@@ -358,9 +339,7 @@ export default function UserApplication() {
               name="department"
               value={formData.department}
               onChange={handleInputChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.department ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
+      className={`w-full px-4 py-3 border rounded-lg focus: ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${ errors.department ? 'border-red-300 bg-red-50' : 'border-gray-300' }`}
               placeholder="営業部"
             />
             {errors.department && (
@@ -380,9 +359,7 @@ export default function UserApplication() {
               name="position"
               value={formData.position}
               onChange={handleInputChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.position ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
+      className={`w-full px-4 py-3 border rounded-lg focus: ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${ errors.position ? 'border-red-300 bg-red-50' : 'border-gray-300' }`}
               placeholder="主任"
             />
             {errors.position && (
@@ -402,9 +379,7 @@ export default function UserApplication() {
               rows={4}
               value={formData.requested_reason}
               onChange={handleInputChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none ${
-                errors.requested_reason ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
+      className={`w-full px-4 py-3 border rounded-lg focus: ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none ${ errors.requested_reason ? 'border-red-300 bg-red-50' : 'border-gray-300' }`}
               placeholder="システムを利用する目的や業務内容について詳しく記載してください（10文字以上）"
             />
             {errors.requested_reason && (
@@ -430,8 +405,7 @@ export default function UserApplication() {
           <div className="flex space-x-4">
             <Link
               to="/login"
-              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors text-center"
-            >
+      className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover: bg-gray-50 transition-colors text-center">
               キャンセル
             </Link>
             <motion.button
@@ -439,12 +413,10 @@ export default function UserApplication() {
               disabled={isSubmitting}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-            >
+      className="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover: bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center">
               {isSubmitting ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
+      ) : ( <>
                   <Send className="w-4 h-4 mr-2" />
                   申請を送信
                 </>

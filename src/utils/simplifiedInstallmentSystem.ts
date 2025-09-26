@@ -42,11 +42,7 @@ export class SimplifiedInstallmentService {
           .order('installment_no', { ascending: false })
           .limit(1);
 
-          orderId: data.orderId,
-          existingTransactions,
-          countError,
-          currentInstallmentNumber: installmentNumber
-        });
+        // ログ出力（削除済み）
 
         if (!countError && existingTransactions?.length > 0) {
           installmentNumber = (existingTransactions[0]?.installment_no || 0) + 1;
@@ -70,6 +66,8 @@ export class SimplifiedInstallmentService {
 
         // 商品・数量情報が提供されている場合は配列を構築
         if (data.quantities && Object.keys(data.quantities).length > 0) {
+          console.log('🔍 数量情報あり:', data.quantities);
+
           // 発注商品情報を取得
           const { data: orderItems, error: itemsError } = await supabase
             .from('purchase_order_items')
@@ -82,58 +80,118 @@ export class SimplifiedInstallmentService {
             .eq('purchase_order_id', data.orderId);
 
           if (!itemsError && orderItems) {
-            items = Object.entries(data.quantities)
-              .filter(([_productId, quantity]) => quantity > 0)
-              .map(([productId, quantity]) => {
-                const orderItem = orderItems.find(item => item.product_id === productId);
-                if (orderItem) {
-                  // 実際の分納単価を計算（分納金額 / 総数量）
-                  const actualUnitPrice = Math.round(data.amount / Object.values(data.quantities).reduce((sum: number, qty: number) => sum + qty, 0));
-                  return {
-                    product_id: productId,
-                    quantity: quantity,
-                    unit_price: actualUnitPrice,
-                    total_amount: actualUnitPrice * quantity
-                  };
-                }
-                return null;
-              }).filter(item => item !== null);
+            const totalQuantity = Object.values(data.quantities).reduce((sum: number, qty: number) => sum + qty, 0);
 
+            if (totalQuantity > 0) {
+              items = Object.entries(data.quantities)
+                .filter(([_productId, quantity]) => quantity > 0)
+                .map(([productId, quantity]) => {
+                  const orderItem = orderItems.find(item => item.product_id === productId);
+                  if (orderItem) {
+                    // 実際の分納単価を計算（分納金額 / 総数量）
+                    const actualUnitPrice = Math.round(data.amount / totalQuantity);
+                    return {
+                      product_id: productId,
+                      quantity: quantity,
+                      unit_price: actualUnitPrice || 0, // 0除算対策
+                      total_amount: (actualUnitPrice || 0) * quantity
+                    };
+                  }
+                  return null;
+                }).filter(item => item !== null);
+
+              console.log('🔍 作成されたアイテム配列:', items);
+            }
+          }
+        } else {
+          console.log('🔍 数量情報なし - アイテム作成をスキップ');
+        }
+
+        // 一意性を保証するトランザクション番号生成
+        const timestamp = Date.now();
+        const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const transactionNo = `TXN-${timestamp}-${installmentNumber}-${randomSuffix}`;
+
+        // RPC関数の代わりに直接取引を作成
+        const insertData = {
+          transaction_no: transactionNo,
+          transaction_type: 'purchase',
+          partner_id: orderData.partner_id,
+          transaction_date: new Date().toISOString().split('T')[0],
+          due_date: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
+          total_amount: data.amount,
+          status: 'confirmed',
+          memo: data.memo || `第${installmentNumber}回`,
+          parent_order_id: data.orderId,
+          installment_no: installmentNumber
+        };
+
+        console.log('🔍 挿入データ:', insertData);
+
+        const { data: transactionData, error: transactionError } = await supabase
+          .from('transactions')
+          .insert(insertData)
+          .select()
+          .single();
+
+        let result = null;
+        if (transactionError) {
+          console.error('❌ transactions挿入エラー詳細:', {
+            error: transactionError,
+            code: transactionError.code,
+            message: transactionError.message,
+            details: transactionError.details,
+            hint: transactionError.hint,
+            insertData: insertData
+          });
+        }
+
+        if (!transactionError && transactionData) {
+          result = { transaction_id: transactionData.id };
+
+          // 分納明細アイテムを作成
+          if (items.length > 0) {
+            const itemsToInsert = items.map(item => ({
+              transaction_id: transactionData.id,
+              product_id: item.product_id,
+              quantity: item.quantity,
+              unit_price: item.unit_price || 0,
+              total_amount: item.total_amount || 0
+            }));
+
+            console.log('🔍 分納明細挿入データ:', itemsToInsert);
+
+            const { error: itemsError } = await supabase
+              .from('transaction_items')
+              .insert(itemsToInsert);
+
+            if (itemsError) {
+              console.error('❌ 分納明細作成エラー:', {
+                error: itemsError,
+                code: itemsError.code,
+                message: itemsError.message,
+                details: itemsError.details,
+                hint: itemsError.hint,
+                itemsData: itemsToInsert
+              });
+            } else {
+              console.log('✅ 分納明細作成成功');
+            }
           }
         }
 
-        const { data: result, error: rpcError } = await supabase
-          .rpc('create_installment_v3', {
-            p_parent_order_id: data.orderId,
-            p_partner_id: orderData.partner_id || null,
-            p_transaction_date: new Date().toISOString().split('T')[0],
-            p_due_date: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
-            p_total_amount: data.amount,
-            p_memo: data.memo || `第${installmentNumber}回`,
-            p_items: items.length > 0 ? items : null
-          });
+        const rpcError = transactionError;
 
         // データベース関数が成功した場合
         if (!rpcError && result) {
-            result: result,
-            transactionId: result.id,
-            transactionNo: result.transaction_no,
-            installmentNo: result.installment_no,
-            amount: data.amount,
-            itemsCount: items.length
-          });
+          // ログ出力（削除済み）
 
           return {
             success: true,
             transactionId: result.id
           };
         } else {
-            error: rpcError,
-            message: rpcError?.message,
-            details: rpcError?.details,
-            hint: rpcError?.hint,
-            code: rpcError?.code
-          });
+          // ログ出力（削除済み）
         }
       }
 
@@ -141,34 +199,34 @@ export class SimplifiedInstallmentService {
 
       // 🔄 Phase 2: フォールバック - 従来方式（改良版）
 
-      // UUID v4形式で確実なID生成
-      const transactionId = globalThis.crypto.randomUUID();
-
       // 一意性を保証するトランザクション番号生成
-      const timestamp = Date.now();
-      const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
-      const transactionNo = `SAFE-${timestamp}-${installmentNumber}-${randomSuffix}`;
+      const fallbackTimestamp = Date.now();
+      const fallbackRandomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
+      let fallbackTransactionNo = `SAFE-${fallbackTimestamp}-${installmentNumber}-${fallbackRandomSuffix}`;
 
       // 安全な分納レコード挿入（再試行ロジック付き）
       let retryCount = 0;
       const maxRetries = 3;
       while (retryCount < maxRetries) {
         try {
+          const fallbackInsertData = {
+            transaction_no: fallbackTransactionNo,
+            transaction_type: 'purchase',
+            partner_id: orderData.partner_id,
+            parent_order_id: data.orderId,
+            installment_no: installmentNumber,
+            transaction_date: new Date().toISOString().split('T')[0],
+            due_date: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
+            status: 'confirmed',
+            total_amount: data.amount,
+            memo: data.memo || `第${installmentNumber}回`,
+          };
+
+          console.log('🔄 フォールバック挿入データ:', fallbackInsertData);
+
           const { data: transaction, error: insertError } = await supabase
             .from('transactions')
-            .insert({
-              id: transactionId,
-              transaction_type: 'purchase',
-              transaction_no: transactionNo,
-              parent_order_id: data.orderId,
-              installment_no: installmentNumber,
-              delivery_sequence: installmentNumber, // UIとの整合性のため追加
-              transaction_date: new Date().toISOString().split('T')[0],
-              status: 'confirmed',
-              total_amount: data.amount,
-              memo: data.memo || `第${installmentNumber}回`,
-              created_at: new Date().toISOString(),
-            })
+            .insert(fallbackInsertData)
             .select()
             .single();
 
@@ -178,6 +236,10 @@ export class SimplifiedInstallmentService {
             // 409エラー/23505（重複）の場合は分納番号を調整して再試行
             if (insertError.code === '23505') {
               installmentNumber++;
+              // 新しいトランザクション番号を生成
+              const newTimestamp = Date.now();
+              const newRandomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
+              fallbackTransactionNo = `SAFE-${newTimestamp}-${installmentNumber}-${newRandomSuffix}`;
               retryCount++;
               await new Promise(resolve => setTimeout(resolve, 50 * retryCount));
               continue;
@@ -188,9 +250,7 @@ export class SimplifiedInstallmentService {
 
           // 商品情報がある場合はtransaction_itemsテーブルにも保存
           if (data.quantities && Object.keys(data.quantities).length > 0) {
-              quantities: data.quantities,
-              transactionId: transaction.id
-            });
+            // ログ出力（削除済み）
 
             const totalQuantity = Object.values(data.quantities).reduce((sum: number, qty: number) => sum + qty, 0);
             const transactionItems = Object.entries(data.quantities)
@@ -248,19 +308,12 @@ export class SimplifiedInstallmentService {
                   }
                 }
               } else {
-                  count: transactionItems.length,
-                  result: insertResult
-                });
+                // ログ出力（削除済み）
               }
             }
           }
 
-            transactionId: transaction.id,
-            installmentNumber,
-            amount: data.amount,
-            transaction_no: transaction.transaction_no,
-            itemsCount: data.quantities ? Object.keys(data.quantities).length : 0
-          });
+          // ログ出力（削除済み）
 
           return {
             success: true,

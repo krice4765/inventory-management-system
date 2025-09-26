@@ -3,25 +3,24 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 
 interface DeliveryHistoryItem {
-  id: string
-  total_amount: number
-  delivery_sequence: number | null
-  installment_no: number | null
-  created_at: string
-  transaction_date: string
-  memo: string
+  id: string;
+  total_amount: number;
+  delivery_sequence: number | null;
+  installment_no: number | null;
+  created_at: string;
+  transaction_date: string;
+  memo: string;
 }
 
 interface DeliveryHistoryListProps {
-  orderId: string | null
+  orderId: string | null;
 }
 
 export const DeliveryHistoryList: React.FC<DeliveryHistoryListProps> = ({ orderId }) => {
   const { data: deliveryHistory, isLoading } = useQuery({
     queryKey: ['delivery-history', orderId],
     enabled: !!orderId,
-    queryFn: async () => {
-      if (!orderId) return []
+      queryFn: async () => { if (!orderId) return []
       
       const { data, error } = await supabase
         .from('transactions')
@@ -59,8 +58,7 @@ export const DeliveryHistoryList: React.FC<DeliveryHistoryListProps> = ({ orderI
       {deliveryHistory.map((delivery, index) => (
         <div
           key={delivery.id}
-          className="flex items-center justify-between p-3 bg-white rounded border border-gray-200 hover:bg-gray-50 transition-colors"
-        >
+      className="flex items-center justify-between p-3 bg-white rounded border border-gray-200 hover: bg-gray-50 transition-colors">
           <div className="flex-1">
             <div className="flex items-center space-x-2">
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -74,25 +72,21 @@ export const DeliveryHistoryList: React.FC<DeliveryHistoryListProps> = ({ orderI
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className="text-gray-500">✅ 実行:</span>
-                  <span className="text-gray-600">
+      <span className="text-gray-500">✅ 実行: </span> <span className="text-gray-600">
                     {new Date(delivery.created_at).toLocaleDateString('ja-JP')} {new Date(delivery.created_at).toLocaleTimeString('ja-JP', { 
                       hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
+      minute: '2-digit'  })}
                   </span>
                 </div>
               </div>
             </div>
             {delivery.memo && !delivery.memo.match(/^第\d+回$/) && (
               <div className="text-xs text-gray-500 mt-1">
-                {delivery.memo.includes('理由:') ? (
-                  <div className="flex items-center space-x-2">
+      {delivery.memo.includes('理由: ') ? ( <div className="flex items-center space-x-2">
                     <span className="text-orange-600">📋</span>
                     <span className="truncate">{delivery.memo}</span>
                   </div>
-                ) : (
-                  <div className="flex items-center space-x-2">
+      ) : ( <div className="flex items-center space-x-2">
                     <span>💭</span>
                     <span className="truncate">{delivery.memo}</span>
                   </div>

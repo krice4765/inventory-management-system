@@ -12,48 +12,22 @@ import { IntegrityDashboard } from './IntegrityDashboard';
 import { useSystemIntegrity, useIntegritySummary } from '../hooks/useSystemIntegrity';
 
 interface HealthMetric {
-  name: string;
-  value: number;
-  unit: string;
-  status: 'healthy' | 'warning' | 'critical';
-  lastUpdate: string;
-  trend?: 'up' | 'down' | 'stable';
-}
+      name: string; value: number; unit: string; status: 'healthy' | 'warning' | 'critical'; lastUpdate: string; trend?: 'up' | 'down' | 'stable'; }
 
 interface OperationalDataItem {
-  status: string;
-  count: number;
-}
+      status: string; count: number; }
 
 interface PerformanceDataItem {
-  function_name: string;
-  avg_duration_ms: number;
-  call_count: number;
-}
+      function_name: string; avg_duration_ms: number; call_count: number; }
 
 interface ErrorTrendItem {
-  error_type: string;
-  count: number;
-  severity: string;
-}
+      error_type: string; count: number; severity: string; }
 
 interface HealthScore {
-  integrity_score: number;
-  performance_score: number;
-  security_score: number;
-  operational_score: number;
-  overall_health_score: number;
-  health_status: string;
-  evaluation_time: string;
-}
+      integrity_score: number; performance_score: number; security_score: number; operational_score: number; overall_health_score: number; health_status: string; evaluation_time: string; }
 
 interface SystemAlert {
-  id: string;
-  level: 'info' | 'warning' | 'error';
-  message: string;
-  timestamp: string;
-  resolved: boolean;
-}
+      id: string; level: 'info' | 'warning' | 'error'; message: string; timestamp: string; resolved: boolean; }
 
 export const HealthDashboard: React.FC = () => {
   const [metrics, setMetrics] = useState<HealthMetric[]>([]);
@@ -103,36 +77,30 @@ export const HealthDashboard: React.FC = () => {
       if (errorError) throw errorError;
 
       // メトリクスデータの整形
-      const healthMetrics: HealthMetric[] = [];
-
-      // システムメトリクス
+      const healthMetrics: HealthMetric[] = []; // システムメトリクス
       if (operationalData && Array.isArray(operationalData)) {
-        operationalData.forEach((item: OperationalDataItem) => {
-          if (item.metric_name && typeof item.metric_value === 'number') {
+      operationalData.forEach((item: OperationalDataItem) => { if (item.metric_name && typeof item.metric_value === 'number') {
             healthMetrics.push({
               name: item.metric_name,
               value: item.metric_value,
               unit: item.unit || '',
               status: determineStatus(item.metric_name, item.metric_value),
               lastUpdate: item.measurement_time || new Date().toISOString(),
-              trend: 'stable'
-            });
+      trend: 'stable' });
           }
         });
       }
 
       // パフォーマンスメトリクス
       if (performanceData && Array.isArray(performanceData)) {
-        performanceData.forEach((item: PerformanceDataItem) => {
-          if (item.function_name && item.avg_duration_ms) {
+      performanceData.forEach((item: PerformanceDataItem) => { if (item.function_name && item.avg_duration_ms) {
             healthMetrics.push({
               name: `API応答時間: ${item.function_name}`,
               value: item.avg_duration_ms,
               unit: 'ms',
               status: item.avg_duration_ms > 1000 ? 'critical' : item.avg_duration_ms > 500 ? 'warning' : 'healthy',
               lastUpdate: new Date().toISOString(),
-              trend: 'stable'
-            });
+      trend: 'stable' });
           }
         });
       }
@@ -140,42 +108,35 @@ export const HealthDashboard: React.FC = () => {
       setMetrics(healthMetrics);
 
       // アラートの生成
-      const systemAlerts: SystemAlert[] = [];
-
-      // エラーが多い場合のアラート
+      const systemAlerts: SystemAlert[] = []; // エラーが多い場合のアラート
       if (errorTrends && Array.isArray(errorTrends)) {
-        errorTrends.forEach((trend: ErrorTrendItem) => {
-          if (trend.error_count > 10) {
+      errorTrends.forEach((trend: ErrorTrendItem) => { if (trend.error_count > 10) {
             systemAlerts.push({
               id: `error-${trend.error_code}`,
               level: 'error',
               message: `エラー${trend.error_code}が過去24時間で${trend.error_count}回発生`,
               timestamp: new Date().toISOString(),
-              resolved: false
-            });
+      resolved: false });
           } else if (trend.error_count > 5) {
             systemAlerts.push({
               id: `warning-${trend.error_code}`,
               level: 'warning',
               message: `エラー${trend.error_code}が過去24時間で${trend.error_count}回発生`,
               timestamp: new Date().toISOString(),
-              resolved: false
-            });
+      resolved: false });
           }
         });
       }
 
       // パフォーマンス問題のアラート
       if (performanceData && Array.isArray(performanceData)) {
-        const slowFunctions = performanceData.filter((item: PerformanceDataItem) => item.avg_duration_ms > 1000);
-        if (slowFunctions.length > 0) {
+      const slowFunctions = performanceData.filter((item: PerformanceDataItem) => item.avg_duration_ms > 1000); if (slowFunctions.length > 0) {
           systemAlerts.push({
             id: 'performance-slow',
             level: 'warning',
             message: `${slowFunctions.length}個のAPI関数で応答時間が1秒を超過`,
             timestamp: new Date().toISOString(),
-            resolved: false
-          });
+      resolved: false });
         }
       }
 
@@ -183,9 +144,7 @@ export const HealthDashboard: React.FC = () => {
       setLastRefresh(new Date());
 
       // 健康度スコアの計算（整合性チェック統合版）
-      let integrityScore = systemAlerts.filter(a => a.level === 'error').length === 0 ? 100 : 70;
-
-      // データ整合性スコアを統合
+      let integrityScore = systemAlerts.filter(a => a.level === 'error').length === 0 ? 100 : 70; // データ整合性スコアを統合
       if (integritySummary) {
         if (integritySummary.critical_issues > 0) {
           integrityScore = Math.min(integrityScore, 60);
@@ -200,8 +159,7 @@ export const HealthDashboard: React.FC = () => {
             level: 'error',
             message: `${integritySummary.critical_issues}件の緊急データ整合性問題が検出されました`,
             timestamp: integritySummary.last_check_at,
-            resolved: false
-          });
+      resolved: false });
         }
         if (integritySummary.warning_issues > 0) {
           systemAlerts.push({
@@ -209,18 +167,14 @@ export const HealthDashboard: React.FC = () => {
             level: 'warning',
             message: `${integritySummary.warning_issues}件のデータ整合性警告が検出されました`,
             timestamp: integritySummary.last_check_at,
-            resolved: false
-          });
+      resolved: false });
         }
       }
 
       const performanceScore = healthMetrics.some(m => m.name.includes('API応答時間') && m.value > 1000) ? 60 :
-                             healthMetrics.some(m => m.name.includes('API応答時間') && m.value > 500) ? 80 : 100;
-      const securityScore = 100; // RLS設定確認は別途実装
+      healthMetrics.some(m => m.name.includes('API応答時間') && m.value > 500) ? 80 : 100; const securityScore = 100; // RLS設定確認は別途実装
       const operationalScore = systemAlerts.filter(a => a.level === 'error').length > 0 ? 70 :
-                               systemAlerts.filter(a => a.level === 'warning').length > 0 ? 85 : 100;
-      
-      const overallScore = (integrityScore + performanceScore + securityScore + operationalScore) / 4;
+      systemAlerts.filter(a => a.level === 'warning').length > 0 ? 85 : 100; const overallScore = (integrityScore + performanceScore + securityScore + operationalScore) / 4;
       
       setHealthScore({
         integrity_score: integrityScore,
@@ -231,8 +185,7 @@ export const HealthDashboard: React.FC = () => {
         health_status: overallScore >= 95 ? '🟢 優秀' : 
                        overallScore >= 85 ? '🟡 良好' : 
                        overallScore >= 70 ? '🟠 注意' : '🔴 要対応',
-        evaluation_time: new Date().toISOString()
-      });
+      evaluation_time: new Date().toISOString() });
 
     } catch (err) {
       const userError = handleError(err);
@@ -245,14 +198,11 @@ export const HealthDashboard: React.FC = () => {
   // 状態判定ロジック
   const determineStatus = (metricName: string, value: number): 'healthy' | 'warning' | 'critical' => {
     if (metricName.includes('error') && value > 0) {
-      return value > 10 ? 'critical' : 'warning';
-    }
+      return value > 10 ? 'critical' : 'warning'; }
     if (metricName.includes('response_time') && value > 500) {
-      return value > 1000 ? 'critical' : 'warning';
-    }
+      return value > 1000 ? 'critical' : 'warning'; }
     if (metricName.includes('usage') && value > 80) {
-      return value > 95 ? 'critical' : 'warning';
-    }
+      return value > 95 ? 'critical' : 'warning'; }
     return 'healthy';
   };
 
@@ -274,8 +224,7 @@ export const HealthDashboard: React.FC = () => {
       const report = results.map((result, index) => ({
         check: ['運用ダッシュボード', 'データ整合性', 'パフォーマンス', 'エラー傾向'][index],
         status: result.status,
-        data: result.status === 'fulfilled' ? result.value : result.reason
-      }));
+      data: result.status === 'fulfilled' ? result.value : result.reason }));
 
       
       // データを再取得
@@ -324,15 +273,13 @@ export const HealthDashboard: React.FC = () => {
             </label>
             <button
               onClick={() => setShowIntegrityDetails(!showIntegrityDetails)}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
-            >
+      className="bg-green-600 hover: bg-green-700 text-white px-4 py-2 rounded-lg">
               {showIntegrityDetails ? '🔼 整合性詳細を隠す' : '🔽 整合性詳細を表示'}
             </button>
             <button
               onClick={runDailyHealthCheck}
               disabled={isLoading}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg"
-            >
+      className="bg-blue-600 hover: bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg">
               {isLoading ? '実行中...' : '🔍 ヘルスチェック実行'}
             </button>
           </div>
@@ -357,8 +304,7 @@ export const HealthDashboard: React.FC = () => {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">📊 システム健康度スコア</h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
+      <div className="grid grid-cols-1 md: grid-cols-5 gap-4 mb-6"><div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-2xl font-bold text-gray-900">{healthScore.integrity_score}</div>
               <div className="text-sm text-gray-600">データ整合性</div>
             </div>
@@ -391,8 +337,7 @@ export const HealthDashboard: React.FC = () => {
             <p className="text-sm">
               {healthScore.overall_health_score >= 95 
                 ? '✅ システムは良好に動作しています。引き続き監視を継続してください。'
-                : healthScore.overall_health_score >= 85
-                ? '⚠️ 一部に改善の余地があります。詳細な調査を検討してください。'
+      : healthScore.overall_health_score >= 85 ? '⚠️ 一部に改善の余地があります。詳細な調査を検討してください。'
                 : '🚨 緊急の対応が必要です。システム管理者に連絡してください。'
               }
             </p>
@@ -429,8 +374,7 @@ export const HealthDashboard: React.FC = () => {
                     </div>
                   </div>
                   <button
-                    className="text-gray-400 hover:text-gray-600 ml-2"
-                    onClick={() => setAlerts(prev => 
+      className="text-gray-400 hover: text-gray-600 ml-2"onClick={() => setAlerts(prev => 
                       prev.map(a => a.id === alert.id ? {...a, resolved: true} : a)
                     )}
                   >
@@ -452,9 +396,7 @@ export const HealthDashboard: React.FC = () => {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             <span className="ml-2 text-gray-600">データを読み込み中...</span>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {metrics.map((metric, index) => (
+      ) : ( <div className="grid grid-cols-1 md: grid-cols-2 lg:grid-cols-3 gap-4">{metrics.map((metric, index) => (
               <div
                 key={index}
                 className={`p-4 rounded-lg border ${
@@ -480,8 +422,7 @@ export const HealthDashboard: React.FC = () => {
                   </div>
                   <div className="ml-2">
                     <span className="text-lg">
-                      {metric.status === 'healthy' ? '✅' : 
-                       metric.status === 'warning' ? '⚠️' : '🚨'}
+      {metric.status === 'healthy' ? '✅' :   metric.status === 'warning' ? '⚠️' : '🚨'}
                     </span>
                   </div>
                 </div>
@@ -500,12 +441,10 @@ export const HealthDashboard: React.FC = () => {
       {/* クイックアクション */}
       <div className="bg-white rounded-lg shadow-sm p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">⚡ クイックアクション</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button
+      <div className="grid grid-cols-1 md: grid-cols-3 gap-4"><button
             onClick={fetchHealthData}
             disabled={isLoading}
-            className="p-4 bg-blue-50 hover:bg-blue-100 disabled:bg-gray-100 rounded-lg text-left"
-          >
+      className="p-4 bg-blue-50 hover: bg-blue-100 disabled:bg-gray-100 rounded-lg text-left">
             <div className="text-2xl mb-2">🔄</div>
             <div className="font-medium">データ更新</div>
             <div className="text-sm text-gray-600">最新データを取得</div>
@@ -514,8 +453,7 @@ export const HealthDashboard: React.FC = () => {
           <button
             onClick={runDailyHealthCheck}
             disabled={isLoading}
-            className="p-4 bg-green-50 hover:bg-green-100 disabled:bg-gray-100 rounded-lg text-left"
-          >
+      className="p-4 bg-green-50 hover: bg-green-100 disabled:bg-gray-100 rounded-lg text-left">
             <div className="text-2xl mb-2">🔍</div>
             <div className="font-medium">フルチェック</div>
             <div className="text-sm text-gray-600">包括的健康診断</div>
@@ -523,8 +461,7 @@ export const HealthDashboard: React.FC = () => {
           
           <button
             onClick={() => window.open('/admin/logs', '_blank')}
-            className="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg text-left"
-          >
+      className="p-4 bg-orange-50 hover: bg-orange-100 rounded-lg text-left">
             <div className="text-2xl mb-2">📋</div>
             <div className="font-medium">ログ確認</div>
             <div className="text-sm text-gray-600">エラーログを表示</div>

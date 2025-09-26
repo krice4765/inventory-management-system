@@ -31,6 +31,7 @@ const getDefaultLoginValues = () => {
 const createPasswordResetNotification = async (email: string, status: 'success' | 'failed' | 'system_error' = 'success') => {
   try {
     // デバッグ: 受信したパラメータを確認
+    console.log('ログイン処理開始:', {
       email,
       status,
       timestamp: new Date().toISOString()
@@ -151,6 +152,7 @@ export default function Login() {
         password,
       });
 
+      console.log('ログイン結果:', {
         success: !error,
         error: error?.message,
         user: data.user?.email
@@ -253,6 +255,7 @@ export default function Login() {
                 }
                 try {
                   // 詳細なデバッグ情報を追加
+                  console.log('パスワードリセット開始:', {
                     email,
                     timestamp: new Date().toISOString(),
                     supabaseUrl: supabase.supabaseUrl

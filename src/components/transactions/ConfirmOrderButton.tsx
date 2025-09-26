@@ -4,12 +4,7 @@ import toast from 'react-hot-toast';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface ConfirmOrderButtonProps {
-  transactionId: string;
-  currentStatus: string;
-  orderNo: string;
-  onConfirmed?: () => void;
-  className?: string;
-}
+      transactionId: string; currentStatus: string; orderNo: string; onConfirmed?: () => void; className?: string; }
 
 export const ConfirmOrderButton: React.FC<ConfirmOrderButtonProps> = ({ 
   transactionId, 
@@ -21,8 +16,7 @@ export const ConfirmOrderButton: React.FC<ConfirmOrderButtonProps> = ({
   const [isConfirming, setIsConfirming] = useState(false);
   const queryClient = useQueryClient();
 
-  const extractDetailedError = (err: unknown): string => {
-    if (!err) return 'Unknown error';
+      const extractDetailedError = (err: unknown): string => { if (!err) return 'Unknown error';
     if (typeof err === 'string') return err;
     if (typeof err === 'object') {
       const e = err as Record<string, unknown>;
@@ -75,10 +69,7 @@ export const ConfirmOrderButton: React.FC<ConfirmOrderButtonProps> = ({
         purchase_orders: orderData
       };
 
-        transaction_amount: preCheckData?.total_amount,
-        order_amount: preCheckData?.purchase_orders?.total_amount,
-        valid: preCheckData?.total_amount <= (preCheckData?.purchase_orders?.total_amount || 0)
-      });
+        // 検証ロジック（削除済み）
 
       if (preCheckData?.purchase_orders?.total_amount && 
           preCheckData.total_amount > preCheckData.purchase_orders.total_amount) {
@@ -90,8 +81,7 @@ export const ConfirmOrderButton: React.FC<ConfirmOrderButtonProps> = ({
       
       // 🎯 RPC関数による原子的確定処理
       const { data, error } = await supabase.rpc('confirm_purchase_transaction', { 
-        p_transaction_id: transactionId
-      });
+      p_transaction_id: transactionId });
         
       if (error) {
         console.error('❌ [Confirm][RPC] エラー詳細:', error);
@@ -134,7 +124,7 @@ export const ConfirmOrderButton: React.FC<ConfirmOrderButtonProps> = ({
       ]);
       
       onConfirmed?.();
-      
+
     } catch (err: unknown) {
       console.error('❌ [Confirm][RPC] 予期しないエラー:', err);
       
@@ -167,11 +157,7 @@ export const ConfirmOrderButton: React.FC<ConfirmOrderButtonProps> = ({
   };
 
   const isDisabled = currentStatus !== 'draft' || isConfirming;
-  const buttonText = isConfirming ? '確定中...' : '発注確定';
-  const statusText = currentStatus === 'confirmed' ? '確定済み' : 
-                   currentStatus === 'active' ? '処理中' : '確定可能';
-
-  return (
+      const buttonText = isConfirming ? '確定中...' : '発注確定'; const statusText = currentStatus === 'confirmed' ? '確定済み' :   currentStatus === 'active' ? '処理中' : '確定可能'; return (
     <div className="flex items-center gap-2">
       <button
         onClick={handleConfirm}
@@ -179,9 +165,7 @@ export const ConfirmOrderButton: React.FC<ConfirmOrderButtonProps> = ({
         className={`
           px-4 py-2 text-sm font-medium rounded-md transition-colors
           ${isDisabled 
-            ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed' 
-            : 'bg-blue-600 hover:bg-blue-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
-          }
+      ? 'bg-gray-300 dark: bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'  : 'bg-blue-600 hover:bg-blue-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500' }
           ${className}
         `}
       >
@@ -189,10 +173,7 @@ export const ConfirmOrderButton: React.FC<ConfirmOrderButtonProps> = ({
       </button>
       
       <span className={`text-xs px-2 py-1 rounded-full ${
-        currentStatus === 'confirmed' ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' :
-        currentStatus === 'active' ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400' :
-        'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
-      }`}>
+      currentStatus === 'confirmed' ? 'bg-green-100 dark: bg-green-900/20 text-green-800 dark:text-green-400' : currentStatus === 'active' ? 'bg-yellow-100 dark: bg-yellow-900/20 text-yellow-800 dark:text-yellow-400' : 'bg-gray-100 dark: bg-gray-800 text-gray-600 dark:text-gray-400' }`}>
         {statusText}
       </span>
     </div>

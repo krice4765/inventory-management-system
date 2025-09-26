@@ -9,21 +9,10 @@ import { ErrorDisplay, ErrorToast } from '../components/shared/ErrorDisplay';
 import { useErrorHandler, UserFriendlyError } from '../utils/error-handler';
 
 interface TestResult {
-  testName: string;
-  success: boolean;
-  duration: number;
-  error?: string;
-  data?: any;
-}
+      testName: string; success: boolean; duration: number; error?: string; data?: any; }
 
 interface ApiTestSuite {
-  suiteName: string;
-  results: TestResult[];
-  totalTests: number;
-  passedTests: number;
-  failedTests: number;
-  duration: number;
-}
+      suiteName: string; results: TestResult[]; totalTests: number; passedTests: number; failedTests: number; duration: number; }
 
 export const TestingDashboard: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
@@ -55,15 +44,12 @@ export const TestingDashboard: React.FC = () => {
   }, [handleError]);
 
   // 個別テスト実行
-  const runIndividualTest = useCallback(async (testType: 'success' | 'error' | 'staff' | 'health') => {
-    setIsRunning(true);
+      const runIndividualTest = useCallback(async (testType: 'success' | 'error' | 'staff' | 'health') => { setIsRunning(true);
     setError(null);
 
     try {
       const tester = new InstallmentApiTester();
-      let result: TestResult;
-
-      switch (testType) {
+      let result: TestResult; switch (testType) {
         case 'success':
           setCurrentTest('分納作成成功テスト実行中...');
           result = await tester.testCreateInstallmentSuccess();
@@ -91,8 +77,7 @@ export const TestingDashboard: React.FC = () => {
         totalTests: 1,
         passedTests: result.success ? 1 : 0,
         failedTests: result.success ? 0 : 1,
-        duration: result.duration
-      });
+      duration: result.duration });
 
     } catch (err) {
       const userError = handleError(err);
@@ -110,16 +95,13 @@ export const TestingDashboard: React.FC = () => {
     const exportData = {
       timestamp: new Date().toISOString(),
       testSuite: testResults,
-      environment: {
-        userAgent: navigator.userAgent,
+      environment: { userAgent: navigator.userAgent,
         url: window.location.href,
-        isDev: import.meta.env.DEV
-      }
+      isDev: import.meta.env.DEV }
     };
 
     const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-      type: 'application/json'
-    });
+      type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -166,13 +148,11 @@ export const TestingDashboard: React.FC = () => {
         {/* テスト実行ボタン */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">テスト実行</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* 全テスト実行 */}
+      <div className="grid grid-cols-1 md: grid-cols-2 gap-4">{/* 全テスト実行 */}
             <button
               onClick={runTestSuite}
               disabled={isRunning}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg font-medium"
-            >
+      className="bg-blue-600 hover: bg-blue-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg font-medium">
               {isRunning ? '実行中...' : '🚀 全テスト実行'}
             </button>
 
@@ -181,29 +161,25 @@ export const TestingDashboard: React.FC = () => {
               <button
                 onClick={() => runIndividualTest('success')}
                 disabled={isRunning}
-                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-3 py-2 rounded text-sm"
-              >
+      className="bg-green-600 hover: bg-green-700 disabled:bg-gray-400 text-white px-3 py-2 rounded text-sm">
                 ✅ 成功テスト
               </button>
               <button
                 onClick={() => runIndividualTest('error')}
                 disabled={isRunning}
-                className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white px-3 py-2 rounded text-sm"
-              >
+      className="bg-red-600 hover: bg-red-700 disabled:bg-gray-400 text-white px-3 py-2 rounded text-sm">
                 🚨 エラーテスト
               </button>
               <button
                 onClick={() => runIndividualTest('staff')}
                 disabled={isRunning}
-                className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white px-3 py-2 rounded text-sm"
-              >
+      className="bg-purple-600 hover: bg-purple-700 disabled:bg-gray-400 text-white px-3 py-2 rounded text-sm">
                 👥 担当者テスト
               </button>
               <button
                 onClick={() => runIndividualTest('health')}
                 disabled={isRunning}
-                className="bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white px-3 py-2 rounded text-sm"
-              >
+      className="bg-orange-600 hover: bg-orange-700 disabled:bg-gray-400 text-white px-3 py-2 rounded text-sm">
                 💊 ヘルステスト
               </button>
             </div>
@@ -219,8 +195,7 @@ export const TestingDashboard: React.FC = () => {
               </h2>
               <button
                 onClick={exportResults}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm"
-              >
+      className="bg-gray-600 hover: bg-gray-700 text-white px-4 py-2 rounded text-sm">
                 📥 結果をエクスポート
               </button>
             </div>
@@ -253,8 +228,7 @@ export const TestingDashboard: React.FC = () => {
                   className={`p-4 rounded-lg border ${
                     result.success
                       ? 'bg-green-50 border-green-200'
-                      : 'bg-red-50 border-red-200'
-                  }`}
+      : 'bg-red-50 border-red-200' }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
@@ -315,8 +289,7 @@ export const TestingDashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400">
+      ) : ( <div className="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400">
                 <div className="flex">
                   <div className="text-yellow-400 mr-3">
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -344,8 +317,7 @@ export const TestingDashboard: React.FC = () => {
         {/* システム情報 */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">🔧 システム情報</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div>
+      <div className="grid grid-cols-1 md: grid-cols-2 gap-4 text-sm"><div>
               <strong>環境:</strong> {import.meta.env.DEV ? '開発' : '本番'}
             </div>
             <div>

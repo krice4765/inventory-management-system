@@ -160,14 +160,7 @@ const getOrderDetail = async (orderId: string): Promise<OrderDetail> => {
   // 進捗計算
   const delivery_progress = total_amount_tax_included > 0 ? (delivered_amount / total_amount_tax_included) * 100 : 0;
 
-  // デバッグログを追加
-    orderId,
-    assigned_user_id: order.assigned_user_id,
-    assigned_user: assignedUserData,
-    order_no: order.order_no,
-    shipping_cost: order.shipping_cost,
-    shipping_tax_rate: order.shipping_tax_rate
-  });
+  // デバッグログを追加（削除済み）
 
   const orderDetail: OrderDetail = {
     id: order.id,
@@ -191,11 +184,7 @@ const getOrderDetail = async (orderId: string): Promise<OrderDetail> => {
     delivery_progress,
   };
 
-    orderId,
-    itemsCount: processedItems.length,
-    totalAmount: total_amount_tax_included,
-    deliveryProgress: delivery_progress.toFixed(1) + '%'
-  });
+  // ログ出力（削除済み）
 
   return orderDetail;
 };

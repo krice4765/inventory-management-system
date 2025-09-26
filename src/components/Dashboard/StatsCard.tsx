@@ -2,15 +2,8 @@ import React from 'react';
 import { DivideIcon as LucideIcon } from 'lucide-react';
 
 interface StatsCardProps {
-  title: string;
-  value: string | number;
-  icon: LucideIcon;
-  trend?: {
-    value: number;
-    isPositive: boolean;
-  };
-  color: 'blue' | 'green' | 'yellow' | 'red' | 'purple';
-}
+      title: string; value: string | number; icon: LucideIcon; trend?: { value: number; isPositive: boolean; };
+      color: 'blue' | 'green' | 'yellow' | 'red' | 'purple'; }
 
 const colorClasses = {
   blue: 'bg-blue-500',
@@ -28,8 +21,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
   color,
 }) => {
   return (
-    <div className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200 hover:shadow-md transition-shadow duration-200">
-      <div className="p-6">
+      <div className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200 hover: shadow-md transition-shadow duration-200"><div className="p-6">
         <div className="flex items-center">
           <div className="flex-shrink-0">
             <div className={`p-3 rounded-md ${colorClasses[color]}`}>
@@ -48,8 +40,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
                 {trend && (
                   <div
                     className={`ml-2 flex items-baseline text-sm font-semibold ${
-                      trend.isPositive ? 'text-green-600' : 'text-red-600'
-                    }`}
+      trend.isPositive ? 'text-green-600' : 'text-red-600' }`}
                   >
                     {trend.isPositive ? '+' : ''}
                     {trend.value}%

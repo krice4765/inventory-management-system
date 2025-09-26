@@ -9,38 +9,32 @@ import { useAddInstallment } from '../hooks/useTransactions'
 import { InstallmentProgress } from './InstallmentProgress'
 
 interface InstallmentFormData {
-  amount: number
-  status: 'draft' | 'confirmed'
-  dueDate?: string
-  memo?: string
-  quantities: { [productId: string]: number }
-  includeProducts: boolean
+  amount: number;
+  status: 'draft' | 'confirmed';
+  dueDate?: string;
+  memo?: string;
+  quantities: { [productId: string]: number };
+  includeProducts: boolean;
 }
 
 const createInstallmentSchema = (maxAmount: number) =>
   yup.object({
-    amount: yup
-      .number()
+      amount: yup .number()
       .typeError('数値を入力してください')
       .positive('0より大きい値を入力してください')
       .max(maxAmount, `残額¥${maxAmount.toLocaleString()}を超えています`)
       .required('分納金額は必須です'),
-    status: yup
-      .string()
+      status: yup .string()
       .oneOf(['draft', 'confirmed'])
       .required('ステータスを選択してください'),
-    dueDate: yup
-      .string()
+      dueDate: yup .string()
       .optional(),
-    memo: yup
-      .string()
+      memo: yup .string()
       .max(200, '備考は200文字以内で入力してください')
       .optional(),
-    quantities: yup
-      .object()
+      quantities: yup .object()
       .optional(),
-    includeProducts: yup
-      .boolean()
+      includeProducts: yup .boolean()
       .optional(),
   })
 
@@ -105,13 +99,12 @@ export const AddInstallmentModal = () => {
         memo: '',
         quantities: {},
         includeProducts: true  // リセット時も商品情報を含める
-      })
+      });
     }
-  }, [isOpen, form, defaultDueDateString])
+  }, [isOpen, form, defaultDueDateString]);
 
   // クイック金額設定
-  const setQuickAmount = (percentage: number) => {
-    if (!orderData) return
+      const setQuickAmount = (percentage: number) => { if (!orderData) return
     const amount = Math.floor(orderData.remaining_amount * percentage)
     form.setValue('amount', amount, { shouldValidate: true })
   }
@@ -128,8 +121,7 @@ export const AddInstallmentModal = () => {
         .filter(([_, qty]) => qty > 0)
         .reduce((sum, [productId, qty]) => {
           const product = orderData?.products.find(p => p.product_id === productId)
-          return sum + (product ? product.unit_price * qty : 0)
-        }, 0)
+      return sum + (product ? product.unit_price * qty : 0) }, 0)
 
       if (totalAmount > 0) {
         form.setValue('amount', totalAmount, { shouldValidate: true })
@@ -138,15 +130,13 @@ export const AddInstallmentModal = () => {
   }
 
   // 商品情報含有モード切り替え
-  const toggleProductMode = (include: boolean) => {
-    form.setValue('includeProducts', include, { shouldValidate: true })
+      const toggleProductMode = (include: boolean) => { form.setValue('includeProducts', include, { shouldValidate: true })
     if (!include) {
       form.setValue('quantities', {}, { shouldValidate: true })
     }
   }
 
-  const handleSubmit = async (data: InstallmentFormData) => {
-    if (!orderData) return
+      const handleSubmit = async (data: InstallmentFormData) => { if (!orderData) return
     
     // 追加バリデーション
     if (data.amount <= 0) {
@@ -192,8 +182,7 @@ export const AddInstallmentModal = () => {
           <h3 className="text-xl font-semibold text-gray-900">分納追加</h3>
           <button 
             onClick={close}
-            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
-          >
+      className="text-gray-400 hover: text-gray-600 text-2xl leading-none">
             ×
           </button>
         </div>
@@ -203,12 +192,10 @@ export const AddInstallmentModal = () => {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
             <p className="mt-2 text-gray-600">発注情報を読み込み中...</p>
           </div>
-        ) : isError ? (
-          <div className="p-3 bg-red-50 text-red-700 rounded mb-4">
+      ) : isError ? ( <div className="p-3 bg-red-50 text-red-700 rounded mb-4">
             発注情報の取得に失敗しました: {error?.message ?? '不明なエラー'}
           </div>
-        ) : orderData ? (
-          <form onSubmit={form.handleSubmit(handleSubmit)}>
+      ) : orderData ? ( <form onSubmit={form.handleSubmit(handleSubmit)}>
             {/* 発注情報表示 */}
             <div className="bg-blue-50 rounded-lg p-4 mb-6">
               <h4 className="font-semibold text-blue-900 mb-2">
@@ -216,20 +203,16 @@ export const AddInstallmentModal = () => {
               </h4>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <span className="text-blue-700">仕入先:</span>
-                  <p className="font-medium">{orderData.partner_name}</p>
+      <span className="text-blue-700">仕入先: </span> <p className="font-medium">{orderData.partner_name}</p>
                 </div>
                 <div>
-                  <span className="text-blue-700">発注額:</span>
-                  <p className="font-medium">¥{orderData.total_amount.toLocaleString()}</p>
+      <span className="text-blue-700">発注額: </span> <p className="font-medium">¥{orderData.total_amount.toLocaleString()}</p>
                 </div>
                 <div>
-                  <span className="text-blue-700">既分納:</span>
-                  <p className="font-medium">¥{orderData.allocated_amount.toLocaleString()}</p>
+      <span className="text-blue-700">既分納: </span> <p className="font-medium">¥{orderData.allocated_amount.toLocaleString()}</p>
                 </div>
                 <div>
-                  <span className="text-blue-700 font-semibold">残額:</span>
-                  <p className="font-bold text-lg">¥{orderData.remaining_amount.toLocaleString()}</p>
+      <span className="text-blue-700 font-semibold">残額: </span> <p className="font-bold text-lg">¥{orderData.remaining_amount.toLocaleString()}</p>
                 </div>
               </div>
               <div className="mt-2 text-xs text-blue-600">
@@ -247,10 +230,8 @@ export const AddInstallmentModal = () => {
 
             {orderData.remaining_amount <= 1 ? (
               <div className="p-3 bg-amber-50 text-amber-700 rounded mb-4">
-                ✅ この発注は完了しています（残額: ¥1以下）
-              </div>
-            ) : (
-              <>
+      ✅ この発注は完了しています（残額: ¥1以下） </div>
+      ) : ( <>
                 {/* クイック入力ボタン */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -260,29 +241,25 @@ export const AddInstallmentModal = () => {
                     <button
                       type="button"
                       onClick={() => setQuickAmount(0.25)}
-                      className="p-2 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-                    >
+      className="p-2 text-xs bg-blue-100 text-blue-700 rounded hover: bg-blue-200 transition-colors">
                       25%<br/>¥{Math.floor(orderData.remaining_amount * 0.25).toLocaleString()}
                     </button>
                     <button
                       type="button"
                       onClick={() => setQuickAmount(0.5)}
-                      className="p-2 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
-                    >
+      className="p-2 text-xs bg-green-100 text-green-700 rounded hover: bg-green-200 transition-colors">
                       50%<br/>¥{Math.floor(orderData.remaining_amount * 0.5).toLocaleString()}
                     </button>
                     <button
                       type="button"
                       onClick={() => setQuickAmount(0.7)}
-                      className="p-2 text-xs bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition-colors"
-                    >
+      className="p-2 text-xs bg-yellow-100 text-yellow-700 rounded hover: bg-yellow-200 transition-colors">
                       70%<br/>¥{Math.floor(orderData.remaining_amount * 0.7).toLocaleString()}
                     </button>
                     <button
                       type="button"
                       onClick={() => setQuickAmount(1.0)}
-                      className="p-2 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
-                    >
+      className="p-2 text-xs bg-red-100 text-red-700 rounded hover: bg-red-200 transition-colors">
                       全額<br/>¥{orderData.remaining_amount.toLocaleString()}
                     </button>
                   </div>
@@ -319,8 +296,7 @@ export const AddInstallmentModal = () => {
                             </p>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <span className="text-sm text-gray-600">数量:</span>
-                            <input
+      <span className="text-sm text-gray-600">数量: </span> <input
                               type="number"
                               min="0"
                               max={product.quantity}
@@ -341,8 +317,7 @@ export const AddInstallmentModal = () => {
                               .filter(([_, qty]) => qty > 0)
                               .reduce((sum, [productId, qty]) => {
                                 const product = orderData.products.find(p => p.product_id === productId)
-                                return sum + (product ? product.unit_price * qty : 0)
-                              }, 0).toLocaleString()}
+      return sum + (product ? product.unit_price * qty : 0) }, 0).toLocaleString()}
                           </p>
                         </div>
                       )}
@@ -363,11 +338,8 @@ export const AddInstallmentModal = () => {
                     step="1"
                     {...form.register('amount', { valueAsNumber: true })}
                     disabled={form.watch('includeProducts')}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      form.formState.errors.amount ? 'border-red-300' : 'border-gray-300'
-                    } ${
-                      form.watch('includeProducts') ? 'bg-gray-100 cursor-not-allowed' : ''
-                    }`}
+      className={`w-full px-3 py-2 border rounded-md focus: outline-none focus:ring-2 focus:ring-blue-500 ${ form.formState.errors.amount ? 'border-red-300' : 'border-gray-300' } ${
+      form.watch('includeProducts') ? 'bg-gray-100 cursor-not-allowed' : '' }`}
                     placeholder="0"
                   />
                   {form.formState.errors.amount && (
@@ -417,8 +389,7 @@ export const AddInstallmentModal = () => {
                   <input
                     type="date"
                     {...form.register('dueDate')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+      className="w-full px-3 py-2 border border-gray-300 rounded-md focus: outline-none focus:ring-2 focus:ring-blue-500"/>
                   {form.formState.errors.dueDate && (
                     <p className="mt-1 text-sm text-red-600">
                       {form.formState.errors.dueDate.message}
@@ -434,8 +405,7 @@ export const AddInstallmentModal = () => {
                   <textarea
                     rows={3}
                     {...form.register('memo')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="備考を入力..."
+      className="w-full px-3 py-2 border border-gray-300 rounded-md focus: outline-none focus:ring-2 focus:ring-blue-500"placeholder="備考を入力..."
                   />
                   {form.formState.errors.memo && (
                     <p className="mt-1 text-sm text-red-600">
@@ -451,30 +421,26 @@ export const AddInstallmentModal = () => {
               <button
                 type="button"
                 onClick={close}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              >
+      className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover: bg-gray-50 transition-colors">
                 キャンセル
               </button>
               {orderData && orderData.remaining_amount > 1 && (
                 <button
                   type="submit"
                   disabled={addInstallmentMutation.isPending || !form.formState.isValid}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
+      className="px-4 py-2 bg-blue-600 text-white rounded-md hover: bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                   {addInstallmentMutation.isPending ? (
                     <span className="flex items-center">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                       追加中...
                     </span>
-                  ) : (
-                    '分納追加'
+      ) : ( '分納追加'
                   )}
                 </button>
               )}
             </div>
           </form>
-        ) : (
-          <div className="text-center py-8 text-gray-500">
+      ) : ( <div className="text-center py-8 text-gray-500">
             発注情報が見つかりません
           </div>
         )}

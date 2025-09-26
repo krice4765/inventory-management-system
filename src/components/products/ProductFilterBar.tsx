@@ -4,12 +4,7 @@ import type { ProductFilters } from '../../types/filters';
 import { useSuppliers } from '../../hooks/useProducts';
 
 interface ProductFilterBarProps {
-  filters: ProductFilters;
-  onFilterChange: (newFilters: Partial<ProductFilters>) => void;
-  onReset: () => void;
-  totalCount: number;
-  filteredCount: number;
-}
+      filters: ProductFilters; onFilterChange: (newFilters: Partial<ProductFilters>) => void; onReset: () => void; totalCount: number; filteredCount: number; }
 
 export const ProductFilterBar: React.FC<ProductFilterBarProps> = ({
   filters,
@@ -20,27 +15,22 @@ export const ProductFilterBar: React.FC<ProductFilterBarProps> = ({
 }) => {
   const { data: suppliers = [], isLoading: isLoadingSuppliers } = useSuppliers();
 
-  const handleSupplierChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
+      const handleSupplierChange = (e: React.ChangeEvent<HTMLSelectElement>) => { const value = e.target.value;
     onFilterChange({ supplierId: value === '' ? null : Number(value) });
   };
 
-  const handleStockStatusChange = (status: ProductFilters['stockStatus']) => {
-    onFilterChange({ stockStatus: status });
+      const handleStockStatusChange = (status: ProductFilters['stockStatus']) => { onFilterChange({ stockStatus: status });
   };
 
   const handlePriceChange = (field: 'min' | 'max', value: string) => {
-    const numValue = value === '' ? null : Number(value);
-    onFilterChange({
-      priceRange: {
-        ...filters.priceRange,
+      const numValue = value === '' ? null : Number(value); onFilterChange({
+      priceRange: { ...filters.priceRange,
         [field]: numValue,
       },
     });
   };
 
-  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onFilterChange({ sortBy: e.target.value as ProductFilters['sortBy'] });
+      const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => { onFilterChange({ sortBy: e.target.value as ProductFilters['sortBy'] });
   };
 
   const toggleSortOrder = () => {
@@ -70,16 +60,14 @@ export const ProductFilterBar: React.FC<ProductFilterBarProps> = ({
         {hasActiveFilters && (
           <button
             onClick={onReset}
-            className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
+      className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover: bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
             <RotateCcw size={16} className="mr-2" />
             フィルタクリア
           </button>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* 仕入先フィルタ */}
+      <div className="grid grid-cols-1 md: grid-cols-2 lg:grid-cols-4 gap-4">{/* 仕入先フィルタ */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             仕入先で絞り込み
@@ -88,8 +76,7 @@ export const ProductFilterBar: React.FC<ProductFilterBarProps> = ({
             <select
               value={filters.supplierId ?? ''}
               onChange={handleSupplierChange}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 appearance-none"
-              disabled={isLoadingSuppliers}
+      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus: border-indigo-500 focus:ring-1 focus:ring-indigo-500 appearance-none"disabled={isLoadingSuppliers}
             >
               <option value="">全ての仕入先</option>
               {suppliers.map((supplier) => (
@@ -119,8 +106,7 @@ export const ProductFilterBar: React.FC<ProductFilterBarProps> = ({
                 className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${
                   filters.stockStatus === value
                     ? 'bg-indigo-600 text-white border-indigo-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                }`}
+      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }`}
               >
                 {label}
               </button>
@@ -140,8 +126,7 @@ export const ProductFilterBar: React.FC<ProductFilterBarProps> = ({
               value={filters.priceRange.min ?? ''}
               onChange={(e) => handlePriceChange('min', e.target.value)}
               onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-              min="0"
+      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus: border-indigo-500 focus:ring-1 focus:ring-indigo-500"min="0"
             />
             <span className="flex items-center text-gray-500">〜</span>
             <input
@@ -150,8 +135,7 @@ export const ProductFilterBar: React.FC<ProductFilterBarProps> = ({
               value={filters.priceRange.max ?? ''}
               onChange={(e) => handlePriceChange('max', e.target.value)}
               onWheel={(e) => (e.currentTarget as HTMLInputElement).blur()}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-              min="0"
+      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus: border-indigo-500 focus:ring-1 focus:ring-indigo-500"min="0"
             />
           </div>
         </div>
@@ -166,8 +150,7 @@ export const ProductFilterBar: React.FC<ProductFilterBarProps> = ({
               <select
                 value={filters.sortBy}
                 onChange={handleSortChange}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 appearance-none"
-              >
+      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus: border-indigo-500 focus:ring-1 focus:ring-indigo-500 appearance-none">
                 <option value="name">商品名</option>
                 <option value="product_code">商品コード</option>
                 <option value="purchase_price">仕入単価</option>
@@ -178,11 +161,9 @@ export const ProductFilterBar: React.FC<ProductFilterBarProps> = ({
             </div>
             <button
               onClick={toggleSortOrder}
-              className={`px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors ${
-                filters.sortOrder === 'asc'
+      className={`px-3 py-2 border rounded-md text-sm focus: outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors ${ filters.sortOrder === 'asc'
                   ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
-                  : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-              }`}
+      : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50' }`}
               title={filters.sortOrder === 'asc' ? '昇順' : '降順'}
             >
               <ArrowUpDown 
@@ -215,12 +196,9 @@ export const ProductFilterBar: React.FC<ProductFilterBarProps> = ({
             )}
             {(filters.sortBy !== 'name' || filters.sortOrder !== 'asc') && (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                並び替え: {
-                  filters.sortBy === 'name' ? '商品名' : 
-                  filters.sortBy === 'product_code' ? '商品コード' :
+      並び替え: { filters.sortBy === 'name' ? '商品名' :   filters.sortBy === 'product_code' ? '商品コード' :
                   filters.sortBy === 'purchase_price' ? '仕入単価' :
-                  filters.sortBy === 'sell_price' ? '販売単価' : '在庫数'
-                } ({filters.sortOrder === 'asc' ? '昇順' : '降順'})
+      filters.sortBy === 'sell_price' ? '販売単価' : '在庫数' } ({filters.sortOrder === 'asc' ? '昇順' : '降順'})
               </span>
             )}
           </div>

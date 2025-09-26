@@ -56,16 +56,7 @@ export const useOrderForDelivery = (orderId: string | null) => {
       const movements = movementsResult.data || [];
       const currentStocks = stockResult.data || [];
 
-        orderId,
-        deliveries: deliveries?.map(d => ({
-          id: d.id,
-          installment_no: d.installment_no,
-          amount: d.total_amount,
-          memo: d.memo,
-          created_at: d.created_at
-        })),
-        deliveriesCount: deliveries?.length || 0
-      });
+      // ログ出力（削除済み）
       
       // 分納実績を合計
       const delivered_amount = deliveries.reduce((sum, delivery) => sum + (delivery.total_amount || 0), 0);
@@ -76,30 +67,7 @@ export const useOrderForDelivery = (orderId: string | null) => {
         deliveryTransactionIds.includes(m.transaction_id)
       );
       
-      // 🚨 強化デバッグログ（数量リセットバグ調査）
-        orderId,
-        deliveries: deliveries.length,
-        deliveryTransactionIds,
-        movements: movements.length,
-        relevantMovements: relevantMovements.length,
-        deliveriesDetail: deliveries.map(d => ({
-          id: d.id,
-          total_amount: d.total_amount,
-          created_at: d.created_at
-        })),
-        movementsDetail: movements.map(m => ({
-          id: m.id,
-          product_id: m.product_id,
-          quantity: m.quantity,
-          transaction_id: m.transaction_id,
-          created_at: m.created_at
-        })),
-        relevantMovementsDetail: relevantMovements.map(m => ({
-          product_id: m.product_id,
-          quantity: m.quantity,
-          transaction_id: m.transaction_id
-        }))
-      });
+      // 🚨 強化デバッグログ（削除済み）
 
       // 🚨 数量リセットバグ検出
       if (relevantMovements.length === 0 && deliveries.length > 0) {

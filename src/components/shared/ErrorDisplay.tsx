@@ -40,8 +40,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
   const [reportSent, setReportSent] = useState(false);
 
   // エラー色の決定
-  const getBgColor = (severity: string) => {
-    switch (severity) {
+      const getBgColor = (severity: string) => { switch (severity) {
       case 'error':
         return 'bg-red-50 border-red-200';
       case 'warning':
@@ -53,8 +52,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
     }
   };
 
-  const getTextColor = (severity: string) => {
-    switch (severity) {
+      const getTextColor = (severity: string) => { switch (severity) {
       case 'error':
         return 'text-red-800';
       case 'warning':
@@ -66,17 +64,12 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
     }
   };
 
-  const getButtonColor = (severity: string) => {
-    switch (severity) {
+      const getButtonColor = (severity: string) => { switch (severity) {
       case 'error':
-        return 'bg-red-600 hover:bg-red-700 text-white';
-      case 'warning':
-        return 'bg-yellow-600 hover:bg-yellow-700 text-white';
-      case 'info':
-        return 'bg-blue-600 hover:bg-blue-700 text-white';
-      default:
-        return 'bg-gray-600 hover:bg-gray-700 text-white';
-    }
+      return 'bg-red-600 hover: bg-red-700 text-white'; case 'warning':
+      return 'bg-yellow-600 hover: bg-yellow-700 text-white'; case 'info':
+      return 'bg-blue-600 hover: bg-blue-700 text-white'; default:
+      return 'bg-gray-600 hover: bg-gray-700 text-white'; }
   };
 
   // エラーレポート送信
@@ -129,8 +122,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
         {onDismiss && (
           <button
             onClick={onDismiss}
-            className="text-gray-400 hover:text-gray-600"
-            aria-label="エラーメッセージを閉じる"
+      className="text-gray-400 hover: text-gray-600"aria-label="エラーメッセージを閉じる"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path
@@ -159,8 +151,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
         {showTechnicalDetails && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md text-sm font-medium"
-          >
+      className="px-4 py-2 bg-gray-200 hover: bg-gray-300 text-gray-700 rounded-md text-sm font-medium">
             {isExpanded ? '詳細を隠す' : '詳細を表示'}
           </button>
         )}
@@ -170,8 +161,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
           <button
             onClick={handleSendReport}
             disabled={reportSent}
-            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white rounded-md text-sm font-medium"
-          >
+      className="px-4 py-2 bg-gray-600 hover: bg-gray-700 disabled:bg-gray-400 text-white rounded-md text-sm font-medium">
             {reportSent ? '送信済み ✓' : 'レポート送信'}
           </button>
         )}
@@ -189,16 +179,14 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
               <div><strong>発生時刻:</strong> {error.timestamp.toLocaleString()}</div>
               {error.context && (
                 <div>
-                  <strong>コンテキスト:</strong>
-                  <pre className="mt-1 overflow-x-auto">
+      <strong>コンテキスト: </strong> <pre className="mt-1 overflow-x-auto">
                     {JSON.stringify(error.context, null, 2)}
                   </pre>
                 </div>
               )}
               {error.originalError && (
                 <div>
-                  <strong>元のエラー:</strong>
-                  <pre className="mt-1 overflow-x-auto">
+      <strong>元のエラー: </strong> <pre className="mt-1 overflow-x-auto">
                     {JSON.stringify({
                       name: (error.originalError as Record<string, unknown>)?.name,
                       message: (error.originalError as Record<string, unknown>)?.message,
@@ -219,9 +207,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
  * シンプルなエラー表示コンポーネント（トースト用）
  */
 export const ErrorToast: React.FC<{
-  error: UserFriendlyError;
-  onDismiss?: () => void;
-}> = ({ error, onDismiss }) => {
+      error: UserFriendlyError; onDismiss?: () => void; }> = ({ error, onDismiss }) => {
   return (
     <div className={`flex items-center p-3 rounded-lg shadow-lg ${getBgColor(error.severity)}`}>
       <div className="text-lg mr-3">
@@ -240,8 +226,7 @@ export const ErrorToast: React.FC<{
       {onDismiss && (
         <button
           onClick={onDismiss}
-          className="ml-3 text-gray-400 hover:text-gray-600"
-        >
+      className="ml-3 text-gray-400 hover: text-gray-600">
           ×
         </button>
       )}
@@ -253,34 +238,25 @@ export const ErrorToast: React.FC<{
  * エラー境界コンポーネント（React Error Boundary）
  */
 interface ErrorBoundaryState {
-  hasError: boolean;
-  error: UserFriendlyError | null;
-}
+      hasError: boolean; error: UserFriendlyError | null; }
 
 export class ErrorBoundary extends React.Component<
   React.PropsWithChildren<{
-    fallback?: (error: UserFriendlyError) => React.ReactNode;
-    onError?: (error: UserFriendlyError) => void;
-  }>,
+      fallback?: (error: UserFriendlyError) => React.ReactNode; onError?: (error: UserFriendlyError) => void; }>,
   ErrorBoundaryState
 > {
-  constructor(props: React.PropsWithChildren<{
-    fallback?: (error: UserFriendlyError) => React.ReactNode;
-    onError?: (error: UserFriendlyError) => void;
-  }>) {
+      constructor(props: React.PropsWithChildren<{ fallback?: (error: UserFriendlyError) => React.ReactNode; onError?: (error: UserFriendlyError) => void; }>) {
     super(props);
     this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    // Import error handler dynamically to avoid circular dependencies
+      static getDerivedStateFromError(error: Error): ErrorBoundaryState { // Import error handler dynamically to avoid circular dependencies
     const { convertToUserFriendlyError } = require('../../utils/error-handler');
     const userError = convertToUserFriendlyError(error);
     
     return {
       hasError: true,
-      error: userError
-    };
+      error: userError };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {

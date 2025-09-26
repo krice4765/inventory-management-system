@@ -3,15 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface ModernInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
-  label?: string;
-  error?: string;
-  success?: boolean;
-  helperText?: string;
-  leftIcon?: React.ReactNode;
-  rightIcon?: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg';
-  variant?: 'default' | 'filled' | 'outlined';
-}
+      label?: string; error?: string; success?: boolean; helperText?: string; leftIcon?: React.ReactNode; rightIcon?: React.ReactNode; size?: 'sm' | 'md' | 'lg'; variant?: 'default' | 'filled' | 'outlined'; }
 
 export const ModernInput: React.FC<ModernInputProps> = ({
   label,
@@ -33,42 +25,45 @@ export const ModernInput: React.FC<ModernInputProps> = ({
   const sizeClasses = {
     sm: 'px-3 py-2 text-sm min-h-[36px]',
     md: 'px-4 py-3 text-base min-h-[44px]',
-    lg: 'px-5 py-4 text-lg min-h-[52px]'
-  };
+      lg: 'px-5 py-4 text-lg min-h-[52px]' };
 
   const variantClasses = {
-    default: `
-      border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900
-      focus:border-blue-500 dark:focus:border-blue-400
-      ${error ? 'border-red-500 dark:border-red-400' : ''}
-      ${success ? 'border-green-500 dark:border-green-400' : ''}
-    `,
-    filled: `
-      border-0 bg-gray-100 dark:bg-gray-800
-      focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-blue-500
-      ${error ? 'ring-2 ring-red-500' : ''}
-      ${success ? 'ring-2 ring-green-500' : ''}
-    `,
-    outlined: `
-      border-2 border-gray-300 dark:border-gray-600 bg-transparent
-      focus:border-blue-500 dark:focus:border-blue-400 focus:bg-white dark:focus:bg-gray-900
-      ${error ? 'border-red-500 dark:border-red-400' : ''}
-      ${success ? 'border-green-500 dark:border-green-400' : ''}
-    `
+      default: `
+        border-2 border-gray-200 dark:border-gray-700
+        bg-white dark:bg-gray-900
+        focus:border-blue-500 dark:focus:border-blue-400
+        ${error ? 'border-red-500 dark:border-red-400' : ''}
+        ${success ? 'border-green-500 dark:border-green-400' : ''}
+      `,
+      filled: `
+        border-0
+        bg-gray-100 dark:bg-gray-800
+        focus:bg-white dark:focus:bg-gray-900
+        focus:ring-2 focus:ring-blue-500
+        ${error ? 'ring-2 ring-red-500' : ''}
+        ${success ? 'ring-2 ring-green-500' : ''}
+      `,
+      outlined: `
+        border-2 border-gray-300 dark:border-gray-600
+        bg-transparent
+        focus:border-blue-500 dark:focus:border-blue-400
+        focus:bg-white dark:focus:bg-gray-900
+        ${error ? 'border-red-500 dark:border-red-400' : ''}
+        ${success ? 'border-green-500 dark:border-green-400' : ''}
+      `
   };
 
   const baseClasses = `
     w-full rounded-xl font-medium transition-all duration-200
-    text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400
+    text-gray-900 dark:text-gray-100
+    placeholder-gray-500 dark:placeholder-gray-400
     focus:outline-none focus:ring-4 focus:ring-blue-500/20
     disabled:opacity-60 disabled:cursor-not-allowed
     ${leftIcon ? 'pl-12' : ''}
     ${rightIcon || type === 'password' ? 'pr-12' : ''}
   `;
 
-  const inputType = type === 'password' && showPassword ? 'text' : type;
-
-  return (
+      const inputType = type === 'password' && showPassword ? 'text' : type; return (
     <div className="space-y-2">
       {/* Label */}
       {label && (
@@ -76,8 +71,7 @@ export const ModernInput: React.FC<ModernInputProps> = ({
           initial={false}
           animate={{
             color: isFocused ? '#3B82F6' : error ? '#EF4444' : success ? '#10B981' : '#6B7280',
-            scale: isFocused ? 1.02 : 1
-          }}
+      scale: isFocused ? 1.02 : 1 }}
           className="block text-sm font-semibold transition-colors duration-200"
         >
           {label}
@@ -89,8 +83,7 @@ export const ModernInput: React.FC<ModernInputProps> = ({
       <div className="relative group">
         {/* Left Icon */}
         {leftIcon && (
-          <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-200">
-            {leftIcon}
+      <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-200">{leftIcon}
           </div>
         )}
 
@@ -114,15 +107,13 @@ export const ModernInput: React.FC<ModernInputProps> = ({
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
-            >
+      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200">
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
           )}
 
           {rightIcon && !success && !error && (
-            <div className="text-gray-400 group-focus-within:text-blue-500 transition-colors duration-200">
-              {rightIcon}
+      <div className="text-gray-400 group-focus-within:text-blue-500 transition-colors duration-200">{rightIcon}
             </div>
           )}
         </div>
@@ -132,8 +123,7 @@ export const ModernInput: React.FC<ModernInputProps> = ({
           initial={false}
           animate={{
             opacity: isFocused ? 1 : 0,
-            scale: isFocused ? 1 : 0.95
-          }}
+      scale: isFocused ? 1 : 0.95 }}
           className="absolute inset-0 rounded-xl bg-blue-500/10 pointer-events-none"
         />
       </div>

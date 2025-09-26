@@ -2,19 +2,12 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
 
 interface SelectContextType {
-  value: string;
-  onValueChange: (value: string) => void;
-  open: boolean;
-  setOpen: (open: boolean) => void;
-}
+      value: string; onValueChange: (value: string) => void; open: boolean; setOpen: (open: boolean) => void; }
 
 const SelectContext = createContext<SelectContextType | undefined>(undefined);
 
 interface SelectProps {
-  value?: string;
-  onValueChange?: (value: string) => void;
-  children: React.ReactNode;
-}
+      value?: string; onValueChange?: (value: string) => void; children: React.ReactNode; }
 
 export const Select: React.FC<SelectProps> = ({
   value = '',
@@ -38,9 +31,7 @@ export const Select: React.FC<SelectProps> = ({
 };
 
 interface SelectTriggerProps {
-  children: React.ReactNode;
-  className?: string;
-}
+      children: React.ReactNode; className?: string; }
 
 export const SelectTrigger: React.FC<SelectTriggerProps> = ({
   children,
@@ -69,8 +60,7 @@ export const SelectTrigger: React.FC<SelectTriggerProps> = ({
 };
 
 interface SelectValueProps {
-  placeholder?: string;
-}
+      placeholder?: string; }
 
 export const SelectValue: React.FC<SelectValueProps> = ({ placeholder }) => {
   const context = useContext(SelectContext);
@@ -85,9 +75,7 @@ export const SelectValue: React.FC<SelectValueProps> = ({ placeholder }) => {
 };
 
 interface SelectContentProps {
-  children: React.ReactNode;
-  className?: string;
-}
+      children: React.ReactNode; className?: string; }
 
 export const SelectContent: React.FC<SelectContentProps> = ({
   children,
@@ -102,8 +90,7 @@ export const SelectContent: React.FC<SelectContentProps> = ({
   const { open, setOpen } = context;
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
+      const handleClickOutside = (event: MouseEvent) => { const target = event.target as HTMLElement;
       if (!target.closest('[data-select-content]')) {
         setOpen(false);
       }
@@ -137,9 +124,7 @@ export const SelectContent: React.FC<SelectContentProps> = ({
 };
 
 interface SelectItemProps {
-  value: string;
-  children: React.ReactNode;
-}
+      value: string; children: React.ReactNode; }
 
 export const SelectItem: React.FC<SelectItemProps> = ({ value, children }) => {
   const context = useContext(SelectContext);

@@ -6,30 +6,17 @@ import type { InventoryOverrideRequest } from '../types/permissions';
 import { useInventoryOverride } from '../hooks/usePermissions';
 
 interface InventoryOverrideModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onApprove: () => void;
-  orderId: string;
-  productId: string;
-  productName: string;
-  requestedQuantity: number;
-  currentStock: number;
-  shortage: number;
-}
+      isOpen: boolean; onClose: () => void; onApprove: () => void; orderId: string; productId: string; productName: string; requestedQuantity: number; currentStock: number; shortage: number; }
 
 interface OverrideFormData {
-  reason: string;
-  acknowledge: boolean;
-}
+      reason: string; acknowledge: boolean; }
 
 const overrideSchema = yup.object({
-  reason: yup
-    .string()
+      reason: yup .string()
     .min(10, '理由は10文字以上で入力してください')
     .max(200, '理由は200文字以内で入力してください')
     .required('オーバーライド理由は必須です'),
-  acknowledge: yup
-    .boolean()
+      acknowledge: yup .boolean()
     .oneOf([true], '責任を理解し同意する必要があります')
     .required()
 });
@@ -49,21 +36,18 @@ export const InventoryOverrideModal: React.FC<InventoryOverrideModalProps> = ({
 
   const form = useForm<OverrideFormData>({
     resolver: yupResolver(overrideSchema),
-    defaultValues: {
-      reason: '',
+      defaultValues: { reason: '',
       acknowledge: false,
     },
   });
 
-  const handleOverride = async (data: OverrideFormData) => {
-    if (!canOverrideInventory) {
+      const handleOverride = async (data: OverrideFormData) => { if (!canOverrideInventory) {
       alert('在庫制限をオーバーライドする権限がありません');
       return;
     }
 
     try {
-      const request: InventoryOverrideRequest = {
-        orderId,
+      const request: InventoryOverrideRequest = { orderId,
         productId,
         requestedQuantity,
         currentStock,
@@ -84,8 +68,7 @@ export const InventoryOverrideModal: React.FC<InventoryOverrideModalProps> = ({
       }
     } catch (error) {
       console.error('在庫オーバーライドエラー:', error);
-      alert(error instanceof Error ? error.message : '不明なエラーが発生しました');
-    }
+      alert(error instanceof Error ? error.message : '不明なエラーが発生しました'); }
   };
 
   if (!isOpen) return null;
@@ -97,8 +80,7 @@ export const InventoryOverrideModal: React.FC<InventoryOverrideModalProps> = ({
           <h3 className="text-xl font-semibold text-red-700">🚨 在庫制限オーバーライド</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl"
-          >
+      className="text-gray-400 hover: text-gray-600 text-2xl">
             ×
           </button>
         </div>
@@ -118,13 +100,11 @@ export const InventoryOverrideModal: React.FC<InventoryOverrideModalProps> = ({
             <p className="text-red-600 mb-4">在庫制限をオーバーライドする権限がありません。</p>
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-            >
+      className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover: bg-gray-400">
               閉じる
             </button>
           </div>
-        ) : (
-          <form onSubmit={form.handleSubmit(handleOverride)}>
+      ) : ( <form onSubmit={form.handleSubmit(handleOverride)}>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 オーバーライド理由 <span className="text-red-500">*</span>
@@ -132,8 +112,7 @@ export const InventoryOverrideModal: React.FC<InventoryOverrideModalProps> = ({
               <textarea
                 {...form.register('reason')}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="在庫制限をオーバーライドする理由を詳しく記入してください（10文字以上）"
+      className="w-full px-3 py-2 border border-gray-300 rounded-md focus: outline-none focus:ring-2 focus:ring-red-500"placeholder="在庫制限をオーバーライドする理由を詳しく記入してください（10文字以上）"
               />
               {form.formState.errors.reason && (
                 <p className="mt-1 text-sm text-red-600">
@@ -165,15 +144,13 @@ export const InventoryOverrideModal: React.FC<InventoryOverrideModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded hover:bg-gray-50"
-              >
+      className="px-4 py-2 text-gray-700 border border-gray-300 rounded hover: bg-gray-50">
                 キャンセル
               </button>
               <button
                 type="submit"
                 disabled={!form.formState.isValid}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
+      className="px-4 py-2 bg-red-600 text-white rounded hover: bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">
                 オーバーライド実行
               </button>
             </div>

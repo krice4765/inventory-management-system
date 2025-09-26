@@ -5,12 +5,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from '../../App'
 
 const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
+      defaultOptions: { queries: { retry: false,
     },
-    mutations: {
-      retry: false,
+      mutations: { retry: false,
     },
   },
 })

@@ -11,33 +11,28 @@ const mockOrderData: OrderData = {
   order_no: 'PO2024001',
   total_amount: 10000,
   remaining_amount: 5000,
-  items: [
-    {
+      items: [ {
       id: 'item-1',
       product_id: 'prod-1',
       product_name: 'テスト商品A',
       quantity: 5,
       remaining_quantity: 3,
-      unit_price: 1000
-    },
+      unit_price: 1000 },
     {
       id: 'item-2',
       product_id: 'prod-2',
       product_name: 'テスト商品B',
       quantity: 2,
       remaining_quantity: 1,
-      unit_price: 2000
-    }
+      unit_price: 2000 }
   ],
   delivery_deadline: '2024-12-31',
   partner_name: 'テスト仕入先',
-  status: 'confirmed'
-}
+      status: 'confirmed' }
 
 // React Query クライアント
 const createTestQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: { retry: false },
+      defaultOptions: { queries: { retry: false },
     mutations: { retry: false },
   },
 })
@@ -55,9 +50,7 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => {
 
 // Supabaseモック
 vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
-    from: vi.fn(() => ({
-      select: vi.fn(),
+      createClient: vi.fn(() => ({ from: vi.fn(() => ({ select: vi.fn(),
       insert: vi.fn(),
       update: vi.fn(),
     })),

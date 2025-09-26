@@ -19,17 +19,7 @@ import {
 } from '../../utils/lazyComponents';
 
 interface OutboundOrdersTabProps {
-  outboundOrders: OutboundOrder[];
-  isLoading: boolean;
-  error: Error | null;
-  createOutboundOrder: any;
-  updateOutboundOrder: any;
-  deleteOutboundOrder: any;
-  allocateStock: any;
-  processShipment: any;
-  taxDisplayMode: 'tax_included' | 'tax_excluded';
-  isDark: boolean;
-}
+      outboundOrders: OutboundOrder[]; isLoading: boolean; error: Error | null; createOutboundOrder: any; updateOutboundOrder: any; deleteOutboundOrder: any; allocateStock: any; processShipment: any; taxDisplayMode: 'tax_included' | 'tax_excluded'; isDark: boolean; }
 
 // モックデータ（データベース実装までの一時的対応）
 const mockOutboundOrders: OutboundOrder[] = [
@@ -49,8 +39,7 @@ const mockOutboundOrders: OutboundOrder[] = [
     destination: '東京都渋谷区神南1-1-1',
     shipping_method: '標準配送',
     tracking_number: '',
-    items: [
-      {
+      items: [ {
         id: 'item-001-1',
         outbound_order_id: 'out-001',
         product_id: 'prod-001',
@@ -64,8 +53,7 @@ const mockOutboundOrders: OutboundOrder[] = [
         product_code: 'PA-001',
         quantity: 5,
         unit_price: 16500,
-        total_price: 82500
-      },
+      total_price: 82500 },
       {
         id: 'item-001-2',
         outbound_order_id: 'out-001',
@@ -80,8 +68,7 @@ const mockOutboundOrders: OutboundOrder[] = [
         product_code: 'PB-002',
         quantity: 3,
         unit_price: 22000,
-        total_price: 67500
-      }
+      total_price: 67500 }
     ]
   },
   {
@@ -99,8 +86,7 @@ const mockOutboundOrders: OutboundOrder[] = [
     destination: '大阪府大阪市中央区本町2-2-2',
     shipping_method: '速達配送',
     tracking_number: 'YM123456789',
-    items: [
-      {
+      items: [ {
         id: 'item-002-1',
         outbound_order_id: 'out-002',
         product_id: 'prod-003',
@@ -114,8 +100,7 @@ const mockOutboundOrders: OutboundOrder[] = [
         product_code: 'PC-003',
         quantity: 10,
         unit_price: 13200,
-        total_price: 132000
-      },
+      total_price: 132000 },
       {
         id: 'item-002-2',
         outbound_order_id: 'out-002',
@@ -130,8 +115,7 @@ const mockOutboundOrders: OutboundOrder[] = [
         product_code: 'PD-004',
         quantity: 2,
         unit_price: 33000,
-        total_price: 66000
-      }
+      total_price: 66000 }
     ]
   }
 ];
@@ -166,8 +150,7 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
   // 出庫管理データ取得（テーブルが存在しない場合はモックデータを使用）
   const { data: dbOutboundOrders, isLoading: dbLoading, error: dbError } = useQuery({
     queryKey: ['outbound_orders', statusFilter, searchTerm],
-    queryFn: async () => {
-      // テーブル存在確認のため、まずシンプルなクエリを試行
+      queryFn: async () => { // テーブル存在確認のため、まずシンプルなクエリを試行
       try {
         const { data, error } = await supabase
           .from('outbound_orders')
@@ -178,8 +161,7 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
         if (error && (
           error.code === 'PGRST116' ||
           error.code === 'PGRST205' ||
-          error.code === '42P01' ||  // PostgreSQL: relation does not exist
-          error.code === 'PGRST106' ||  // schema cache loading error
+      error.code === '42P01' ||  // PostgreSQL: relation does not exist error.code === 'PGRST106' ||  // schema cache loading error
           error.message?.includes('does not exist') ||
           error.message?.includes('table') ||
           error.message?.includes('relation') ||
@@ -225,6 +207,7 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
           return mockOutboundOrders;
         }
         return fullData || [];
+
       } catch (error: any) {
         // すべてのデータベースエラーをキャッチして安全に処理
 
@@ -244,8 +227,7 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
   });
 
   // 有効なデータソースを決定（DBデータ優先、フォールバックでモックデータ）
-  const effectiveOrders = dbOutboundOrders?.length ? dbOutboundOrders : mockOutboundOrders;
-  const actualIsLoading = isLoading || dbLoading;
+      const effectiveOrders = dbOutboundOrders?.length ? dbOutboundOrders : mockOutboundOrders; const actualIsLoading = isLoading || dbLoading;
   const actualError = error || dbError;
 
   // 統計計算（StatusStatsDisplay互換形式）
@@ -282,38 +264,32 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
   }, [effectiveOrders, searchTerm, statusFilter]);
 
   // ステータス表示用の設定（Inventoryページと同じ色合いに統一）
-  const getStatusConfig = (status: OutboundOrder['status']) => {
-    switch (status) {
+      const getStatusConfig = (status: OutboundOrder['status']) => { switch (status) {
       case 'pending':
         return {
           label: '出庫待ち',
           textColor: 'text-yellow-800 dark:text-yellow-200',
-          bgColor: 'bg-yellow-100 dark:bg-yellow-900'
-        };
+      bgColor: 'bg-yellow-100 dark:bg-yellow-900' };
       case 'processing':
         return {
           label: '処理中',
           textColor: 'text-blue-800 dark:text-blue-200',
-          bgColor: 'bg-blue-100 dark:bg-blue-900'
-        };
+      bgColor: 'bg-blue-100 dark:bg-blue-900' };
       case 'completed':
         return {
           label: '出庫完了',
           textColor: 'text-green-800 dark:text-green-200',
-          bgColor: 'bg-green-100 dark:bg-green-900'
-        };
+      bgColor: 'bg-green-100 dark:bg-green-900' };
       case 'cancelled':
         return {
           label: 'キャンセル',
           textColor: 'text-red-800 dark:text-red-200',
-          bgColor: 'bg-red-100 dark:bg-red-900'
-        };
+      bgColor: 'bg-red-100 dark:bg-red-900' };
       default:
         return {
           label: '不明',
           textColor: 'text-gray-800 dark:text-gray-200',
-          bgColor: 'bg-gray-100 dark:bg-gray-800'
-        };
+      bgColor: 'bg-gray-100 dark:bg-gray-800' };
     }
   };
 
@@ -321,8 +297,7 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
-        <span className="text-lg text-gray-700 dark:text-gray-300 font-medium">
-          出庫データを読み込み中...
+      <span className="text-lg text-gray-700 dark: text-gray-300 font-medium">出庫データを読み込み中...
         </span>
       </div>
     );
@@ -332,14 +307,11 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
     return (
       <div className="text-center py-12">
         <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-        <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
-          データ取得エラー
+      <h2 className="text-xl font-semibold mb-2 text-gray-900 dark: text-white">データ取得エラー
         </h2>
-        <p className="text-gray-600 dark:text-gray-400 mb-4">
-          {actualError.message}
+      <p className="text-gray-600 dark: text-gray-400 mb-4">{actualError.message}
         </p>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          モックデータで動作を続行しています
+      <p className="text-sm text-gray-500 dark: text-gray-400">モックデータで動作を続行しています
         </p>
       </div>
     );
@@ -348,8 +320,7 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
   return (
     <>
       {/* 出庫管理統計カード */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        {/* 出庫待ち */}
+      <div className="grid grid-cols-1 md: grid-cols-2 lg:grid-cols-4 gap-6 mb-6">{/* 出庫待ち */}
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -362,15 +333,11 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
             relative group overflow-hidden rounded-xl p-6 cursor-pointer
             transition-all duration-300 ease-out
             ${isDark
-              ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover:border-gray-600'
-              : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg'
-            }
+      ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover: border-gray-600' : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg' }
           `}
         >
           {/* 背景の装飾エフェクト */}
-          <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-orange-100 dark:bg-orange-900" />
-
-          {/* アクセントライン */}
+      <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-orange-100 dark: bg-orange-900" />{/* アクセントライン */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-orange-500" />
 
           <div className="relative z-10">
@@ -388,8 +355,7 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
             {/* プログレスインジケーター */}
             <div className="mt-4">
               <div className={`h-1 rounded-full overflow-hidden ${
-                isDark ? 'bg-gray-700' : 'bg-gray-200'
-              }`}>
+      isDark ? 'bg-gray-700' : 'bg-gray-200' }`}>
                 <motion.div
                   className="h-full bg-orange-500"
                   initial={{ width: 0 }}
@@ -414,15 +380,11 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
             relative group overflow-hidden rounded-xl p-6 cursor-pointer
             transition-all duration-300 ease-out
             ${isDark
-              ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover:border-gray-600'
-              : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg'
-            }
+      ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover: border-gray-600' : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg' }
           `}
         >
           {/* 背景の装飾エフェクト */}
-          <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-blue-100 dark:bg-blue-900" />
-
-          {/* アクセントライン */}
+      <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-blue-100 dark: bg-blue-900" />{/* アクセントライン */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-blue-500" />
 
           <div className="relative z-10">
@@ -440,8 +402,7 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
             {/* プログレスインジケーター */}
             <div className="mt-4">
               <div className={`h-1 rounded-full overflow-hidden ${
-                isDark ? 'bg-gray-700' : 'bg-gray-200'
-              }`}>
+      isDark ? 'bg-gray-700' : 'bg-gray-200' }`}>
                 <motion.div
                   className="h-full bg-blue-500"
                   initial={{ width: 0 }}
@@ -466,15 +427,11 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
             relative group overflow-hidden rounded-xl p-6 cursor-pointer
             transition-all duration-300 ease-out
             ${isDark
-              ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover:border-gray-600'
-              : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg'
-            }
+      ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover: border-gray-600' : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg' }
           `}
         >
           {/* 背景の装飾エフェクト */}
-          <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-green-100 dark:bg-green-900" />
-
-          {/* アクセントライン */}
+      <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-green-100 dark: bg-green-900" />{/* アクセントライン */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-green-500" />
 
           <div className="relative z-10">
@@ -492,8 +449,7 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
             {/* プログレスインジケーター */}
             <div className="mt-4">
               <div className={`h-1 rounded-full overflow-hidden ${
-                isDark ? 'bg-gray-700' : 'bg-gray-200'
-              }`}>
+      isDark ? 'bg-gray-700' : 'bg-gray-200' }`}>
                 <motion.div
                   className="h-full bg-green-500"
                   initial={{ width: 0 }}
@@ -518,15 +474,11 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
             relative group overflow-hidden rounded-xl p-6 cursor-pointer
             transition-all duration-300 ease-out
             ${isDark
-              ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover:border-gray-600'
-              : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg'
-            }
+      ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover: border-gray-600' : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg' }
           `}
         >
           {/* 背景の装飾エフェクト */}
-          <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-red-100 dark:bg-red-900" />
-
-          {/* アクセントライン */}
+      <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-red-100 dark: bg-red-900" />{/* アクセントライン */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-red-500" />
 
           <div className="relative z-10">
@@ -544,8 +496,7 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
             {/* プログレスインジケーター */}
             <div className="mt-4">
               <div className={`h-1 rounded-full overflow-hidden ${
-                isDark ? 'bg-gray-700' : 'bg-gray-200'
-              }`}>
+      isDark ? 'bg-gray-700' : 'bg-gray-200' }`}>
                 <motion.div
                   className="h-full bg-red-500"
                   initial={{ width: 0 }}
@@ -569,8 +520,7 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
               <TaxDisplayToggle />
               <button
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className="flex items-center space-x-2 text-blue-600 hover:text-blue-700"
-              >
+      className="flex items-center space-x-2 text-blue-600 hover: text-blue-700">
                 <Filter className="h-4 w-4" />
                 <span>{showAdvancedFilters ? '簡易表示' : '詳細フィルター'}</span>
               </button>
@@ -590,8 +540,7 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
                   className={`w-full pl-10 pr-4 py-2 border rounded-lg ${
                     isDark
                       ? 'bg-gray-800 border-gray-700 text-white'
-                      : 'bg-white border-gray-300 text-gray-900'
-                  }`}
+      : 'bg-white border-gray-300 text-gray-900' }`}
                 />
               </div>
             </div>
@@ -602,8 +551,7 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
               className={`px-3 py-2 border rounded-lg ${
                 isDark
                   ? 'bg-gray-800 border-gray-700 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
-              }`}
+      : 'bg-white border-gray-300 text-gray-900' }`}
             >
               <option value="all">すべてのステータス</option>
               <option value="pending">出庫待ち</option>
@@ -617,8 +565,7 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
 
       {/* 出庫一覧テーブル */}
       <ModernCard className="overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+      <div className="px-6 py-4 border-b border-gray-200 dark: border-gray-700"><h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             出庫指示一覧 ({filteredOrders.length}件)
           </h3>
         </div>
@@ -633,8 +580,7 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
               条件を変更して再検索してください
             </p>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
+      ) : ( <div className="overflow-x-auto">
             <table className="w-full">
               <thead className={`${isDark ? 'bg-gray-800' : 'bg-gray-50'}`}>
                 <tr>
@@ -653,8 +599,8 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
                   <th className={`px-6 py-3 text-left text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}>
                     金額
                   </th>
-                  <th className={`px-6 py-3 text-left text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}>
-                    操作
+                  <th className={`px-6 py-3 text-center text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'} uppercase tracking-wider`}>
+                    アクション
                   </th>
                 </tr>
               </thead>
@@ -696,16 +642,21 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center justify-center space-x-2">
+                          {/* 詳細ボタン - 常に表示 */}
                           <button
                             onClick={() => {
                               setSelectedOrder(order);
                               setShowDetailModal(true);
                             }}
-                            className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors shadow-sm"
+                            title="出庫指示の詳細を確認"
                           >
+                            <Package className="w-3 h-3 mr-1" />
                             詳細
                           </button>
+
+                          {/* pending状態時のアクション */}
                           {order.status === 'pending' && (
                             <>
                               <button
@@ -725,8 +676,10 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
                                   ]);
                                   setShowAllocationModal(true);
                                 }}
-                                className="text-green-600 hover:text-green-700 font-medium transition-colors"
+                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors shadow-sm"
+                                title="在庫を引当てる"
                               >
+                                <CheckCircle className="w-3 h-3 mr-1" />
                                 引当
                               </button>
                               <button
@@ -734,32 +687,46 @@ export const OutboundOrdersTab: React.FC<OutboundOrdersTabProps> = ({
                                   setSelectedOrder(order);
                                   setShowEditModal(true);
                                 }}
-                                className="text-yellow-600 hover:text-yellow-700 font-medium transition-colors"
+                                className={`inline-flex items-center px-3 py-1.5 border text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors shadow-sm ${
+                                  isDark
+                                    ? 'border-gray-600 text-gray-300 bg-gray-700 hover:bg-gray-600'
+                                    : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
+                                }`}
+                                title="出庫指示を編集"
                               >
-                                <Edit className="w-4 h-4" />
+                                <Edit className="w-3 h-3 mr-1" />
+                                編集
                               </button>
                             </>
                           )}
+
+                          {/* processing状態時のアクション */}
                           {order.status === 'processing' && (
                             <button
                               onClick={() => {
                                 setSelectedOrder(order);
                                 setShowShippingModal(true);
                               }}
-                              className="text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                              className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors shadow-sm"
+                              title="出荷処理を行う"
                             >
+                              <TrendingUp className="w-3 h-3 mr-1" />
                               出荷
                             </button>
                           )}
+
+                          {/* 削除ボタン - pending/cancelled状態時のみ */}
                           {(order.status === 'pending' || order.status === 'cancelled') && (
                             <button
                               onClick={() => {
                                 setSelectedOrder(order);
                                 setShowDeleteModal(true);
                               }}
-                              className="text-red-600 hover:text-red-700 font-medium transition-colors"
+                              className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors shadow-sm"
+                              title="出庫指示を削除"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3 h-3 mr-1" />
+                              削除
                             </button>
                           )}
                         </div>

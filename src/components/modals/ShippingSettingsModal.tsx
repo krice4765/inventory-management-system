@@ -11,23 +11,10 @@ import {
 } from '../../hooks/useShippingCost';
 
 interface ShippingSettingsModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  supplierId?: string;
-  supplierName?: string;
-}
+      isOpen: boolean; onClose: () => void; supplierId?: string; supplierName?: string; }
 
 interface ShippingFormData {
-  shipping_method: string;
-  base_cost: number;
-  weight_threshold?: number;
-  additional_cost_per_kg?: number;
-  free_shipping_threshold?: number;
-  tax_rate: number;
-  is_active: boolean;
-  effective_from: string;
-  effective_until?: string;
-}
+      shipping_method: string; base_cost: number; weight_threshold?: number; additional_cost_per_kg?: number; free_shipping_threshold?: number; tax_rate: number; is_active: boolean; effective_from: string; effective_until?: string; }
 
 const defaultFormData: ShippingFormData = {
   shipping_method: 'standard',
@@ -65,9 +52,7 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
   } = useShippingSettingsManagement();
 
   // 表示する設定一覧（取引先固有設定 または デフォルト設定）
-  const displaySettings = supplierId ? supplierSettings : defaultSettings;
-
-  useEffect(() => {
+      const displaySettings = supplierId ? supplierSettings : defaultSettings; useEffect(() => {
     if (!isOpen) {
       setEditingId(null);
       setShowForm(false);
@@ -75,16 +60,14 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
     }
   }, [isOpen]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+      const handleSubmit = async (e: React.FormEvent) => { e.preventDefault();
 
     try {
       const settingData = {
         ...formData,
         supplier_id: supplierId ? parseInt(supplierId) : null,
         effective_from: new Date(formData.effective_from).toISOString(),
-        effective_until: formData.effective_until
-          ? new Date(formData.effective_until).toISOString()
+      effective_until: formData.effective_until ? new Date(formData.effective_until).toISOString()
           : null,
       };
 
@@ -105,8 +88,7 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
     }
   };
 
-  const handleEdit = (setting: ShippingCostSetting) => {
-    setFormData({
+      const handleEdit = (setting: ShippingCostSetting) => { setFormData({
       shipping_method: setting.shipping_method,
       base_cost: setting.base_cost,
       weight_threshold: setting.weight_threshold || undefined,
@@ -121,8 +103,7 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
     setShowForm(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('この送料設定を削除しますか？')) return;
+      const handleDelete = async (id: string) => { if (!confirm('この送料設定を削除しますか？')) return;
 
     try {
       await deleteSetting(id);
@@ -143,24 +124,20 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           className={`w-full max-w-4xl rounded-lg shadow-xl ${
-            isDark ? 'bg-gray-800' : 'bg-white'
-          }`}
+      isDark ? 'bg-gray-800' : 'bg-white' }`}
         >
           {/* ヘッダー */}
           <div className={`flex items-center justify-between p-6 border-b ${
-            isDark ? 'border-gray-700' : 'border-gray-200'
-          }`}>
+      isDark ? 'border-gray-700' : 'border-gray-200' }`}>
             <div className="flex items-center space-x-3">
               <Truck className="h-6 w-6 text-blue-600" />
               <div>
                 <h2 className={`text-xl font-semibold ${
-                  isDark ? 'text-white' : 'text-gray-900'
-                }`}>
+      isDark ? 'text-white' : 'text-gray-900' }`}>
                   送料設定管理
                 </h2>
                 <p className={`text-sm ${
-                  isDark ? 'text-gray-400' : 'text-gray-600'
-                }`}>
+      isDark ? 'text-gray-400' : 'text-gray-600' }`}>
                   {supplierName ? `${supplierName} 固有設定` : 'デフォルト設定'}
                 </p>
               </div>
@@ -168,8 +145,7 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
             <button
               onClick={onClose}
               className={`p-2 rounded-lg transition-colors ${
-                isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-              }`}
+      isDark ? 'hover: bg-gray-700' : 'hover:bg-gray-100' }`}
             >
               <X className="h-5 w-5" />
             </button>
@@ -184,14 +160,12 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
                   読み込み中...
                 </p>
               </div>
-            ) : (
-              <div className="space-y-4">
+      ) : ( <div className="space-y-4">
                 {/* 新規作成ボタン */}
                 {!showForm && (
                   <button
                     onClick={() => setShowForm(true)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
+      className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover: bg-blue-700 transition-colors">
                     <Plus className="h-4 w-4" />
                     <span>新規送料設定</span>
                   </button>
@@ -205,14 +179,11 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
                     exit={{ opacity: 0, height: 0 }}
                     onSubmit={handleSubmit}
                     className={`p-4 rounded-lg border ${
-                      isDark ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50'
-                    }`}
+      isDark ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50' }`}
                   >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
+      <div className="grid grid-cols-1 md: grid-cols-2 gap-4"><div>
                         <label className={`block text-sm font-medium mb-1 ${
-                          isDark ? 'text-gray-300' : 'text-gray-700'
-                        }`}>
+      isDark ? 'text-gray-300' : 'text-gray-700' }`}>
                           配送方法
                         </label>
                         <select
@@ -221,8 +192,7 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
                           className={`w-full px-3 py-2 rounded-md border ${
                             isDark
                               ? 'bg-gray-700 border-gray-600 text-white'
-                              : 'bg-white border-gray-300'
-                          }`}
+      : 'bg-white border-gray-300' }`}
                         >
                           <option value="standard">標準配送</option>
                           <option value="express">速達</option>
@@ -233,8 +203,7 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
 
                       <div>
                         <label className={`block text-sm font-medium mb-1 ${
-                          isDark ? 'text-gray-300' : 'text-gray-700'
-                        }`}>
+      isDark ? 'text-gray-300' : 'text-gray-700' }`}>
                           基本送料 (円)
                         </label>
                         <input
@@ -244,8 +213,7 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
                           className={`w-full px-3 py-2 rounded-md border ${
                             isDark
                               ? 'bg-gray-700 border-gray-600 text-white'
-                              : 'bg-white border-gray-300'
-                          }`}
+      : 'bg-white border-gray-300' }`}
                           min="0"
                           required
                         />
@@ -253,8 +221,7 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
 
                       <div>
                         <label className={`block text-sm font-medium mb-1 ${
-                          isDark ? 'text-gray-300' : 'text-gray-700'
-                        }`}>
+      isDark ? 'text-gray-300' : 'text-gray-700' }`}>
                           重量閾値 (kg)
                         </label>
                         <input
@@ -262,13 +229,11 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
                           value={formData.weight_threshold || ''}
                           onChange={(e) => setFormData({
                             ...formData,
-                            weight_threshold: e.target.value ? parseInt(e.target.value) : undefined
-                          })}
+      weight_threshold: e.target.value ? parseInt(e.target.value) : undefined })}
                           className={`w-full px-3 py-2 rounded-md border ${
                             isDark
                               ? 'bg-gray-700 border-gray-600 text-white'
-                              : 'bg-white border-gray-300'
-                          }`}
+      : 'bg-white border-gray-300' }`}
                           min="0"
                           placeholder="オプション"
                         />
@@ -276,8 +241,7 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
 
                       <div>
                         <label className={`block text-sm font-medium mb-1 ${
-                          isDark ? 'text-gray-300' : 'text-gray-700'
-                        }`}>
+      isDark ? 'text-gray-300' : 'text-gray-700' }`}>
                           送料無料条件 (円)
                         </label>
                         <input
@@ -285,13 +249,11 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
                           value={formData.free_shipping_threshold || ''}
                           onChange={(e) => setFormData({
                             ...formData,
-                            free_shipping_threshold: e.target.value ? parseInt(e.target.value) : undefined
-                          })}
+      free_shipping_threshold: e.target.value ? parseInt(e.target.value) : undefined })}
                           className={`w-full px-3 py-2 rounded-md border ${
                             isDark
                               ? 'bg-gray-700 border-gray-600 text-white'
-                              : 'bg-white border-gray-300'
-                          }`}
+      : 'bg-white border-gray-300' }`}
                           min="0"
                           placeholder="オプション"
                         />
@@ -308,17 +270,14 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
                         }}
                         className={`px-4 py-2 rounded-lg transition-colors ${
                           isDark
-                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
+      ? 'bg-gray-700 text-gray-300 hover: bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }`}
                       >
                         キャンセル
                       </button>
                       <button
                         type="submit"
                         disabled={isCreating || isUpdating}
-                        className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                      >
+      className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover: bg-blue-700 disabled:opacity-50">
                         <Save className="h-4 w-4" />
                         <span>{editingId ? '更新' : '作成'}</span>
                       </button>
@@ -329,27 +288,23 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
                 {/* 設定一覧 */}
                 {displaySettings.length === 0 ? (
                   <div className={`text-center py-8 ${
-                    isDark ? 'text-gray-400' : 'text-gray-600'
-                  }`}>
+      isDark ? 'text-gray-400' : 'text-gray-600' }`}>
                     <AlertCircle className="h-8 w-8 mx-auto mb-2" />
                     <p>送料設定がありません</p>
                     <p className="text-sm">新規作成してください</p>
                   </div>
-                ) : (
-                  <div className="space-y-2">
+      ) : ( <div className="space-y-2">
                     {displaySettings.map((setting) => (
                       <div
                         key={setting.id}
                         className={`p-4 rounded-lg border ${
-                          isDark ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-white'
-                        }`}
+      isDark ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-white' }`}
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-2">
                               <span className={`font-medium ${
-                                isDark ? 'text-white' : 'text-gray-900'
-                              }`}>
+      isDark ? 'text-white' : 'text-gray-900' }`}>
                                 {ShippingUtils.getShippingMethodLabel(setting.shipping_method)}
                               </span>
                               {!setting.is_active && (
@@ -359,8 +314,7 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
                               )}
                             </div>
                             <div className={`text-sm space-y-1 ${
-                              isDark ? 'text-gray-300' : 'text-gray-600'
-                            }`}>
+      isDark ? 'text-gray-300' : 'text-gray-600' }`}>
                               <p>基本送料: ¥{setting.base_cost.toLocaleString()}</p>
                               {setting.free_shipping_threshold && (
                                 <p>送料無料: ¥{setting.free_shipping_threshold.toLocaleString()}以上</p>
@@ -374,8 +328,7 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
                             <button
                               onClick={() => handleEdit(setting)}
                               className={`p-2 rounded transition-colors ${
-                                isDark ? 'hover:bg-gray-600' : 'hover:bg-gray-100'
-                              }`}
+      isDark ? 'hover: bg-gray-600' : 'hover:bg-gray-100' }`}
                             >
                               <Edit className="h-4 w-4" />
                             </button>
@@ -383,8 +336,7 @@ export const ShippingSettingsModal: React.FC<ShippingSettingsModalProps> = ({
                               onClick={() => handleDelete(setting.id)}
                               disabled={isDeleting}
                               className={`p-2 rounded transition-colors text-red-600 ${
-                                isDark ? 'hover:bg-gray-600' : 'hover:bg-gray-100'
-                              }`}
+      isDark ? 'hover: bg-gray-600' : 'hover:bg-gray-100' }`}
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>

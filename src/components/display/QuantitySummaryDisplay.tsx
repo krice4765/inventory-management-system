@@ -3,9 +3,7 @@ import { useDarkMode } from '../../hooks/useDarkMode';
 import { useOrderDetail } from '../../hooks/useOrderDetail';
 
 interface QuantitySummaryDisplayProps {
-  orderId: string;
-  totalAmount: number;
-}
+      orderId: string; totalAmount: number; }
 
 export const QuantitySummaryDisplay: React.FC<QuantitySummaryDisplayProps> = ({
   orderId,
@@ -18,11 +16,9 @@ export const QuantitySummaryDisplay: React.FC<QuantitySummaryDisplayProps> = ({
     return (
       <div className="text-right">
         <div className="font-medium">
-          <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-4 w-16 rounded"></div>
-        </div>
+      <div className="animate-pulse bg-gray-200 dark: bg-gray-700 h-4 w-16 rounded"></div> </div>
         <div className={`text-xs ${
-          isDark ? 'text-gray-400' : 'text-gray-500'
-        }`}>
+      isDark ? 'text-gray-400' : 'text-gray-500' }`}>
           発注額: ¥{totalAmount.toLocaleString()}
         </div>
       </div>
@@ -38,8 +34,7 @@ export const QuantitySummaryDisplay: React.FC<QuantitySummaryDisplayProps> = ({
           詳細準備中
         </div>
         <div className={`text-xs ${
-          isDark ? 'text-gray-400' : 'text-gray-500'
-        }`}>
+      isDark ? 'text-gray-400' : 'text-gray-500' }`}>
           発注額: ¥{totalAmount.toLocaleString()}
         </div>
       </div>
@@ -53,8 +48,7 @@ export const QuantitySummaryDisplay: React.FC<QuantitySummaryDisplayProps> = ({
           明細なし
         </div>
         <div className={`text-xs ${
-          isDark ? 'text-gray-400' : 'text-gray-500'
-        }`}>
+      isDark ? 'text-gray-400' : 'text-gray-500' }`}>
           発注額: ¥{totalAmount.toLocaleString()}
         </div>
       </div>
@@ -74,8 +68,7 @@ export const QuantitySummaryDisplay: React.FC<QuantitySummaryDisplayProps> = ({
         }
       </div>
       <div className={`text-xs ${
-        isDark ? 'text-gray-400' : 'text-gray-500'
-      }`}>
+      isDark ? 'text-gray-400' : 'text-gray-500' }`}>
         発注額: ¥{totalAmount.toLocaleString()}
       </div>
     </div>

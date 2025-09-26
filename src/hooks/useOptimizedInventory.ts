@@ -1,6 +1,25 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 
+// memoフィールドから発注書番号を抽出する関数
+function extractOrderNoFromMemo(memo: string | null): string | null {
+  if (!memo) return null;
+
+  // "PO250925002" のようなパターンを検索
+  const poMatch = memo.match(/PO\d{9}/g);
+  if (poMatch && poMatch.length > 0) {
+    return poMatch[0]; // 最初に見つかったPO番号を返す
+  }
+
+  // "PO-YYYYMMDD-XXXX" のようなパターンも検索
+  const poDateMatch = memo.match(/PO-\d{8}-\d+/g);
+  if (poDateMatch && poDateMatch.length > 0) {
+    return poDateMatch[0];
+  }
+
+  return null;
+}
+
 export interface Product {
   id: string;
   product_name: string;
@@ -107,7 +126,13 @@ export function useAllMovements(filters: MovementFilters = {}) {
             memo,
             created_at,
             transaction_id,
-            transactions(installment_no, delivery_sequence)
+            transactions(
+              installment_no,
+              delivery_sequence,
+              parent_order_id,
+              transaction_type,
+              total_amount
+            )
           `);
 
         // フィルタ適用（inventory_movementsテーブルのみ）
@@ -238,6 +263,7 @@ export function useAllMovements(filters: MovementFilters = {}) {
           const product = productsMap.get(movement.product_id);
           const transaction = movement.transaction_id ? transactionsMap.get(movement.transaction_id) : null;
 
+
           return {
             ...movement,
             products: product ? {
@@ -248,14 +274,17 @@ export function useAllMovements(filters: MovementFilters = {}) {
               current_stock: product.current_stock,
             } : null,
             transaction_details: transaction ? {
-              order_no: transaction.order_no,
-              purchase_order_id: transaction.purchase_order_id,
+              order_no: transaction.order_no || extractOrderNoFromMemo(transaction.memo),
+              purchase_order_id: transaction.parent_order_id,
               delivery_sequence: transaction.delivery_sequence,
-              delivery_type: transaction.delivery_type,
+              delivery_type: transaction.delivery_type || (transaction.delivery_sequence > 0 ? 'partial' : undefined),
               delivery_amount: transaction.total_amount,
               order_total_amount: transaction.order_total_amount,
               transaction_type: transaction.transaction_type,
-            } : null
+              installment_no: transaction.installment_no,
+              memo: transaction.memo
+            } : null,
+            installment_no: transaction?.installment_no
           };
         }).filter(m => m.products !== null);
 
@@ -329,13 +358,7 @@ export function useAllMovements(filters: MovementFilters = {}) {
         }
 
         // デバッグ: フィルター適用状況を確認
-        if (filters.startDate || filters.endDate) {
-            startDate: filters.startDate,
-            endDate: filters.endDate,
-            originalCount: movementsData.length,
-            finalCount: filteredMovements.length
-          });
-        }
+        // ログ出力（削除済み）
 
         return { data: filteredMovements as InventoryMovement[] };
 
@@ -487,11 +510,18 @@ export function useInfiniteMovements(filters: MovementFilters = {}) {
             let orderData = [];
             if (transData && transData.length > 0) {
               const orderIds = Array.from(new Set(transData.map(t => t.parent_order_id).filter(Boolean)));
+
               if (orderIds.length > 0) {
-                const { data: ordersData } = await supabase
+                const { data: ordersData, error: ordersError } = await supabase
                   .from('purchase_orders')
                   .select('id, order_no, total_amount')
                   .in('id', orderIds);
+
+                if (ordersError) {
+                  console.error('❌ purchase_orders取得エラー:', ordersError);
+                } else {
+                  console.log('✅ purchase_orders取得成功:', ordersData?.length, '件');
+                }
                 orderData = ordersData || [];
               }
             }
@@ -556,15 +586,7 @@ export function useInfiniteMovements(filters: MovementFilters = {}) {
             } : null
           };
           
-          // デバッグ: データ構造を確認
-            movement_id: movement.id,
-            transaction_id: movement.transaction_id,
-            product_found: !!product,
-            product_name: product?.product_name,
-            transaction_found: !!transaction,
-            transaction_details: result.transaction_details,
-            result_products: result.products
-          });
+          // デバッグ: データ構造を確認（削除済み）
           
           return result;
         }).filter(m => m.products !== null); // 製品データがないものは除外
@@ -580,48 +602,13 @@ export function useInfiniteMovements(filters: MovementFilters = {}) {
               
               const isMatch = nameMatch || productNameMatch || codeMatch || memoMatch;
               
-              // 詳細マッチング情報を出力（最初の5件のみ）
-              if (idx < 5) {
-                  product_name: m.products?.product_name,
-                  name: m.products?.product_name,
-                  searchTerm: filters.searchTerm,
-                  nameMatch,
-                  productNameMatch,
-                  codeMatch,
-                  memoMatch,
-                  finalMatch: isMatch
-                });
-              }
+              // 詳細マッチング情報を出力（削除済み）
               
               return isMatch;
             })
           : movements;
-        
-          searchTerm: filters.searchTerm,
-          元の件数: movements.length,
-          フィルタ後: filteredMovements.length,
-          検索対象: movements.slice(0, 3).map(m => ({ 
-            name: m.products?.product_name, 
-            product_name: m.products?.product_name, 
-            code: m.products?.product_code,
-            memo: m.memo
-          })),
-          実際のマッチング確認: filters.searchTerm ? movements.slice(0, 5).map((m, idx) => {
-            const searchLower = filters.searchTerm!.toLowerCase();
-            const result = {
-              index: idx,
-              product_name: m.products?.product_name,
-              name: m.products?.product_name,
-              code: m.products?.product_code,
-              memo: m.memo,
-              includes_name: m.products?.product_name ? m.products.product_name.toLowerCase().includes(searchLower) : false,
-              includes_product_name: m.products?.product_name ? m.products.product_name.toLowerCase().includes(searchLower) : false,
-              includes_code: m.products?.product_code ? m.products.product_code.toLowerCase().includes(searchLower) : false,
-              includes_memo: m.memo ? m.memo.toLowerCase().includes(searchLower) : false
-            };
-            return result;
-          }) : '検索なし'
-        });
+
+        // ログ出力（削除済み）
 
         // 製品名でソートが必要な場合
         if (filters.sortBy === 'product_name') {
@@ -634,12 +621,7 @@ export function useInfiniteMovements(filters: MovementFilters = {}) {
           });
         }
 
-          total_movements: filteredMovements.length,
-          with_transaction_id: filteredMovements.filter(m => m.transaction_id).length,
-          with_transaction_details: filteredMovements.filter(m => m.transaction_details).length,
-          transaction_ids: Array.from(new Set(filteredMovements.filter(m => m.transaction_id).map(m => m.transaction_id))),
-          transactions_retrieved: transactionsData.length
-        });
+        // ログ出力（削除済み）
         
         return {
           data: filteredMovements as InventoryMovement[],

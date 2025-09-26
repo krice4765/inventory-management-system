@@ -18,38 +18,15 @@ import {
 } from 'lucide-react';
 
 interface ShippingInfo {
-  method: string;
-  carrier: string;
-  tracking_number: string;
-  estimated_delivery: string;
-  shipping_cost: number;
-  special_instructions?: string;
-}
+      method: string; carrier: string; tracking_number: string; estimated_delivery: string; shipping_cost: number; special_instructions?: string; }
 
 interface OutboundOrder {
-  id: string;
-  order_number: string;
-  customer_name: string;
-  destination: string;
-  total_items: number;
-  total_amount: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  items?: {
-    product_name: string;
-    product_code: string;
-    quantity: number;
-    unit_price: number;
-    total_price: number;
-  }[];
+      id: string; order_number: string; customer_name: string; destination: string; total_items: number; total_amount: number; status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'; items?: { product_name: string; product_code: string; quantity: number; unit_price: number; total_price: number; }[];
 }
 
 interface ModernShippingProcessModalProps {
-  order: OutboundOrder | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onProcessShipping: (orderId: string, shippingInfo: ShippingInfo) => Promise<void>;
-  isDark?: boolean;
-}
+      order: OutboundOrder | null; isOpen: boolean; onClose: () => void; onProcessShipping: (orderId: string, shippingInfo: ShippingInfo) => Promise<void>;
+      isDark?: boolean; }
 
 const ModernShippingProcessModal: React.FC<ModernShippingProcessModalProps> = ({
   order,
@@ -67,8 +44,7 @@ const ModernShippingProcessModal: React.FC<ModernShippingProcessModalProps> = ({
     tracking_number: '',
     estimated_delivery: '',
     shipping_cost: 0,
-    special_instructions: ''
-  });
+      special_instructions: '' });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -78,26 +54,22 @@ const ModernShippingProcessModal: React.FC<ModernShippingProcessModalProps> = ({
       value: 'standard',
       label: '標準配送',
       description: '3-5営業日、¥800',
-      icon: <Truck className="w-5 h-5 text-blue-500" />
-    },
+      icon: <Truck className="w-5 h-5 text-blue-500" /> },
     {
       value: 'express',
       label: '速達配送',
       description: '翌々日配達、¥1,200',
-      icon: <Truck className="w-5 h-5 text-orange-500" />
-    },
+      icon: <Truck className="w-5 h-5 text-orange-500" /> },
     {
       value: 'overnight',
       label: '翌日配送',
       description: '翌日午前配達、¥1,800',
-      icon: <Truck className="w-5 h-5 text-red-500" />
-    },
+      icon: <Truck className="w-5 h-5 text-red-500" /> },
     {
       value: 'freight',
       label: '貨物配送',
       description: '大型商品対応、¥2,500',
-      icon: <Package className="w-5 h-5 text-green-500" />
-    }
+      icon: <Package className="w-5 h-5 text-green-500" /> }
   ];
 
   useEffect(() => {
@@ -109,14 +81,12 @@ const ModernShippingProcessModal: React.FC<ModernShippingProcessModalProps> = ({
         tracking_number: '',
         estimated_delivery: '',
         shipping_cost: 0,
-        special_instructions: ''
-      });
+      special_instructions: '' });
       setErrors({});
     }
   }, [isOpen, order]);
 
-  const handleMethodChange = (value: string) => {
-    const methodConfig = {
+      const handleMethodChange = (value: string) => { const methodConfig = {
       standard: { carrier: 'ヤマト運輸', cost: 800, days: 3 },
       express: { carrier: '佐川急便', cost: 1200, days: 2 },
       overnight: { carrier: 'ヤマト運輸', cost: 1800, days: 1 },
@@ -133,8 +103,7 @@ const ModernShippingProcessModal: React.FC<ModernShippingProcessModalProps> = ({
         method: value,
         carrier: config.carrier,
         shipping_cost: config.cost,
-        estimated_delivery: estimatedDate.toISOString().split('T')[0]
-      }));
+      estimated_delivery: estimatedDate.toISOString().split('T')[0] }));
     }
   };
 
@@ -175,18 +144,18 @@ const ModernShippingProcessModal: React.FC<ModernShippingProcessModalProps> = ({
 
   return (
     <ModernDialog open={isOpen} onOpenChange={onClose}>
-      <ModernDialogContent size="xl" minimizable>
+      <ModernDialogContent size="ultra" minimizable>
         <ModernDialogHeader
-          icon={currentStep === 'input' ? <Truck className="w-6 h-6" /> : <CheckCircle className="w-6 h-6" />}
+          icon={currentStep === 'input' ? <Truck className="w-7 h-7" /> : <CheckCircle className="w-7 h-7" />}
         >
           <ModernDialogTitle
-            subtitle={currentStep === 'input' ? '配送情報を入力してください' : '出荷処理を実行します'}
+            subtitle={currentStep === 'input' ? '配送業者と追跡情報を設定して出荷準備を完了します' : '以下の内容で出荷処理を実行します。この操作は取り消せません。'}
           >
-            {currentStep === 'input' ? '出荷処理' : '出荷確認'}
+            {currentStep === 'input' ? '📦 出荷情報設定' : '✅ 出荷処理確認'}
           </ModernDialogTitle>
         </ModernDialogHeader>
 
-        <ModernDialogBody>
+        <ModernDialogBody className="p-8">
           <AnimatePresence mode="wait">
             {currentStep === 'input' ? (
               <motion.div
@@ -200,48 +169,39 @@ const ModernShippingProcessModal: React.FC<ModernShippingProcessModalProps> = ({
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-200 dark:border-blue-800"
-                >
+      className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-200 dark:border-blue-800">
                   <div className="flex items-center space-x-3 mb-4">
                     <div className="p-2 bg-blue-500 rounded-lg">
                       <ShoppingBag className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                        オーダー情報
+      <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">オーダー情報
                       </h3>
-                      <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                        {order.order_number}
+      <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">{order.order_number}
                       </p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-2">
-                      <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-                        <Package className="w-4 h-4 mr-1" />
+      <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center"><Package className="w-4 h-4 mr-1" />
                         顧客名
                       </p>
-                      <p className="font-bold text-gray-900 dark:text-gray-100">
-                        {order.customer_name}
+      <p className="font-bold text-gray-900 dark:text-gray-100">{order.customer_name}
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-                        <ShoppingBag className="w-4 h-4 mr-1" />
+      <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center"><ShoppingBag className="w-4 h-4 mr-1" />
                         商品点数
                       </p>
-                      <p className="font-bold text-gray-900 dark:text-gray-100">
-                        {(order.total_items || 0).toLocaleString()} 点
+      <p className="font-bold text-gray-900 dark:text-gray-100">{(order.total_items || 0).toLocaleString()} 点
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-                        <DollarSign className="w-4 h-4 mr-1" />
+      <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center"><DollarSign className="w-4 h-4 mr-1" />
                         合計金額
                       </p>
-                      <p className="font-bold text-2xl text-blue-600 dark:text-blue-400">
-                        ¥{(order.total_amount || 0).toLocaleString()}
+      <p className="font-bold text-2xl text-blue-600 dark:text-blue-400">¥{(order.total_amount || 0).toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -251,12 +211,11 @@ const ModernShippingProcessModal: React.FC<ModernShippingProcessModalProps> = ({
                 <div className="space-y-6">
                   <div className="flex items-center space-x-3">
                     <Sparkles className="w-6 h-6 text-purple-500" />
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                      配送情報
+      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">配送情報
                     </h3>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <ModernSelect
                       label="配送方法"
                       placeholder="配送方法を選択..."
@@ -309,7 +268,7 @@ const ModernShippingProcessModal: React.FC<ModernShippingProcessModalProps> = ({
                       value={order.destination || ''}
                       readOnly
                       leftIcon={<MapPin className="w-5 h-5" />}
-                      className="bg-gray-50 dark:bg-gray-800"
+      className="bg-gray-50 dark:bg-gray-800"
                     />
                   </div>
 
@@ -324,8 +283,7 @@ const ModernShippingProcessModal: React.FC<ModernShippingProcessModalProps> = ({
                   </div>
                 </div>
               </motion.div>
-            ) : (
-              <motion.div
+      ) : ( <motion.div
                 key="confirmation"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -337,18 +295,16 @@ const ModernShippingProcessModal: React.FC<ModernShippingProcessModalProps> = ({
                   <div className="mx-auto w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-4">
                     <CheckCircle className="w-8 h-8 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                    出荷処理確認
+      <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">出荷処理確認
                   </h3>
-                  <p className="text-gray-500 dark:text-gray-400">
-                    以下の内容で出荷処理を実行します
+      <p className="text-gray-500 dark:text-gray-400">以下の内容で出荷処理を実行します
                   </p>
                 </div>
 
                 {/* Confirmation Details */}
                 <div className="space-y-6">
                   <motion.div
-                    className="grid grid-cols-1 md:grid-cols-2 gap-6"
+      className="grid grid-cols-1 md:grid-cols-3 gap-6"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.1 }}
@@ -359,20 +315,16 @@ const ModernShippingProcessModal: React.FC<ModernShippingProcessModalProps> = ({
                       '追跡番号': shippingData.tracking_number,
                       '配送予定日': new Date(shippingData.estimated_delivery).toLocaleDateString('ja-JP'),
                       '送料': `¥${shippingData.shipping_cost.toLocaleString()}`,
-                      '配送先': order.destination
-                    }).map(([key, value], index) => (
+      '配送先': order.destination }).map(([key, value], index) => (
                       <motion.div
                         key={key}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
-                      >
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                          {key}
+      className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{key}
                         </p>
-                        <p className="font-semibold text-gray-900 dark:text-gray-100">
-                          {value}
+      <p className="font-semibold text-gray-900 dark:text-gray-100">{value}
                         </p>
                       </motion.div>
                     ))}
@@ -383,16 +335,13 @@ const ModernShippingProcessModal: React.FC<ModernShippingProcessModalProps> = ({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl"
-                  >
+      className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
                     <div className="flex items-start space-x-3">
                       <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5" />
                       <div>
-                        <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                          注意事項
+      <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">注意事項
                         </p>
-                        <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-                          出荷処理を実行すると、在庫から商品が減算され、オーダーステータスが「出荷済み」に変更されます。
+      <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">出荷処理を実行すると、在庫から商品が減算され、オーダーステータスが「出荷済み」に変更されます。
                           この操作は取り消しできません。
                         </p>
                       </div>
@@ -425,8 +374,7 @@ const ModernShippingProcessModal: React.FC<ModernShippingProcessModalProps> = ({
             >
               確認画面へ
             </ModernButton>
-          ) : (
-            <ModernButton
+      ) : ( <ModernButton
               variant="success"
               size="lg"
               onClick={handleProcessShipping}

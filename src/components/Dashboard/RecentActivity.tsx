@@ -5,8 +5,7 @@ import { ArrowUp, ArrowDown, RefreshCw } from 'lucide-react';
 import { StockMovement } from '../../types';
 
 interface RecentActivityProps {
-  movements: StockMovement[];
-}
+      movements: StockMovement[]; }
 
 const getMovementIcon = (type: StockMovement['movement_type']) => {
   switch (type) {
@@ -41,9 +40,8 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({ movements }) => 
           <div className="px-6 py-8 text-center text-gray-500">
             最近の在庫移動はありません
           </div>
-        ) : (
-          movements.map((movement) => (
-            <div key={movement.id} className="px-6 py-4 hover:bg-gray-50">
+      ) : ( movements.map((movement) => (
+      console.log("Debug:", { <div key={movement.id} className="px-6 py-4 hover: bg-gray-50"> });
               <div className="flex items-center space-x-3">
                 <div className="flex-shrink-0">
                   {getMovementIcon(movement.movement_type)}

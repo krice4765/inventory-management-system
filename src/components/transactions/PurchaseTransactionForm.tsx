@@ -6,18 +6,8 @@ import toast from 'react-hot-toast';
 import { ConfirmOrderButton } from './ConfirmOrderButton';
 
 interface PurchaseTransactionFormProps {
-  parentOrderId: string;
-  transactionId?: string;
-  initialData?: {
-    total_amount?: number;
-    memo?: string;
-    transaction_date?: string;
-    status?: string;
-    order_no?: string;
-  };
-  onSuccess: () => void;
-  onCancel: () => void;
-}
+      parentOrderId: string; transactionId?: string; initialData?: { total_amount?: number; memo?: string; transaction_date?: string; status?: string; order_no?: string; };
+      onSuccess: () => void; onCancel: () => void; }
 
 export const PurchaseTransactionForm: React.FC<PurchaseTransactionFormProps> = ({
   parentOrderId,
@@ -40,22 +30,16 @@ export const PurchaseTransactionForm: React.FC<PurchaseTransactionFormProps> = (
   const { 
     data: remainingInfo, 
     isLoading: remainingLoading, 
-    error: remainingError 
-  } = useRemainingAmount(parentOrderId, formData.total_amount, transactionId);
+      error: remainingError  } = useRemainingAmount(parentOrderId, formData.total_amount, transactionId);
 
   // 🔥 UX改善: 最大入力可能額の計算
   const allowedMax = remainingInfo 
     ? Math.max(0, remainingInfo.orderTotal - remainingInfo.siblingsTotal) 
-    : Number.MAX_SAFE_INTEGER;
-    
-
-  // 入力値を0〜allowedMaxにクランプ
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = Number(e.target.value);
+      : Number.MAX_SAFE_INTEGER; // 入力値を0〜allowedMaxにクランプ
+      const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => { const raw = Number(e.target.value);
     const clamped = Number.isFinite(raw) 
       ? Math.max(0, Math.min(raw, allowedMax))
-      : 0;
-    setFormData(prev => ({ ...prev, total_amount: clamped }));
+      : 0; setFormData(prev => ({ ...prev, total_amount: clamped }));
   };
 
   // 確定処理（P0001エラー完全防止）
@@ -85,21 +69,14 @@ export const PurchaseTransactionForm: React.FC<PurchaseTransactionFormProps> = (
       const { data: result, error: rpcError } = await supabase
         .rpc('confirm_purchase_transaction', {
           p_transaction_id: transactionId,
-          p_new_amount: formData.total_amount
-        });
+      p_new_amount: formData.total_amount });
 
       if (rpcError) {
         throw new Error(`サーバー処理エラー: ${rpcError.message}`);
       }
 
       const rpcResult = result as {
-        success?: boolean;
-        error_code?: string;
-        message?: string;
-        exceeding_amount?: number;
-        current_amount?: number;
-        remaining_amount?: number;
-      };
+      success?: boolean; error_code?: string; message?: string; exceeding_amount?: number; current_amount?: number; remaining_amount?: number; };
       
       if (!rpcResult?.success) {
         if (rpcResult.error_code === 'P0001') {
@@ -151,8 +128,7 @@ export const PurchaseTransactionForm: React.FC<PurchaseTransactionFormProps> = (
             type="number"
             value={formData.total_amount}
             onChange={handleAmountChange}
-            className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="0"
+      className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus: ring-blue-500 focus:border-blue-500"placeholder="0"
             min="0"
             step="1"
           />
@@ -163,8 +139,7 @@ export const PurchaseTransactionForm: React.FC<PurchaseTransactionFormProps> = (
             className={`px-3 py-2 text-sm rounded-md border transition-colors ${
               !remainingInfo || allowedMax <= 0 || remainingLoading
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
-                : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
-            }`}
+      : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300' }`}
             title="残額をすべて使用する金額を自動入力"
           >
             残額ちょうど
@@ -200,8 +175,7 @@ export const PurchaseTransactionForm: React.FC<PurchaseTransactionFormProps> = (
                 <span className="text-red-700">
                   超過額: ¥{remainingInfo.exceedingAmount.toLocaleString()}
                 </span>
-              ) : (
-                <span className="text-blue-700">
+      ) : ( <span className="text-blue-700">
                   残額: ¥{remainingInfo.remainingAmount.toLocaleString()}
                 </span>
               )}
@@ -219,14 +193,12 @@ export const PurchaseTransactionForm: React.FC<PurchaseTransactionFormProps> = (
             onConfirmed={onSuccess}
             className="flex-1"
           />
-        ) : (
-          <button
+      ) : ( <button
             onClick={handleConfirm}
             disabled={isSubmitting || !formData.total_amount || remainingInfo?.isExceeding || remainingLoading}
             className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${isSubmitting || !formData.total_amount || remainingInfo?.isExceeding || remainingLoading
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}
+      : 'bg-blue-600 text-white hover:bg-blue-700' }`}
           >
             {isSubmitting ? '処理中...' : remainingLoading ? '計算中...' : '作成'}
           </button>
@@ -234,8 +206,7 @@ export const PurchaseTransactionForm: React.FC<PurchaseTransactionFormProps> = (
         <button
           onClick={onCancel}
           disabled={isSubmitting}
-          className="flex-1 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
+      className="flex-1 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover: bg-gray-50">
           キャンセル
         </button>
       </div>

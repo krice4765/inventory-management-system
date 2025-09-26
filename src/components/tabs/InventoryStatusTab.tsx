@@ -47,8 +47,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
   // 在庫データ取得（既存のproductsテーブルをベースに）
   const { data: inventoryData, isLoading, error } = useQuery({
     queryKey: ['inventory', 'status', 'summary'],
-    queryFn: async () => {
-      // productsテーブルから基本情報を取得（既存スキーマ対応）
+      queryFn: async () => { // productsテーブルから基本情報を取得（既存スキーマ対応）
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('*')
@@ -71,8 +70,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
           next_arrival_date: '2025-09-30',
           reorder_point: 10,
           max_stock: 100,
-          last_movement_date: new Date().toISOString()
-        }];
+      last_movement_date: new Date().toISOString() }];
       }
 
       // 在庫移動データを取得（最新の移動情報）
@@ -128,9 +126,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
         // 最も早い入庫予定日を取得（簡素化版）
         const nextArrivalDate = ordersData?.length > 0
           ? ordersData[0]?.delivery_deadline
-          : null;
-
-        const available_stock = current_stock - reserved_quantity;
+      : null; const available_stock = current_stock - reserved_quantity;
 
         // 税込み価格を計算（10%税率と仮定）
         const cost_tax_excluded = product.cost_price || product.selling_price || 1000;
@@ -146,14 +142,12 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
           available_stock,
           valuation_price_tax_excluded: cost_tax_excluded,
           valuation_price_tax_included: cost_tax_included,
-          inventory_value: taxDisplayMode === 'tax_included'
-            ? current_stock * cost_tax_included
+      inventory_value: taxDisplayMode === 'tax_included' ? current_stock * cost_tax_included
             : current_stock * cost_tax_excluded,
           next_arrival_date: nextArrivalDate, // 0922Youken.md準拠の入庫予定日
           reorder_point: 10, // デフォルト発注点
           max_stock: 100, // デフォルト上限
-          last_movement_date: productMovements[0]?.created_at || product.updated_at || product.created_at || new Date().toISOString()
-        } as InventoryItem;
+      last_movement_date: productMovements[0]?.created_at || product.updated_at || product.created_at || new Date().toISOString() } as InventoryItem;
       });
     }
   });
@@ -167,8 +161,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
         lowStockItems: 0,
         outOfStockItems: 0,
         overstockItems: 0,
-        averageValue: 0
-      };
+      averageValue: 0 };
     }
 
     const totalItems = inventoryData.length;
@@ -187,8 +180,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
       lowStockItems,
       outOfStockItems,
       overstockItems,
-      averageValue: totalItems > 0 ? totalValue / totalItems : 0
-    };
+      averageValue: totalItems > 0 ? totalValue / totalItems : 0 };
   }, [inventoryData]);
 
   // フィルタリング
@@ -204,14 +196,12 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
       let matchesStockFilter = true;
       switch (stockFilter) {
         case 'low':
-          matchesStockFilter = item.reorder_point ? item.current_stock <= item.reorder_point : false;
-          break;
+      matchesStockFilter = item.reorder_point ? item.current_stock <= item.reorder_point : false; break;
         case 'out':
           matchesStockFilter = item.current_stock === 0;
           break;
         case 'overstock':
-          matchesStockFilter = item.max_stock ? item.current_stock > item.max_stock : false;
-          break;
+      matchesStockFilter = item.max_stock ? item.current_stock > item.max_stock : false; break;
         default:
           matchesStockFilter = true;
       }
@@ -246,16 +236,14 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
   }, [inventoryData]);
 
   // 6段階在庫状況ステータス（0922Youken.md準拠）
-  const getStockStatus = (item: InventoryItem) => {
-    // 欠品（在庫なし）
+      const getStockStatus = (item: InventoryItem) => { // 欠品（在庫なし）
     if (item.current_stock === 0) {
       return {
         label: '欠品',
         color: 'red',
         bgColor: 'bg-red-100 dark:bg-red-900',
         textColor: 'text-red-800 dark:text-red-200',
-        icon: AlertTriangle
-      };
+      icon: AlertTriangle };
     }
 
     // 不足（発注点以下）
@@ -265,8 +253,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
         color: 'orange',
         bgColor: 'bg-orange-100 dark:bg-orange-900',
         textColor: 'text-orange-800 dark:text-orange-200',
-        icon: TrendingDown
-      };
+      icon: TrendingDown };
     }
 
     // 注意（発注点の1.5倍以下）
@@ -276,8 +263,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
         color: 'yellow',
         bgColor: 'bg-yellow-100 dark:bg-yellow-900',
         textColor: 'text-yellow-800 dark:text-yellow-200',
-        icon: AlertTriangle
-      };
+      icon: AlertTriangle };
     }
 
     // 発注中（発注済み在庫がある場合）
@@ -287,8 +273,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
         color: 'blue',
         bgColor: 'bg-blue-100 dark:bg-blue-900',
         textColor: 'text-blue-800 dark:text-blue-200',
-        icon: Package
-      };
+      icon: Package };
     }
 
     // 廃番（最後の移動から6ヶ月以上経過している場合の仮判定）
@@ -303,8 +288,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
           color: 'gray',
           bgColor: 'bg-gray-100 dark:bg-gray-800',
           textColor: 'text-gray-800 dark:text-gray-200',
-          icon: Package
-        };
+      icon: Package };
       }
     }
 
@@ -314,16 +298,14 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
       color: 'green',
       bgColor: 'bg-green-100 dark:bg-green-900',
       textColor: 'text-green-800 dark:text-green-200',
-      icon: Package
-    };
+      icon: Package };
   };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
-        <span className="text-lg text-gray-700 dark:text-gray-300 font-medium">
-          在庫データを読み込み中...
+      <span className="text-lg text-gray-700 dark: text-gray-300 font-medium">在庫データを読み込み中...
         </span>
       </div>
     );
@@ -333,11 +315,9 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
     return (
       <div className="text-center py-12">
         <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-        <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
-          データ取得エラー
+      <h2 className="text-xl font-semibold mb-2 text-gray-900 dark: text-white">データ取得エラー
         </h2>
-        <p className="text-gray-600 dark:text-gray-400 mb-4">
-          在庫データの取得に失敗しました
+      <p className="text-gray-600 dark: text-gray-400 mb-4">在庫データの取得に失敗しました
         </p>
       </div>
     );
@@ -346,8 +326,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
   return (
     <>
       {/* 在庫状況統計カード */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        {/* 欠品 */}
+      <div className="grid grid-cols-1 md: grid-cols-2 lg:grid-cols-4 gap-6 mb-6">{/* 欠品 */}
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -360,15 +339,11 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
             relative group overflow-hidden rounded-xl p-6 cursor-pointer
             transition-all duration-300 ease-out
             ${isDark
-              ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover:border-gray-600'
-              : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg'
-            }
+      ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover: border-gray-600' : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg' }
           `}
         >
           {/* 背景の装飾エフェクト */}
-          <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-red-100 dark:bg-red-900" />
-
-          {/* アクセントライン */}
+      <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-red-100 dark: bg-red-900" />{/* アクセントライン */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-red-500" />
 
           <div className="relative z-10">
@@ -386,8 +361,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
             {/* プログレスインジケーター */}
             <div className="mt-4">
               <div className={`h-1 rounded-full overflow-hidden ${
-                isDark ? 'bg-gray-700' : 'bg-gray-200'
-              }`}>
+      isDark ? 'bg-gray-700' : 'bg-gray-200' }`}>
                 <motion.div
                   className="h-full bg-red-500"
                   initial={{ width: 0 }}
@@ -412,15 +386,11 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
             relative group overflow-hidden rounded-xl p-6 cursor-pointer
             transition-all duration-300 ease-out
             ${isDark
-              ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover:border-gray-600'
-              : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg'
-            }
+      ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover: border-gray-600' : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg' }
           `}
         >
           {/* 背景の装飾エフェクト */}
-          <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-orange-100 dark:bg-orange-900" />
-
-          {/* アクセントライン */}
+      <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-orange-100 dark: bg-orange-900" />{/* アクセントライン */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-orange-500" />
 
           <div className="relative z-10">
@@ -438,8 +408,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
             {/* プログレスインジケーター */}
             <div className="mt-4">
               <div className={`h-1 rounded-full overflow-hidden ${
-                isDark ? 'bg-gray-700' : 'bg-gray-200'
-              }`}>
+      isDark ? 'bg-gray-700' : 'bg-gray-200' }`}>
                 <motion.div
                   className="h-full bg-orange-500"
                   initial={{ width: 0 }}
@@ -464,15 +433,11 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
             relative group overflow-hidden rounded-xl p-6 cursor-pointer
             transition-all duration-300 ease-out
             ${isDark
-              ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover:border-gray-600'
-              : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg'
-            }
+      ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover: border-gray-600' : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg' }
           `}
         >
           {/* 背景の装飾エフェクト */}
-          <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-green-100 dark:bg-green-900" />
-
-          {/* アクセントライン */}
+      <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-green-100 dark: bg-green-900" />{/* アクセントライン */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-green-500" />
 
           <div className="relative z-10">
@@ -490,8 +455,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
             {/* プログレスインジケーター */}
             <div className="mt-4">
               <div className={`h-1 rounded-full overflow-hidden ${
-                isDark ? 'bg-gray-700' : 'bg-gray-200'
-              }`}>
+      isDark ? 'bg-gray-700' : 'bg-gray-200' }`}>
                 <motion.div
                   className="h-full bg-green-500"
                   initial={{ width: 0 }}
@@ -516,15 +480,11 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
             relative group overflow-hidden rounded-xl p-6 cursor-pointer
             transition-all duration-300 ease-out
             ${isDark
-              ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover:border-gray-600'
-              : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg'
-            }
+      ? 'bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 hover: border-gray-600' : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-lg' }
           `}
         >
           {/* 背景の装飾エフェクト */}
-          <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-blue-100 dark:bg-blue-900" />
-
-          {/* アクセントライン */}
+      <div className="absolute inset-0 opacity-5 bg-gradient-to-r bg-blue-100 dark: bg-blue-900" />{/* アクセントライン */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-blue-500" />
 
           <div className="relative z-10">
@@ -542,8 +502,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
             {/* プログレスインジケーター */}
             <div className="mt-4">
               <div className={`h-1 rounded-full overflow-hidden ${
-                isDark ? 'bg-gray-700' : 'bg-gray-200'
-              }`}>
+      isDark ? 'bg-gray-700' : 'bg-gray-200' }`}>
                 <motion.div
                   className="h-full bg-blue-500"
                   initial={{ width: 0 }}
@@ -567,9 +526,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg transition-colors ${
                 showAdvancedFilters
-                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
-                  : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/50'
-              }`}
+      ? 'bg-blue-100 dark: bg-blue-900 text-blue-700 dark:text-blue-300' : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/50' }`}
             >
               <Filter className="h-4 w-4" />
               <span>{showAdvancedFilters ? '簡易表示' : '詳細フィルター'}</span>
@@ -589,8 +546,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
                   className={`w-full pl-10 pr-4 py-2 border rounded-lg ${
                     isDark
                       ? 'bg-gray-800 border-gray-700 text-white'
-                      : 'bg-white border-gray-300 text-gray-900'
-                  }`}
+      : 'bg-white border-gray-300 text-gray-900' }`}
                 />
               </div>
             </div>
@@ -601,8 +557,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
               className={`px-3 py-2 border rounded-lg ${
                 isDark
                   ? 'bg-gray-800 border-gray-700 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
-              }`}
+      : 'bg-white border-gray-300 text-gray-900' }`}
             >
               <option value="all">すべての在庫状況</option>
               <option value="out">在庫切れ</option>
@@ -618,15 +573,13 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
-              className="space-y-6 border-t pt-6 border-gray-200 dark:border-gray-700"
-            >
+      className="space-y-6 border-t pt-6 border-gray-200 dark: border-gray-700">
               {/* 数値範囲フィルター */}
               <div>
                 <h4 className={`text-sm font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   数値範囲フィルター
                 </h4>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* 在庫金額範囲 */}
+      <div className="grid grid-cols-1 lg: grid-cols-2 gap-6">{/* 在庫金額範囲 */}
                   <div className="space-y-3">
                     <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                       在庫金額範囲（円）
@@ -639,8 +592,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
                           className={`w-full px-3 py-2.5 border rounded-lg text-sm ${
                             isDark
                               ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
-                              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
-                          } focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
+      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400' } focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                         />
                       </div>
                       <span className={`px-2 text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -653,8 +605,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
                           className={`w-full px-3 py-2.5 border rounded-lg text-sm ${
                             isDark
                               ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
-                              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
-                          } focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
+      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400' } focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                         />
                       </div>
                     </div>
@@ -673,8 +624,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
                           className={`w-full px-3 py-2.5 border rounded-lg text-sm ${
                             isDark
                               ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
-                              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
-                          } focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
+      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400' } focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                         />
                       </div>
                       <span className={`px-2 text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -687,8 +637,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
                           className={`w-full px-3 py-2.5 border rounded-lg text-sm ${
                             isDark
                               ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
-                              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
-                          } focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
+      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400' } focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                         />
                       </div>
                     </div>
@@ -701,8 +650,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
                 <h4 className={`text-sm font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   状況・日付フィルター
                 </h4>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  {/* 発注状況 */}
+      <div className="grid grid-cols-1 lg: grid-cols-3 gap-4">{/* 発注状況 */}
                   <div className="space-y-2">
                     <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                       発注状況
@@ -711,8 +659,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
                       className={`w-full px-3 py-2.5 border rounded-lg text-sm ${
                         isDark
                           ? 'bg-gray-800 border-gray-700 text-white'
-                          : 'bg-white border-gray-300 text-gray-900'
-                      } focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
+      : 'bg-white border-gray-300 text-gray-900' } focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                     >
                       <option value="all">すべて</option>
                       <option value="ordered">発注中あり</option>
@@ -730,8 +677,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
                       className={`w-full px-3 py-2.5 border rounded-lg text-sm ${
                         isDark
                           ? 'bg-gray-800 border-gray-700 text-white'
-                          : 'bg-white border-gray-300 text-gray-900'
-                      } focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
+      : 'bg-white border-gray-300 text-gray-900' } focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                     />
                   </div>
 
@@ -745,27 +691,22 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
                       className={`w-full px-3 py-2.5 border rounded-lg text-sm ${
                         isDark
                           ? 'bg-gray-800 border-gray-700 text-white'
-                          : 'bg-white border-gray-300 text-gray-900'
-                      } focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
+      : 'bg-white border-gray-300 text-gray-900' } focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                     />
                   </div>
                 </div>
               </div>
 
               {/* フィルター操作ボタン */}
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-                <button
+      <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark: border-gray-700"><button
                   className={`px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
                     isDark
-                      ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-800 border border-gray-700 hover:border-gray-600'
-                      : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100 border border-gray-300 hover:border-gray-400'
-                  }`}
+      ? 'text-gray-400 hover: text-gray-200 hover:bg-gray-800 border border-gray-700 hover:border-gray-600' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100 border border-gray-300 hover:border-gray-400' }`}
                 >
                   フィルターリセット
                 </button>
                 <button
-                  className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-                >
+      className="px-8 py-2.5 bg-blue-600 hover: bg-blue-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
                   フィルター適用
                 </button>
               </div>
@@ -776,8 +717,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
 
       {/* 在庫一覧テーブル */}
       <ModernCard className="overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+      <div className="px-6 py-4 border-b border-gray-200 dark: border-gray-700"><h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             在庫状況一覧 ({filteredInventory.length}件)
           </h3>
         </div>
@@ -792,8 +732,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
               条件を変更して再検索してください
             </p>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
+      ) : ( <div className="overflow-x-auto">
             <table className={`w-full ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
               <thead className={`${isDark ? 'bg-gray-800' : 'bg-gray-50'}`}>
                 <tr>
@@ -857,9 +796,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className={`text-sm font-medium ${
                           item.ordered_quantity > 0
-                            ? isDark ? 'text-blue-400' : 'text-blue-600'
-                            : isDark ? 'text-gray-400' : 'text-gray-500'
-                        }`}>
+      ? isDark ? 'text-blue-400' : 'text-blue-600' : isDark ? 'text-gray-400' : 'text-gray-500' }`}>
                           {item.ordered_quantity}
                         </div>
                       </td>
@@ -877,8 +814,7 @@ export const InventoryStatusTab: React.FC<InventoryStatusTabProps> = ({
                         <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                           {item.next_arrival_date
                             ? new Date(item.next_arrival_date).toLocaleDateString('ja-JP')
-                            : '-'
-                          }
+      : '-' }
                         </div>
                       </td>
                       {/* 在庫状況（6段階ステータス対応） */}

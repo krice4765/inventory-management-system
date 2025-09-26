@@ -1,47 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
-import { Button } from '../ui/button';
+import {
+  ModernDialog,
+  ModernDialogContent,
+  ModernDialogHeader,
+  ModernDialogTitle,
+  ModernDialogBody,
+  ModernDialogFooter
+} from '../ui/modern-dialog';
+import { ModernButton } from '../ui/modern-button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Badge } from '../ui/badge';
-import { Loader2, Calendar, User, MapPin, Package, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Calendar, User, MapPin, Package, Plus, Trash2, Edit, CheckCircle, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface OutboundOrderItem {
-  id?: string;
-  product_id: string;
-  product_name: string;
-  product_code: string;
-  quantity: number;
-  unit_price: number;
-  total_price: number;
-}
+      id?: string; product_id: string; product_name: string; product_code: string; quantity: number; unit_price: number; total_price: number; }
 
 interface OutboundOrder {
-  id: string;
-  order_number: string;
-  customer_name: string;
-  destination: string;
-  total_items: number;
-  total_amount: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  created_at: string;
-  scheduled_date?: string;
-  assigned_user?: string;
-  items?: OutboundOrderItem[];
-  shipping_method?: string;
-  notes?: string;
-}
+      id: string; order_number: string; customer_name: string; destination: string; total_items: number; total_amount: number; status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'; created_at: string; scheduled_date?: string; assigned_user?: string; items?: OutboundOrderItem[]; shipping_method?: string; notes?: string; }
 
 interface OutboundOrderEditModalProps {
-  order: OutboundOrder | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (orderId: string, orderData: Partial<OutboundOrder>) => Promise<void>;
-  isDark?: boolean;
-}
+      order: OutboundOrder | null; isOpen: boolean; onClose: () => void; onSave: (orderId: string, orderData: Partial<OutboundOrder>) => Promise<void>;
+      isDark?: boolean; }
 
 const OutboundOrderEditModal: React.FC<OutboundOrderEditModalProps> = ({
   order,
@@ -65,8 +48,7 @@ const OutboundOrderEditModal: React.FC<OutboundOrderEditModalProps> = ({
         scheduled_date: order.scheduled_date,
         assigned_user: order.assigned_user,
         shipping_method: order.shipping_method,
-        notes: order.notes
-      });
+      notes: order.notes });
       setItems(order.items || []);
     }
   }, [order]);
@@ -98,20 +80,17 @@ const OutboundOrderEditModal: React.FC<OutboundOrderEditModalProps> = ({
   };
 
   // アイテムの削除
-  const removeItem = (index: number) => {
-    setItems(prev => prev.filter((_, i) => i !== index));
+      const removeItem = (index: number) => { setItems(prev => prev.filter((_, i) => i !== index));
   };
 
   // アイテムの追加
   const addItem = () => {
-    const newItem: OutboundOrderItem = {
-      product_id: '',
+      const newItem: OutboundOrderItem = { product_id: '',
       product_name: '',
       product_code: '',
       quantity: 1,
       unit_price: 0,
-      total_price: 0
-    };
+      total_price: 0 };
     setItems(prev => [...prev, newItem]);
   };
 
@@ -157,8 +136,7 @@ const OutboundOrderEditModal: React.FC<OutboundOrderEditModalProps> = ({
         ...formData,
         items,
         total_items: totalItems,
-        total_amount: totalAmount
-      };
+      total_amount: totalAmount };
 
       await onSave(order.id, updatedOrderData);
       onClose();
@@ -169,8 +147,7 @@ const OutboundOrderEditModal: React.FC<OutboundOrderEditModalProps> = ({
     }
   };
 
-  const getStatusInfo = (status: string) => {
-    switch (status) {
+      const getStatusInfo = (status: string) => { switch (status) {
       case 'pending':
         return { label: '保留中', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' };
       case 'processing':
@@ -189,34 +166,32 @@ const OutboundOrderEditModal: React.FC<OutboundOrderEditModalProps> = ({
   if (!order) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`max-w-6xl max-h-[90vh] overflow-y-auto ${
-        isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
-      }`}>
-        <DialogHeader>
-          <DialogTitle className={`text-xl font-bold ${
-            isDark ? 'text-white' : 'text-gray-900'
-          }`}>
-            出庫オーダー編集 - {order.order_number}
-          </DialogTitle>
-        </DialogHeader>
+    <ModernDialog open={isOpen} onOpenChange={onClose}>
+      <ModernDialogContent size="ultra" minimizable>
+        <ModernDialogHeader
+          icon={<Edit className="w-7 h-7" />}
+        >
+          <ModernDialogTitle
+            subtitle={`${order?.customer_name || '顧客名未設定'} • 合計金額 ¥${totalAmount.toLocaleString()}`}
+          >
+            📝 出庫オーダー編集 - {order?.order_number}
+          </ModernDialogTitle>
+        </ModernDialogHeader>
 
-        <div className="space-y-6">
+        <ModernDialogBody className="p-8">
+          <div className="space-y-8">
           {/* 基本情報セクション */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`p-4 rounded-lg ${
-              isDark ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'
-            }`}
+            className={`p-6 rounded-xl ${
+      isDark ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200' }`}
           >
-            <h3 className={`text-lg font-semibold mb-4 ${
-              isDark ? 'text-white' : 'text-gray-900'
-            }`}>
+            <h3 className={`text-xl font-semibold mb-6 ${
+      isDark ? 'text-white' : 'text-gray-900' }`}>
               基本情報
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+      <div className="grid grid-cols-1 md: grid-cols-2 gap-4"><div className="space-y-2">
                 <Label htmlFor="customer_name" className={isDark ? 'text-gray-300' : 'text-gray-700'}>
                   <User className="w-4 h-4 inline mr-2" />
                   顧客名 *
@@ -310,20 +285,17 @@ const OutboundOrderEditModal: React.FC<OutboundOrderEditModalProps> = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className={`p-4 rounded-lg ${
-              isDark ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'
-            }`}
+            className={`p-6 rounded-xl ${
+      isDark ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200' }`}
           >
             <div className="flex justify-between items-center mb-4">
               <h3 className={`text-lg font-semibold ${
-                isDark ? 'text-white' : 'text-gray-900'
-              }`}>
+      isDark ? 'text-white' : 'text-gray-900' }`}>
                 商品明細
               </h3>
-              <Button onClick={addItem} size="sm">
-                <Plus className="w-4 h-4 mr-2" />
+              <ModernButton onClick={addItem} size="sm" variant="outline" icon={<Plus className="w-4 h-4" />}>
                 商品追加
-              </Button>
+              </ModernButton>
             </div>
 
             <div className="space-y-4">
@@ -331,27 +303,22 @@ const OutboundOrderEditModal: React.FC<OutboundOrderEditModalProps> = ({
                 <div
                   key={index}
                   className={`p-3 rounded border ${
-                    isDark ? 'border-gray-600' : 'border-gray-200'
-                  }`}
+      isDark ? 'border-gray-600' : 'border-gray-200' }`}
                 >
                   <div className="flex justify-between items-start mb-3">
                     <span className={`text-sm font-medium ${
-                      isDark ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
+      isDark ? 'text-gray-300' : 'text-gray-700' }`}>
                       商品 {index + 1}
                     </span>
-                    <Button
+                    <ModernButton
                       onClick={() => removeItem(index)}
                       size="sm"
-                      variant="destructive"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                      variant="ghost"
+                      icon={<Trash2 className="w-4 h-4" />}
+                    />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                    <div className="md:col-span-2 space-y-2">
-                      <Label className={isDark ? 'text-gray-300' : 'text-gray-700'}>
+      <div className="grid grid-cols-1 md: grid-cols-5 gap-3"><div className="md: col-span-2 space-y-2"><Label className={isDark ? 'text-gray-300' : 'text-gray-700'}>
                         商品名 *
                       </Label>
                       <Input
@@ -403,8 +370,7 @@ const OutboundOrderEditModal: React.FC<OutboundOrderEditModalProps> = ({
                         小計
                       </Label>
                       <div className={`p-2 rounded ${
-                        isDark ? 'bg-gray-700' : 'bg-gray-100'
-                      } font-medium`}>
+      isDark ? 'bg-gray-700' : 'bg-gray-100' } font-medium`}>
                         ¥{item.total_price.toLocaleString()}
                       </div>
                     </div>
@@ -414,47 +380,50 @@ const OutboundOrderEditModal: React.FC<OutboundOrderEditModalProps> = ({
             </div>
 
             {/* 合計表示 */}
-            <div className={`mt-6 p-4 rounded-lg ${
-              isDark ? 'bg-gray-700 border border-gray-600' : 'bg-gray-100 border border-gray-200'
-            }`}>
+            <div className={`mt-6 p-6 rounded-xl ${
+      isDark ? 'bg-gray-700 border border-gray-600' : 'bg-gray-100 border border-gray-200' }`}>
               <div className="flex justify-between items-center">
                 <div>
                   <span className={`text-lg font-semibold ${
-                    isDark ? 'text-white' : 'text-gray-900'
-                  }`}>
+      isDark ? 'text-white' : 'text-gray-900' }`}>
                     合計: {totalItems.toLocaleString()} 点
                   </span>
                 </div>
                 <div>
                   <span className={`text-xl font-bold ${
-                    isDark ? 'text-white' : 'text-gray-900'
-                  }`}>
+      isDark ? 'text-white' : 'text-gray-900' }`}>
                     ¥{totalAmount.toLocaleString()}
                   </span>
                 </div>
               </div>
             </div>
           </motion.div>
-        </div>
+          </div>
+        </ModernDialogBody>
 
-        <DialogFooter>
-          <Button
-            variant="outline"
+        <ModernDialogFooter>
+          <ModernButton
+            variant="ghost"
+            size="lg"
             onClick={onClose}
             disabled={isSaving}
           >
             キャンセル
-          </Button>
-          <Button
+          </ModernButton>
+          <ModernButton
+            variant="primary"
+            size="lg"
             onClick={handleSave}
             disabled={isSaving}
+            loading={isSaving}
+            icon={!isSaving ? <CheckCircle className="w-5 h-5" /> : undefined}
+            gradient
           >
-            {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             保存
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </ModernButton>
+        </ModernDialogFooter>
+      </ModernDialogContent>
+    </ModernDialog>
   );
 };
 

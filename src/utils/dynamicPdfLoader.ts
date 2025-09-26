@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { performanceMonitor } from './performanceMonitor';
+// import { performanceMonitor } from './performanceMonitor'; // ファイルが存在しないためコメントアウト
 import type { OrderPDFData, DeliveryNotePDFData, PDFOperationResult } from '../types/pdf';
 
 // 動的インポート用の型定義
@@ -68,7 +68,7 @@ class PDFLibraryCache {
       this.orderPDFGenerator = module.OrderPDFGenerator;
 
       const loadTime = performance.now() - startTime;
-      performanceMonitor.trackAPI('PDF Library Load (Order)', loadTime);
+      // performanceMonitor.trackAPI('PDF Library Load (Order)', loadTime);
 
       return this.orderPDFGenerator!;
     } catch (error) {
@@ -85,7 +85,7 @@ class PDFLibraryCache {
       this.japanesePDFGenerator = module.JapanesePDFGenerator;
 
       const loadTime = performance.now() - startTime;
-      performanceMonitor.trackAPI('PDF Library Load (Japanese)', loadTime);
+      // performanceMonitor.trackAPI('PDF Library Load (Japanese)', loadTime);
 
       return this.japanesePDFGenerator!;
     } catch (error) {
@@ -119,7 +119,7 @@ export class DynamicPDFService {
       const result = await generator.generateOrderPDF(orderData);
 
       const totalTime = performance.now() - startTime;
-      performanceMonitor.trackAPI('Generate Order PDF', totalTime);
+      // performanceMonitor.trackAPI('Generate Order PDF', totalTime);
 
       return result;
     } catch (error) {
@@ -142,7 +142,7 @@ export class DynamicPDFService {
       const result = await generator.generateOrderPDF(orderData);
 
       const totalTime = performance.now() - startTime;
-      performanceMonitor.trackAPI('Generate Japanese Order PDF', totalTime);
+      // performanceMonitor.trackAPI('Generate Japanese Order PDF', totalTime);
 
       return result;
     } catch (error) {
@@ -165,7 +165,7 @@ export class DynamicPDFService {
       const result = await generator.generateDeliveryNotePDF(deliveryData);
 
       const totalTime = performance.now() - startTime;
-      performanceMonitor.trackAPI('Generate Delivery Note PDF', totalTime);
+      // performanceMonitor.trackAPI('Generate Delivery Note PDF', totalTime);
 
       return result;
     } catch (error) {
@@ -188,7 +188,7 @@ export class DynamicPDFService {
       const result = await generator.attachDrawingsToPDF(orderPDF, drawingPDFs);
 
       const totalTime = performance.now() - startTime;
-      performanceMonitor.trackAPI('Attach Drawings to PDF', totalTime);
+      // performanceMonitor.trackAPI('Attach Drawings to PDF', totalTime);
 
       return result;
     } catch (error) {
@@ -209,7 +209,7 @@ export class DynamicPDFService {
       const generator = await this.cache.getJapanesePDFGenerator();
       generator.downloadPDF(pdfBlob, filename);
 
-      performanceMonitor.trackAPI('PDF Download', 0); // ダウンロードは即座に実行
+      // performanceMonitor.trackAPI('PDF Download', 0); // ダウンロードは即座に実行
     } catch (error) {
       console.error('PDF download failed:', error);
       // フォールバック: ネイティブダウンロード実装

@@ -5,8 +5,7 @@ import { InstallmentIntegrationManager } from './InstallmentIntegrationManager';
 import { useIntegratedInstallment } from '../hooks/useIntegratedInstallment';
 
 interface Props {
-  orderNo?: string;
-}
+      orderNo?: string; }
 
 export const IntegrationTestDashboard: React.FC<Props> = ({ orderNo = 'PO250920003' }) => {
   const [selectedOrderId, setSelectedOrderId] = useState<string>('');
@@ -15,8 +14,7 @@ export const IntegrationTestDashboard: React.FC<Props> = ({ orderNo = 'PO2509200
   // 発注書取得
   const { data: order } = useQuery({
     queryKey: ['order-lookup', orderNo],
-    queryFn: async () => {
-      const { data, error } = await supabase
+      queryFn: async () => { const { data, error } = await supabase
         .from('purchase_orders')
         .select('*')
         .eq('order_no', orderNo)
@@ -69,8 +67,7 @@ export const IntegrationTestDashboard: React.FC<Props> = ({ orderNo = 'PO2509200
         <h2 className="text-xl font-bold mb-4 text-gray-800">
           🧪 統合システムテストダッシュボード
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-blue-50 p-3 rounded border-blue-200 border">
+      <div className="grid grid-cols-1 md: grid-cols-3 gap-4"><div className="bg-blue-50 p-3 rounded border-blue-200 border">
             <h3 className="font-semibold text-blue-800">対象発注</h3>
             <p className="text-blue-700">{order.order_no}</p>
             <p className="text-sm text-blue-600">¥{order.total_amount?.toLocaleString()}</p>
@@ -93,30 +90,25 @@ export const IntegrationTestDashboard: React.FC<Props> = ({ orderNo = 'PO2509200
       {/* クイックアクション */}
       <div className="bg-white p-6 rounded-lg border">
         <h3 className="font-semibold mb-3">⚡ クイックアクション</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <button
+      <div className="grid grid-cols-2 md: grid-cols-4 gap-3"><button
             onClick={() => executeDbFunction('validate_installment_integration', { p_parent_order_id: order.id })}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
-          >
+      className="px-4 py-2 bg-blue-500 text-white rounded hover: bg-blue-600 text-sm">
             🔍 統合検証
           </button>
           <button
             onClick={() => executeDbFunction('repair_installment_inventory_integration', { p_parent_order_id: order.id })}
-            className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-sm"
-          >
+      className="px-4 py-2 bg-yellow-500 text-white rounded hover: bg-yellow-600 text-sm">
             🔧 自動修復
           </button>
           <button
             onClick={autoRepair}
             disabled={isRepairing || !hasIssues}
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-400 text-sm"
-          >
+      className="px-4 py-2 bg-green-500 text-white rounded hover: bg-green-600 disabled:bg-gray-400 text-sm">
             {isRepairing ? '修復中...' : '🚀 フロント修復'}
           </button>
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
-          >
+      className="px-4 py-2 bg-gray-500 text-white rounded hover: bg-gray-600 text-sm">
             {showAdvanced ? '📤' : '📥'} 詳細
           </button>
         </div>
@@ -164,20 +156,15 @@ export const IntegrationTestDashboard: React.FC<Props> = ({ orderNo = 'PO2509200
             {/* SQL実行エリア */}
             <div>
               <h4 className="font-medium mb-2">SQL関数テスト</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <button
+      <div className="grid grid-cols-1 md: grid-cols-2 gap-2"><button
                   onClick={() => executeDbFunction('add_purchase_installment_v3', {
                     p_parent_order_id: order.id,
                     p_amount: 5000,
-                    p_products: JSON.stringify([{
-                      product_id: '037ac88a-6691-47a6-8d9b-5bb6d579dd62',
+      p_products: JSON.stringify([{ product_id: '037ac88a-6691-47a6-8d9b-5bb6d579dd62',
                       quantity: 1,
-                      unit_price: 5000
-                    }]),
-                    p_memo: 'テスト分納v3'
-                  })}
-                  className="px-3 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 text-sm"
-                >
+      unit_price: 5000 }]),
+      p_memo: 'テスト分納v3' })}
+      className="px-3 py-2 bg-purple-500 text-white rounded hover: bg-purple-600 text-sm">
                   🚀 V3分納テスト
                 </button>
                 <button
@@ -197,8 +184,7 @@ export const IntegrationTestDashboard: React.FC<Props> = ({ orderNo = 'PO2509200
                     navigator.clipboard.writeText(sql);
                     alert('📋 SQL文をクリップボードにコピーしました');
                   }}
-                  className="px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
-                >
+      className="px-3 py-2 bg-gray-500 text-white rounded hover: bg-gray-600 text-sm">
                   📋 分析SQLコピー
                 </button>
               </div>

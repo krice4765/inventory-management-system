@@ -27,10 +27,7 @@ import {
 } from 'lucide-react';
 
 interface PerformanceDashboardProps {
-  className?: string;
-  autoRefresh?: boolean;
-  refreshInterval?: number;
-}
+      className?: string; autoRefresh?: boolean; refreshInterval?: number; }
 
 export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
   className = '',
@@ -55,8 +52,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
   } = usePerformanceMonitoring({
     enabled_metrics: ['query_time', 'api_response', 'render_time', 'page_load', 'memory_usage'],
     sampling_rate: 0.1,
-    auto_optimization: false
-  });
+      auto_optimization: false });
 
   const { vitals, grade: vitalsGrade, isComplete: vitalsComplete } = useWebVitals();
 
@@ -83,8 +79,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
   };
 
   // スコア表示用のカラーを取得
-  const getScoreColor = (score: number) => {
-    if (score >= 90) return 'text-green-600 bg-green-100';
+      const getScoreColor = (score: number) => { if (score >= 90) return 'text-green-600 bg-green-100';
     if (score >= 80) return 'text-blue-600 bg-blue-100';
     if (score >= 70) return 'text-yellow-600 bg-yellow-100';
     if (score >= 60) return 'text-orange-600 bg-orange-100';
@@ -92,20 +87,12 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
   };
 
   // グレード表示用のカラーを取得
-  const getGradeColor = (grade: string) => {
-    switch (grade) {
-      case 'A': return 'text-green-600 bg-green-100';
-      case 'B': return 'text-blue-600 bg-blue-100';
-      case 'C': return 'text-yellow-600 bg-yellow-100';
-      case 'D': return 'text-orange-600 bg-orange-100';
-      case 'F': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
+      const getGradeColor = (grade: string) => { switch (grade) {
+      case 'A': return 'text-green-600 bg-green-100'; case 'B': return 'text-blue-600 bg-blue-100'; case 'C': return 'text-yellow-600 bg-yellow-100'; case 'D': return 'text-orange-600 bg-orange-100'; case 'F': return 'text-red-600 bg-red-100'; default: return 'text-gray-600 bg-gray-100'; }
   };
 
   // トレンドアイコンを取得
-  const getTrendIcon = (trend: string) => {
-    switch (trend) {
+      const getTrendIcon = (trend: string) => { switch (trend) {
       case 'improving':
         return <TrendingUp className="h-4 w-4 text-green-500" />;
       case 'degrading':
@@ -120,8 +107,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
       <div className={`${className} p-6`}>
         <div className="animate-pulse">
           <div className="h-8 bg-gray-300 rounded mb-6"></div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            {[...Array(4)].map((_, i) => (
+      <div className="grid grid-cols-1 md: grid-cols-4 gap-4 mb-6">{[...Array(4)].map((_, i) => (
               <div key={i} className="h-24 bg-gray-300 rounded"></div>
             ))}
           </div>
@@ -143,16 +129,14 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
             <button
               onClick={refreshDashboard}
               disabled={isLoading}
-              className="flex items-center px-3 py-1 text-sm text-gray-600 hover:text-gray-800 disabled:opacity-50"
-            >
+      className="flex items-center px-3 py-1 text-sm text-gray-600 hover: text-gray-800 disabled:opacity-50">
               <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
               更新
             </button>
             <button
               onClick={handleRunTest}
               disabled={isTestRunning}
-              className="flex items-center px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-            >
+      className="flex items-center px-3 py-1 text-sm bg-blue-600 text-white rounded hover: bg-blue-700 disabled:opacity-50">
               <Play className="h-4 w-4 mr-1" />
               {isTestRunning ? '実行中...' : 'テスト実行'}
             </button>
@@ -160,9 +144,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
               onClick={isMonitoring ? stopMonitoring : startMonitoring}
               className={`flex items-center px-3 py-1 text-sm rounded ${
                 isMonitoring
-                  ? 'bg-red-600 text-white hover:bg-red-700'
-                  : 'bg-green-600 text-white hover:bg-green-700'
-              }`}
+      ? 'bg-red-600 text-white hover: bg-red-700' : 'bg-green-600 text-white hover:bg-green-700' }`}
             >
               <Monitor className="h-4 w-4 mr-1" />
               {isMonitoring ? '監視停止' : '監視開始'}
@@ -188,8 +170,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
               className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                 activeTab === tab.id
                   ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-              }`}
+      : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100' }`}
             >
               <tab.icon className="h-4 w-4 mr-2" />
               {tab.label}
@@ -264,15 +245,7 @@ export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
 
 // 概要タブコンポーネント
 const OverviewTab: React.FC<{
-  dashboardData?: PerformanceDashboardData;
-  realtimeData?: any;
-  alerts: any[];
-  vitals: any;
-  vitalsGrade: string;
-  getScoreColor: (score: number) => string;
-  getGradeColor: (grade: string) => string;
-  getTrendIcon: (trend: string) => React.ReactNode;
-}> = ({ dashboardData, realtimeData, alerts, vitals, vitalsGrade, getScoreColor, getGradeColor, getTrendIcon }) => (
+      dashboardData?: PerformanceDashboardData; realtimeData?: any; alerts: any[]; vitals: any; vitalsGrade: string; getScoreColor: (score: number) => string; getGradeColor: (grade: string) => string; getTrendIcon: (trend: string) => React.ReactNode; }> = ({ dashboardData, realtimeData, alerts, vitals, vitalsGrade, getScoreColor, getGradeColor, getTrendIcon }) => (
   <div className="space-y-6">
     {/* 総合スコア */}
     {dashboardData && (
@@ -289,8 +262,7 @@ const OverviewTab: React.FC<{
     {/* Web Vitals */}
     <div className="bg-gray-50 rounded-lg p-4">
       <h3 className="text-lg font-medium text-gray-900 mb-4">Core Web Vitals</h3>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
+      <div className="grid grid-cols-2 md: grid-cols-4 gap-4">{[
           { name: 'LCP', value: vitals.lcp, unit: 'ms', threshold: 2500 },
           { name: 'FID', value: vitals.fid, unit: 'ms', threshold: 100 },
           { name: 'CLS', value: vitals.cls, unit: '', threshold: 0.1 },
@@ -352,9 +324,7 @@ const OverviewTab: React.FC<{
 
 // データベースタブコンポーネント
 const QueriesTab: React.FC<{
-  queryPerformance: QueryPerformanceReport[];
-  getGradeColor: (grade: string) => string;
-}> = ({ queryPerformance, getGradeColor }) => (
+      queryPerformance: QueryPerformanceReport[]; getGradeColor: (grade: string) => string; }> = ({ queryPerformance, getGradeColor }) => (
   <div className="space-y-4">
     <h3 className="text-lg font-medium text-gray-900">データベースクエリパフォーマンス</h3>
     <div className="space-y-3">
@@ -376,8 +346,7 @@ const QueriesTab: React.FC<{
             <div>最大実行時間: {query.max_execution_time_ms.toFixed(1)}ms</div>
             {query.recommendations.length > 0 && (
               <div className="mt-2">
-                <div className="font-medium">推奨事項:</div>
-                <ul className="list-disc list-inside">
+      <div className="font-medium">推奨事項: </div> <ul className="list-disc list-inside">
                   {query.recommendations.map((rec, i) => (
                     <li key={i}>{rec}</li>
                   ))}
@@ -393,13 +362,10 @@ const QueriesTab: React.FC<{
 
 // レンダリングタブコンポーネント
 const RenderingTab: React.FC<{
-  renderPerformance: RenderPerformanceMetric[];
-  getScoreColor: (score: number) => string;
-}> = ({ renderPerformance, getScoreColor }) => (
+      renderPerformance: RenderPerformanceMetric[]; getScoreColor: (score: number) => string; }> = ({ renderPerformance, getScoreColor }) => (
   <div className="space-y-4">
     <h3 className="text-lg font-medium text-gray-900">コンポーネントレンダリングパフォーマンス</h3>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {renderPerformance.map((component, index) => (
+      <div className="grid grid-cols-1 md: grid-cols-2 gap-4">{renderPerformance.map((component, index) => (
         <div key={index} className="bg-gray-50 rounded-lg p-4">
           <div className="flex items-center justify-between mb-2">
             <h4 className="font-medium text-gray-900">{component.component_name}</h4>
@@ -415,8 +381,7 @@ const RenderingTab: React.FC<{
             <div>不要レンダリング数: {component.unnecessary_renders}</div>
             {component.recommendations.length > 0 && (
               <div className="mt-2">
-                <div className="font-medium text-gray-700">推奨事項:</div>
-                <ul className="list-disc list-inside text-xs">
+      <div className="font-medium text-gray-700">推奨事項: </div> <ul className="list-disc list-inside text-xs">
                   {component.recommendations.map((rec, i) => (
                     <li key={i}>{rec}</li>
                   ))}
@@ -432,9 +397,7 @@ const RenderingTab: React.FC<{
 
 // ネットワークタブコンポーネント
 const NetworkTab: React.FC<{
-  networkPerformance: any[];
-  getScoreColor: (score: number) => string;
-}> = ({ networkPerformance, getScoreColor }) => (
+      networkPerformance: any[]; getScoreColor: (score: number) => string; }> = ({ networkPerformance, getScoreColor }) => (
   <div className="space-y-4">
     <h3 className="text-lg font-medium text-gray-900">ネットワークパフォーマンス</h3>
     <div className="space-y-3">
@@ -449,8 +412,7 @@ const NetworkTab: React.FC<{
               {endpoint.avg_response_time_ms.toFixed(0)}ms
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-gray-600">
-            <div>成功率: {endpoint.success_rate.toFixed(1)}%</div>
+      <div className="grid grid-cols-2 md: grid-cols-4 gap-4 text-xs text-gray-600"><div>成功率: {endpoint.success_rate.toFixed(1)}%</div>
             <div>エラー率: {endpoint.error_rate.toFixed(1)}%</div>
             <div>最大応答時間: {endpoint.max_response_time_ms.toFixed(0)}ms</div>
             <div>データ転送: {endpoint.data_transfer_mb.toFixed(2)}MB</div>
@@ -463,14 +425,11 @@ const NetworkTab: React.FC<{
 
 // バンドルタブコンポーネント
 const BundleTab: React.FC<{
-  bundleAnalysis?: BundleAnalysisReport;
-  getScoreColor: (score: number) => string;
-}> = ({ bundleAnalysis, getScoreColor }) => (
+      bundleAnalysis?: BundleAnalysisReport; getScoreColor: (score: number) => string; }> = ({ bundleAnalysis, getScoreColor }) => (
   <div className="space-y-6">
     {bundleAnalysis && (
       <>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-gray-50 rounded-lg p-4 text-center">
+      <div className="grid grid-cols-1 md: grid-cols-3 gap-4"><div className="bg-gray-50 rounded-lg p-4 text-center">
             <div className="text-2xl font-bold text-gray-900">{bundleAnalysis.total_size_mb.toFixed(1)}MB</div>
             <div className="text-sm text-gray-600">総バンドルサイズ</div>
           </div>
@@ -520,8 +479,7 @@ const BundleTab: React.FC<{
 
 // 最適化提案タブコンポーネント
 const OptimizationTab: React.FC<{
-  suggestions: PerformanceOptimizationSuggestion[];
-}> = ({ suggestions }) => (
+      suggestions: PerformanceOptimizationSuggestion[]; }> = ({ suggestions }) => (
   <div className="space-y-4">
     <h3 className="text-lg font-medium text-gray-900">パフォーマンス最適化提案</h3>
     <div className="space-y-4">
@@ -546,8 +504,7 @@ const OptimizationTab: React.FC<{
 
           <p className="text-gray-600 mb-3">{suggestion.description}</p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+      <div className="grid grid-cols-1 md: grid-cols-2 gap-4 mb-4"><div className="bg-green-50 border border-green-200 rounded-lg p-3">
               <div className="text-sm font-medium text-green-800">期待される効果</div>
               <div className="text-sm text-green-700">{suggestion.impact_description}</div>
               <div className="text-sm font-medium text-green-800 mt-1">{suggestion.estimated_improvement}</div>
@@ -570,8 +527,7 @@ const OptimizationTab: React.FC<{
             </ol>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-            <div>
+      <div className="grid grid-cols-1 md: grid-cols-2 gap-4 text-sm text-gray-600"><div>
               <div className="font-medium text-gray-800">影響するコンポーネント</div>
               <ul className="list-disc list-inside">
                 {suggestion.affected_components.slice(0, 3).map((component, i) => (

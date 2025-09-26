@@ -15,21 +15,10 @@ import {
 } from 'lucide-react';
 
 interface CorrectionResult {
-  category: string;
-  fixed_count: number;
-  error_count: number;
-  total_impact: number;
-  execution_time_ms: number;
-  details: any[];
-  success: boolean;
-}
+      category: string; fixed_count: number; error_count: number; total_impact: number; execution_time_ms: number; details: any[]; success: boolean; }
 
 interface BackupResult {
-  backup_table: string;
-  record_count: number;
-  backup_timestamp: string;
-  success: boolean;
-}
+      backup_table: string; record_count: number; backup_timestamp: string; success: boolean; }
 
 export const IntegrityCorrectionPanel: React.FC = () => {
   const [selectedCorrections, setSelectedCorrections] = useState<string[]>([]);
@@ -38,8 +27,7 @@ export const IntegrityCorrectionPanel: React.FC = () => {
 
   // バックアップ作成ミューテーション
   const createBackupMutation = useMutation({
-    mutationFn: async (): Promise<any> => {
-      const { data, error } = await supabase.rpc('create_integrity_backup');
+      mutationFn: async (): Promise<any> => { const { data, error } = await supabase.rpc('create_integrity_backup');
       if (error) throw error;
       return data;
     }
@@ -47,11 +35,9 @@ export const IntegrityCorrectionPanel: React.FC = () => {
 
   // 個別修正ミューテーション
   const individualCorrectionMutation = useMutation({
-    mutationFn: async (correctionType: string): Promise<CorrectionResult> => {
-      const functionMap: Record<string, string> = {
+      mutationFn: async (correctionType: string): Promise<CorrectionResult> => { const functionMap: Record<string, string> = {
         'purchase_orders': 'fix_purchase_order_totals',
-        'inventory': 'fix_inventory_quantities'
-      };
+      'inventory': 'fix_inventory_quantities' };
 
       const functionName = functionMap[correctionType];
       if (!functionName) {
@@ -69,18 +55,15 @@ export const IntegrityCorrectionPanel: React.FC = () => {
         fixed_count: data?.fixed_count || 0,
         error_count: 0,
         execution_time_ms: Math.round(endTime - startTime),
-        success: data?.success || false
-      };
+      success: data?.success || false };
     },
-    onSuccess: (result) => {
-      setCorrectionResults(prev => [...prev, result]);
+      onSuccess: (result) => { setCorrectionResults(prev => [...prev, result]);
     }
   });
 
   // 全体修正ミューテーション
   const fullCorrectionMutation = useMutation({
-    mutationFn: async (): Promise<any> => {
-      const { data, error } = await supabase.rpc('fix_all_integrity_issues');
+      mutationFn: async (): Promise<any> => { const { data, error } = await supabase.rpc('fix_all_integrity_issues');
 
 
       if (error) {
@@ -90,12 +73,9 @@ export const IntegrityCorrectionPanel: React.FC = () => {
 
       return data;
     },
-    onSuccess: (result) => {
-      // 新しいSQL関数の戻り値形式に対応
+      onSuccess: (result) => { // 新しいSQL関数の戻り値形式に対応
       if (result && typeof result === 'object') {
-        const formattedResults: CorrectionResult[] = [];
-
-        if (result.order_fixes) {
+      const formattedResults: CorrectionResult[] = []; if (result.order_fixes) {
           formattedResults.push({
             category: '発注書金額修正',
             fixed_count: result.order_fixes.fixed_count || 0,
@@ -103,8 +83,7 @@ export const IntegrityCorrectionPanel: React.FC = () => {
             execution_time_ms: 0,
             total_impact: 0,
             details: [],
-            success: true
-          });
+      success: true });
         }
 
         if (result.inventory_fixes) {
@@ -115,15 +94,13 @@ export const IntegrityCorrectionPanel: React.FC = () => {
             execution_time_ms: 0,
             total_impact: 0,
             details: [],
-            success: true
-          });
+      success: true });
         }
 
         setCorrectionResults(formattedResults);
       }
     },
-    onError: (error) => {
-      console.error('一括修正エラー:', error);
+      onError: (error) => { console.error('一括修正エラー:', error);
       // エラー時でも結果を表示
       setCorrectionResults([{
         category: 'システムエラー',
@@ -132,23 +109,20 @@ export const IntegrityCorrectionPanel: React.FC = () => {
         total_impact: 0,
         execution_time_ms: 0,
         details: [{ error: error.message || 'Unknown error' }],
-        success: false
-      }]);
+      success: false }]);
     }
   });
 
   // 動的な修正対象検出クエリ（読み取り専用）
   const { data: integrityStats } = useQuery({
     queryKey: ['integrity-stats'],
-    queryFn: async () => {
-      // 検出専用クエリ：実際に修正は行わない
+      queryFn: async () => { // 検出専用クエリ：実際に修正は行わない
       const [orderCheck, inventoryCheck] = await Promise.all([
         supabase.from('purchase_orders').select('id, total_amount').limit(1),
         supabase.from('products').select('id, current_stock').limit(1)
       ]);
 
-      // 簡易チェック: 実際のデータ状態を基に判定
-      // より詳細な検出が必要な場合は専用の検出関数を作成
+      // 簡易チェック: 実際のデータ状態を基に判定 // より詳細な検出が必要な場合は専用の検出関数を作成
       return {
         purchaseOrders: 0, // 現在は健全状態
         inventory: 0       // 現在は健全状態
@@ -165,36 +139,31 @@ export const IntegrityCorrectionPanel: React.FC = () => {
       description: 'アイテム合計と発注書総額の不整合を修正',
       severity: (integrityStats?.purchaseOrders || 0) > 0 ? 'critical' as const : 'info' as const,
       estimatedTime: '30秒',
-      affectedRecords: integrityStats?.purchaseOrders || 0
-    },
+      affectedRecords: integrityStats?.purchaseOrders || 0 },
     {
       id: 'items',
       title: '発注アイテム金額の修正',
       description: '数量×単価とアイテム総額の不整合を修正',
       severity: 'info' as const,
       estimatedTime: '15秒',
-      affectedRecords: 0
-    },
+      affectedRecords: 0 },
     {
       id: 'delivery',
       title: '分納残額の修正',
       description: '分納記録と残額計算の不整合を修正',
       severity: 'info' as const,
       estimatedTime: '20秒',
-      affectedRecords: 0
-    },
+      affectedRecords: 0 },
     {
       id: 'inventory',
       title: '在庫数量の修正',
       description: '移動履歴と現在庫数の不整合を修正',
       severity: (integrityStats?.inventory || 0) > 0 ? 'warning' as const : 'info' as const,
       estimatedTime: '25秒',
-      affectedRecords: integrityStats?.inventory || 0
-    }
+      affectedRecords: integrityStats?.inventory || 0 }
   ];
 
-  const handleCorrectionToggle = (correctionId: string) => {
-    setSelectedCorrections(prev =>
+      const handleCorrectionToggle = (correctionId: string) => { setSelectedCorrections(prev =>
       prev.includes(correctionId)
         ? prev.filter(id => id !== correctionId)
         : [...prev, correctionId]
@@ -209,8 +178,7 @@ export const IntegrityCorrectionPanel: React.FC = () => {
     }
   }, [createBackupMutation]);
 
-  const handleIndividualCorrection = useCallback(async (correctionType: string) => {
-    try {
+      const handleIndividualCorrection = useCallback(async (correctionType: string) => { try {
       await individualCorrectionMutation.mutateAsync(correctionType);
     } catch (error) {
       console.error('修正処理エラー:', error);
@@ -226,8 +194,7 @@ export const IntegrityCorrectionPanel: React.FC = () => {
     }
   }, [fullCorrectionMutation]);
 
-  const getSeverityIcon = (severity: string) => {
-    switch (severity) {
+      const getSeverityIcon = (severity: string) => { switch (severity) {
       case 'critical':
         return <AlertTriangle className="h-5 w-5 text-red-500" />;
       case 'warning':
@@ -237,8 +204,7 @@ export const IntegrityCorrectionPanel: React.FC = () => {
     }
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
+      const getSeverityColor = (severity: string) => { switch (severity) {
       case 'critical':
         return 'bg-red-50 border-red-200';
       case 'warning':
@@ -260,8 +226,7 @@ export const IntegrityCorrectionPanel: React.FC = () => {
             <button
               onClick={handleCreateBackup}
               disabled={createBackupMutation.isPending}
-              className="flex items-center px-3 py-1 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
-            >
+      className="flex items-center px-3 py-1 text-sm text-gray-600 hover: text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50">
               <Database className={`h-4 w-4 mr-1 ${createBackupMutation.isPending ? 'animate-pulse' : ''}`} />
               バックアップ作成
             </button>
@@ -283,15 +248,13 @@ export const IntegrityCorrectionPanel: React.FC = () => {
                     <div>作成時刻: {new Date(createBackupMutation.data.timestamp).toLocaleString('ja-JP')}</div>
                     <div className="mt-1 text-xs">{createBackupMutation.data.message}</div>
                   </div>
-                ) : Array.isArray(createBackupMutation.data) ? (
-                  createBackupMutation.data.map((backup, index) => (
+      ) : Array.isArray(createBackupMutation.data) ? ( createBackupMutation.data.map((backup, index) => (
                     <div key={index} className="flex justify-between">
                       <span>{backup.backup_table}</span>
                       <span>{backup.record_count}件</span>
                     </div>
                   ))
-                ) : (
-                  <div>バックアップ情報の表示に問題があります</div>
+      ) : ( <div>バックアップ情報の表示に問題があります</div>
                 )}
               </div>
             </div>
@@ -307,8 +270,7 @@ export const IntegrityCorrectionPanel: React.FC = () => {
             <div
               key={option.id}
               className={`p-4 rounded-lg border-2 ${getSeverityColor(option.severity)} ${
-                selectedCorrections.includes(option.id) ? 'ring-2 ring-blue-500 border-blue-300' : ''
-              }`}
+      selectedCorrections.includes(option.id) ? 'ring-2 ring-blue-500 border-blue-300' : '' }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-start">
@@ -317,8 +279,7 @@ export const IntegrityCorrectionPanel: React.FC = () => {
                     id={option.id}
                     checked={selectedCorrections.includes(option.id)}
                     onChange={() => handleCorrectionToggle(option.id)}
-                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
+      className="mt-1 h-4 w-4 text-blue-600 focus: ring-blue-500 border-gray-300 rounded"/>
                   <div className="ml-3">
                     <div className="flex items-center">
                       {getSeverityIcon(option.severity)}
@@ -337,8 +298,7 @@ export const IntegrityCorrectionPanel: React.FC = () => {
                 <button
                   onClick={() => handleIndividualCorrection(option.id)}
                   disabled={individualCorrectionMutation.isPending}
-                  className="flex items-center px-3 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                >
+      className="flex items-center px-3 py-1 text-xs bg-blue-600 text-white rounded-md hover: bg-blue-700 disabled:opacity-50">
                   <PlayCircle className="h-3 w-3 mr-1" />
                   個別実行
                 </button>
@@ -355,21 +315,18 @@ export const IntegrityCorrectionPanel: React.FC = () => {
           <div className="flex space-x-3">
             <button
               onClick={() => setSelectedCorrections(correctionOptions.map(opt => opt.id))}
-              className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-            >
+      className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover: bg-gray-50">
               全選択
             </button>
             <button
               onClick={() => setSelectedCorrections([])}
-              className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-            >
+      className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover: bg-gray-50">
               選択解除
             </button>
             <button
               onClick={handleFullCorrection}
               disabled={fullCorrectionMutation.isPending}
-              className="flex items-center px-6 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 disabled:opacity-50"
-            >
+      className="flex items-center px-6 py-2 bg-red-600 text-white text-sm rounded-md hover: bg-red-700 disabled:opacity-50">
               <PlayCircle className={`h-4 w-4 mr-2 ${fullCorrectionMutation.isPending ? 'animate-spin' : ''}`} />
               {fullCorrectionMutation.isPending ? '修正実行中...' : '一括修正実行'}
             </button>
@@ -394,8 +351,7 @@ export const IntegrityCorrectionPanel: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
-                    <div className="text-center p-2 bg-green-100 rounded">
+      <div className="grid grid-cols-1 md: grid-cols-3 gap-4 mb-3"><div className="text-center p-2 bg-green-100 rounded">
                       <div className="text-lg font-bold text-green-800">{result.fixed_count}</div>
                       <div className="text-xs text-green-600">修正完了</div>
                     </div>
@@ -413,8 +369,7 @@ export const IntegrityCorrectionPanel: React.FC = () => {
                     <div className="mt-3">
                       <button
                         onClick={() => setShowDetails(showDetails === result.category ? null : result.category)}
-                        className="flex items-center text-xs text-blue-600 hover:text-blue-800"
-                      >
+      className="flex items-center text-xs text-blue-600 hover: text-blue-800">
                         <FileText className="h-3 w-3 mr-1" />
                         詳細を{showDetails === result.category ? '隠す' : '表示'}
                         ({result.details.length}件)

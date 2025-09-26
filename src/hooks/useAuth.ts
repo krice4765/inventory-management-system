@@ -156,10 +156,6 @@ export const useAuth = () => {
   const signIn = useCallback(async (email: string, password: string) => {
     try {
       const result = await supabase.auth.signInWithPassword({ email, password });
-        success: !result.error,
-        error: result.error?.message,
-        user: result.data.user?.email
-      });
       return result;
     } catch (error) {
       console.error('🚨 ログイン例外:', error);

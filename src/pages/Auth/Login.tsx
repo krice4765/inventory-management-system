@@ -12,8 +12,7 @@ const getDefaultLoginValues = () => {
   const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost';
 
   if (isDevelopment) {
-    // 開発環境: 管理者アカウントをローテーション
-    const adminAccounts = [
+      // 開発環境: 管理者アカウントをローテーション const adminAccounts = [
       { email: 'Krice4765104@gmail.com', password: 'AdminPass123!' },
       { email: 'dev@inventory.test', password: 'password123' }
     ];
@@ -25,17 +24,14 @@ const getDefaultLoginValues = () => {
     return account;
   }
 
-  // 本番環境: 空の状態
-  return { email: '', password: '' };
+      // 本番環境: 空の状態 return { email: '', password: '' };
 };
 
 const schema = yup.object({
-  email: yup
-    .string()
+      email: yup .string()
     .email('有効なメールアドレスを入力してください')
     .required('メールアドレスは必須です'),
-  password: yup
-    .string()
+      password: yup .string()
     .min(6, 'パスワードは6文字以上で入力してください')
     .required('パスワードは必須です'),
 });
@@ -55,14 +51,11 @@ export const Login: React.FC = () => {
     formState: { errors },
   } = useForm<LoginForm>({
     resolver: yupResolver(schema),
-    defaultValues: {
-      email: defaultValues.email,
-      password: defaultValues.password
-    }
+      defaultValues: { email: defaultValues.email,
+      password: defaultValues.password }
   });
 
-  const onSubmit = async (data: LoginForm) => {
-    setIsLoading(true);
+      const onSubmit = async (data: LoginForm) => { setIsLoading(true);
     try {
       const { error } = await signIn(data.email, data.password);
       if (error) {
@@ -87,8 +80,7 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm: px-6 lg:px-8"><div className="max-w-md w-full space-y-8">
         <div>
           <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-indigo-100">
             <Package className="h-8 w-8 text-indigo-600" />
@@ -113,8 +105,7 @@ export const Login: React.FC = () => {
                 {...register('email')}
                 type="email"
                 autoComplete="email"
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="メールアドレスを入力"
+      className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus: outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"placeholder="メールアドレスを入力"
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
@@ -129,8 +120,7 @@ export const Login: React.FC = () => {
                   {...register('password')}
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
-                  className="appearance-none relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="パスワードを入力"
+      className="appearance-none relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus: outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"placeholder="パスワードを入力"
                 />
                 <button
                   type="button"
@@ -139,8 +129,7 @@ export const Login: React.FC = () => {
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
+      ) : ( <Eye className="h-5 w-5 text-gray-400" />
                   )}
                 </button>
               </div>
@@ -154,8 +143,7 @@ export const Login: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+      className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover: bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
               {isLoading ? 'ログイン中...' : 'ログイン'}
             </button>
           </div>

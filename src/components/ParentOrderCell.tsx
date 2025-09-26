@@ -3,8 +3,7 @@ import React from 'react';
 import type { TransactionWithParent } from '../types/purchase';
 
 interface ParentOrderCellProps {
-    transaction: TransactionWithParent;
-}
+      transaction: TransactionWithParent; }
 
 export const ParentOrderCell: React.FC<ParentOrderCellProps> = ({ transaction }) => {
     const {
@@ -44,8 +43,7 @@ export const ParentOrderCell: React.FC<ParentOrderCellProps> = ({ transaction })
                 borderColor: 'border-red-200',
                 icon: '🔴',
                 label: '満額',
-                priority: 'high'
-            };
+      priority: 'high' };
         }
 
         if (remaining !== null && remaining < (parent_order_total || 0) * 0.1) {
@@ -55,8 +53,7 @@ export const ParentOrderCell: React.FC<ParentOrderCellProps> = ({ transaction })
                 borderColor: 'border-amber-200',
                 icon: '🟡',
                 label: '残少',
-                priority: 'medium'
-            };
+      priority: 'medium' };
         }
 
         switch (status) {
@@ -67,8 +64,7 @@ export const ParentOrderCell: React.FC<ParentOrderCellProps> = ({ transaction })
                     borderColor: 'border-orange-200',
                     icon: '🟠',
                     label: '満杯近',
-                    priority: 'medium'
-                };
+      priority: 'medium' };
             case 'normal':
                 return {
                     bgColor: 'bg-emerald-100',
@@ -76,8 +72,7 @@ export const ParentOrderCell: React.FC<ParentOrderCellProps> = ({ transaction })
                     borderColor: 'border-emerald-200',
                     icon: '✅',
                     label: '正常',
-                    priority: 'low'
-                };
+      priority: 'low' };
             default:
                 return {
                     bgColor: 'bg-gray-100',
@@ -85,8 +80,7 @@ export const ParentOrderCell: React.FC<ParentOrderCellProps> = ({ transaction })
                     borderColor: 'border-gray-200',
                     icon: '❓',
                     label: '不明',
-                    priority: 'low'
-                };
+      priority: 'low' };
         }
     };
 
@@ -96,15 +90,13 @@ export const ParentOrderCell: React.FC<ParentOrderCellProps> = ({ transaction })
         <div className="flex flex-col items-start gap-1 min-w-0">
             {/* 発注番号 */}
             <div
-                className="text-blue-600 hover:bg-blue-50 px-2 py-1 rounded cursor-pointer font-medium text-sm truncate max-w-full"
-                title={`発注番号: ${displayCode}\n発注額: ¥${parent_order_total?.toLocaleString() || '不明'}\n残額: ¥${parent_order_remaining?.toLocaleString() || '不明'}`}
+      className="text-blue-600 hover: bg-blue-50 px-2 py-1 rounded cursor-pointer font-medium text-sm truncate max-w-full"title={`発注番号: ${displayCode}\n発注額: ¥${parent_order_total?.toLocaleString() || '不明'}\n残額: ¥${parent_order_remaining?.toLocaleString() || '不明'}`}
                 onClick={() => {
                     onOrderClick?.({
                         id: parent_order_id,
                         code: displayCode,
                         total: parent_order_total,
-                        remaining: parent_order_remaining
-                    });
+      remaining: parent_order_remaining });
                 }}
             >
                 {displayCode}

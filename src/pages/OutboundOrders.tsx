@@ -9,12 +9,7 @@ import { useOutboundManagement, OutboundUtils, OutboundOrder, OutboundOrderItem 
 
 // フィルタの型定義
 interface OutboundFilters {
-  status: string;
-  customer: string;
-  startDate: string;
-  endDate: string;
-  searchTerm: string;
-}
+      status: string; customer: string; startDate: string; endDate: string; searchTerm: string; }
 
 export default function OutboundOrders() {
   const { isDark } = useDarkMode();
@@ -76,8 +71,7 @@ export default function OutboundOrders() {
   const handleResetFilters = useCallback(() => {
     setSearchInput('');
     setAppliedSearchTerm('');
-    const resetFilters: OutboundFilters = {
-      status: 'all',
+      const resetFilters: OutboundFilters = { status: 'all',
       customer: '',
       startDate: '',
       endDate: '',
@@ -89,8 +83,7 @@ export default function OutboundOrders() {
   }, []);
 
   // ステータス表示（OutboundUtils使用）
-  const getStatusBadge = (status: OutboundOrder['status']) => {
-    const statusConfig = {
+      const getStatusBadge = (status: OutboundOrder['status']) => { const statusConfig = {
       pending: { label: OutboundUtils.getStatusLabel(status), color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: '⏳' },
       processing: { label: OutboundUtils.getStatusLabel(status), color: 'bg-blue-100 text-blue-800 border-blue-200', icon: '🔄' },
       completed: { label: OutboundUtils.getStatusLabel(status), color: 'bg-green-100 text-green-800 border-green-200', icon: '✅' },
@@ -107,9 +100,7 @@ export default function OutboundOrders() {
   };
 
   // 納期緊急度表示（OutboundUtils使用）
-  const getDueDateColor = (dueDate?: string) => {
-    return OutboundUtils.isUrgent(dueDate) ? 'text-red-600 font-semibold' : '';
-  };
+      const getDueDateColor = (dueDate?: string) => { return OutboundUtils.isUrgent(dueDate) ? 'text-red-600 font-semibold' : ''; };
 
   // ローディング・エラー処理
   if (error) {
@@ -127,9 +118,7 @@ export default function OutboundOrders() {
             <button
               onClick={() => refetch()}
               className={`px-4 py-2 rounded-lg font-medium ${isDark
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }`}
+      ? 'bg-blue-600 hover: bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white' }`}
             >
               再試行
             </button>
@@ -166,9 +155,7 @@ export default function OutboundOrders() {
             className={`
               flex items-center px-4 py-2 rounded-lg font-medium transition-colors
               ${isDark
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }
+      ? 'bg-blue-600 hover: bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white' }
             `}
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -178,10 +165,8 @@ export default function OutboundOrders() {
 
         {/* 検索・フィルタバー */}
         <ModernCard className="mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* 検索フィールド */}
-            <div className="md:col-span-2">
-              <div className="relative">
+      <div className="grid grid-cols-1 md: grid-cols-4 gap-4">{/* 検索フィールド */}
+      <div className="md: col-span-2"><div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
                   type="text"
@@ -193,10 +178,8 @@ export default function OutboundOrders() {
                     w-full pl-10 pr-4 py-2 border rounded-lg
                     ${isDark
                       ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                    }
-                    focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                  `}
+      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500' }
+      focus: ring-2 focus:ring-blue-500 focus:border-transparent `}
                 />
               </div>
             </div>
@@ -210,10 +193,8 @@ export default function OutboundOrders() {
                   w-full px-3 py-2 border rounded-lg
                   ${isDark
                     ? 'bg-gray-700 border-gray-600 text-white'
-                    : 'bg-white border-gray-300 text-gray-900'
-                  }
-                  focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                `}
+      : 'bg-white border-gray-300 text-gray-900' }
+      focus: ring-2 focus:ring-blue-500 focus:border-transparent `}
               >
                 <option value="all">全てのステータス</option>
                 <option value="pending">未処理</option>
@@ -230,9 +211,7 @@ export default function OutboundOrders() {
                 className={`
                   flex-1 flex items-center justify-center px-3 py-2 rounded-lg font-medium
                   ${isDark
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                  }
+      ? 'bg-blue-600 hover: bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white' }
                   transition-colors
                 `}
               >
@@ -244,9 +223,7 @@ export default function OutboundOrders() {
                 className={`
                   px-3 py-2 rounded-lg font-medium border transition-colors
                   ${isDark
-                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }
+      ? 'border-gray-600 text-gray-300 hover: bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50' }
                 `}
               >
                 <RefreshCw className="w-4 h-4" />
@@ -256,8 +233,7 @@ export default function OutboundOrders() {
         </ModernCard>
 
         {/* 統計サマリー（在庫管理ページと統一） */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          {isLoading ? (
+      <div className="grid grid-cols-1 md: grid-cols-4 gap-4 mb-6">{isLoading ? (
             // ローディング状態
             Array.from({ length: 4 }).map((_, index) => (
               <ModernCard key={index} className="p-4">
@@ -272,8 +248,7 @@ export default function OutboundOrders() {
                 </div>
               </ModernCard>
             ))
-          ) : (
-            <>
+      ) : ( <>
               <ModernCard className="p-4">
                 <div className="flex items-center">
                   <div className={`p-2 rounded-lg ${isDark ? 'bg-yellow-900/30' : 'bg-yellow-100'} mr-3`}>
@@ -376,16 +351,14 @@ export default function OutboundOrders() {
                       ))}
                     </tr>
                   ))
-                ) : (
-                  outboundOrders.map((order, index) => (
+      ) : ( outboundOrders.map((order, index) => (
                   <motion.tr
                     key={order.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: index * 0.1 }}
                     className={`
-                      border-b transition-colors hover:bg-gray-50/50
-                      ${isDark ? 'border-gray-700 hover:bg-gray-800/50' : 'border-gray-200'}
+      border-b transition-colors hover: bg-gray-50/50 ${isDark ? 'border-gray-700 hover:bg-gray-800/50' : 'border-gray-200'}
                     `}
                   >
                     <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>
@@ -424,9 +397,7 @@ export default function OutboundOrders() {
                           className={`
                             px-3 py-1 text-xs rounded-md font-medium transition-colors
                             ${isDark
-                              ? 'bg-blue-900/30 text-blue-400 hover:bg-blue-900/50'
-                              : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                            }
+      ? 'bg-blue-900/30 text-blue-400 hover: bg-blue-900/50' : 'bg-blue-100 text-blue-700 hover:bg-blue-200' }
                           `}
                         >
                           詳細
@@ -468,9 +439,7 @@ export default function OutboundOrders() {
                 className={`
                   px-4 py-2 rounded-lg font-medium
                   ${isDark
-                    ? 'bg-gray-700 hover:bg-gray-600 text-white'
-                    : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
-                  }
+      ? 'bg-gray-700 hover: bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-900' }
                 `}
               >
                 閉じる
@@ -496,9 +465,7 @@ export default function OutboundOrders() {
                 className={`
                   px-4 py-2 rounded-lg font-medium
                   ${isDark
-                    ? 'bg-gray-700 hover:bg-gray-600 text-white'
-                    : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
-                  }
+      ? 'bg-gray-700 hover: bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-900' }
                 `}
               >
                 閉じる

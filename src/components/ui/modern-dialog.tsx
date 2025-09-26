@@ -4,17 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Minimize2, Maximize2 } from 'lucide-react';
 
 interface DialogContextType {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
+      open: boolean; onOpenChange: (open: boolean) => void; }
 
 const DialogContext = createContext<DialogContextType | undefined>(undefined);
 
 interface ModernDialogProps {
-  children: React.ReactNode;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-}
+      children: React.ReactNode; open?: boolean; onOpenChange?: (open: boolean) => void; }
 
 export const ModernDialog: React.FC<ModernDialogProps> = ({
   children,
@@ -27,14 +22,12 @@ export const ModernDialog: React.FC<ModernDialogProps> = ({
     setIsOpen(open);
   }, [open]);
 
-  const handleOpenChange = (newOpen: boolean) => {
-    setIsOpen(newOpen);
+      const handleOpenChange = (newOpen: boolean) => { setIsOpen(newOpen);
     onOpenChange?.(newOpen);
   };
 
   useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isOpen) {
+      const handleEscape = (event: KeyboardEvent) => { if (event.key === 'Escape' && isOpen) {
         handleOpenChange(false);
       }
     };
@@ -52,8 +45,7 @@ export const ModernDialog: React.FC<ModernDialogProps> = ({
 
   const contextValue = {
     open: isOpen,
-    onOpenChange: handleOpenChange
-  };
+      onOpenChange: handleOpenChange };
 
   return (
     <DialogContext.Provider value={contextValue}>
@@ -63,12 +55,7 @@ export const ModernDialog: React.FC<ModernDialogProps> = ({
 };
 
 interface ModernDialogContentProps {
-  children: React.ReactNode;
-  className?: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
-  closable?: boolean;
-  minimizable?: boolean;
-}
+      children: React.ReactNode; className?: string; size?: 'sm' | 'md' | 'lg' | 'xl' | 'full' | 'ultra'; closable?: boolean; minimizable?: boolean; }
 
 export const ModernDialogContent: React.FC<ModernDialogContentProps> = ({
   children,
@@ -93,11 +80,11 @@ export const ModernDialogContent: React.FC<ModernDialogContentProps> = ({
     md: 'max-w-lg max-h-[90vh] w-full',
     lg: 'max-w-2xl max-h-[90vh] w-full',
     xl: 'max-w-3xl max-h-[80vh] w-full sm:max-w-2xl md:max-w-3xl',
-    full: 'max-w-6xl max-h-[90vh] w-full'
+    full: 'max-w-6xl max-h-[90vh] w-full',
+    ultra: 'max-w-[90vw] max-h-[92vh] w-full'
   };
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
+      const handleBackdropClick = (e: React.MouseEvent) => { if (e.target === e.currentTarget) {
       onOpenChange(false);
     }
   };
@@ -125,16 +112,15 @@ export const ModernDialogContent: React.FC<ModernDialogContentProps> = ({
           animate={{
             opacity: 1,
             scale: isMinimized ? 0.3 : 1,
-            y: isMinimized ? window.innerHeight - 200 : 0
-          }}
+      y: isMinimized ? window.innerHeight - 200 : 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{
             type: "spring",
             stiffness: 300,
-            damping: 30
-          }}
+      damping: 30 }}
           className={`
-            relative w-full ${sizeClasses[size]} mx-auto bg-white dark:bg-gray-900
+            relative w-full ${sizeClasses[size]} mx-auto
+            bg-white dark:bg-gray-900
             rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700
             flex flex-col overflow-hidden
             ${className}
@@ -142,7 +128,7 @@ export const ModernDialogContent: React.FC<ModernDialogContentProps> = ({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Modern Header with Glass Effect */}
-          <div className="relative bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-gray-800/50 dark:to-gray-700/50 backdrop-blur-sm border-b border-gray-200/50 dark:border-gray-700/50">
+      <div className="relative bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-gray-800/50 dark:to-gray-700/50 backdrop-blur-sm border-b border-gray-200/50 dark:border-gray-700/50">
             <div className="flex items-center justify-between p-4">
               <div className="flex items-center space-x-3">
                 <div className="w-3 h-3 rounded-full bg-red-500 opacity-60"></div>
@@ -154,12 +140,12 @@ export const ModernDialogContent: React.FC<ModernDialogContentProps> = ({
                 {minimizable && (
                   <motion.button
                     onClick={() => setIsMinimized(!isMinimized)}
-                    className="p-2 rounded-lg bg-gray-100/80 dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+      className="p-2 rounded-lg bg-gray-100/80 dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
                     {isMinimized ? (
-                      <Maximize2 className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+      <Maximize2 className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                     ) : (
                       <Minimize2 className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                     )}
@@ -169,11 +155,11 @@ export const ModernDialogContent: React.FC<ModernDialogContentProps> = ({
                 {closable && (
                   <motion.button
                     onClick={() => onOpenChange(false)}
-                    className="p-2 rounded-lg bg-red-50/80 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors group"
+      className="p-2 rounded-lg bg-red-50/80 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors group"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <X className="h-4 w-4 text-red-500 group-hover:text-red-600" />
+      <X className="h-4 w-4 text-red-500 group-hover:text-red-600" />
                   </motion.button>
                 )}
               </div>
@@ -200,10 +186,7 @@ export const ModernDialogContent: React.FC<ModernDialogContentProps> = ({
 };
 
 interface ModernDialogHeaderProps {
-  children: React.ReactNode;
-  className?: string;
-  icon?: React.ReactNode;
-}
+      children: React.ReactNode; className?: string; icon?: React.ReactNode; }
 
 export const ModernDialogHeader: React.FC<ModernDialogHeaderProps> = ({
   children,
@@ -227,10 +210,7 @@ export const ModernDialogHeader: React.FC<ModernDialogHeaderProps> = ({
 };
 
 interface ModernDialogTitleProps {
-  children: React.ReactNode;
-  className?: string;
-  subtitle?: string;
-}
+      children: React.ReactNode; className?: string; subtitle?: string; }
 
 export const ModernDialogTitle: React.FC<ModernDialogTitleProps> = ({
   children,
@@ -243,8 +223,7 @@ export const ModernDialogTitle: React.FC<ModernDialogTitleProps> = ({
         {children}
       </h2>
       {subtitle && (
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {subtitle}
+      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{subtitle}
         </p>
       )}
     </div>
@@ -252,9 +231,7 @@ export const ModernDialogTitle: React.FC<ModernDialogTitleProps> = ({
 };
 
 interface ModernDialogBodyProps {
-  children: React.ReactNode;
-  className?: string;
-}
+      children: React.ReactNode; className?: string; }
 
 export const ModernDialogBody: React.FC<ModernDialogBodyProps> = ({
   children,
@@ -263,20 +240,16 @@ export const ModernDialogBody: React.FC<ModernDialogBodyProps> = ({
   return (
     <div className={`flex-1 overflow-y-auto ${className}`}>
       {typeof children === 'string' ? (
-        <div className="px-6 py-4 space-y-4 sm:px-8 sm:py-6 sm:space-y-6">
-          {children}
+      <div className="px-6 py-4 space-y-4 sm:px-8 sm:py-6 sm:space-y-6">{children}
         </div>
-      ) : (
-        children
+      ) : ( children
       )}
     </div>
   );
 };
 
 interface ModernDialogFooterProps {
-  children: React.ReactNode;
-  className?: string;
-}
+      children: React.ReactNode; className?: string; }
 
 export const ModernDialogFooter: React.FC<ModernDialogFooterProps> = ({
   children,
