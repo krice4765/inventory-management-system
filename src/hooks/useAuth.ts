@@ -70,30 +70,29 @@ const ensureUserProfile = async (user: User) => {
         updated_at: new Date().toISOString()
       };
 
+      // 競合を避けるため、まずINSERTを試行し、エラーの場合はUPDATEに切り替え
       const { error: insertError } = await supabase
         .from('user_profiles')
-        .upsert([newProfile], {
-          onConflict: 'id',
-          ignoreDuplicates: false
-        });
+        .insert([newProfile]);
 
       if (insertError) {
-        // 重複キー制約エラーの場合は既存のプロファイルが作成されたということなので警告レベル
-        if (insertError.code === '23505') {
+        // 重複キー制約エラー（23505）や競合エラーの場合は既存のプロファイルが作成されたということなので警告レベル
+        if (insertError.code === '23505' || insertError.message?.includes('duplicate') || insertError.message?.includes('conflict')) {
           console.warn('⚠️ User profile already exists (created by another process):', user.email);
-          // 既存プロファイルの last_login_at を更新
-          const { error: updateError } = await supabase
-            .from('user_profiles')
-            .update({ last_login_at: new Date().toISOString() })
-            .eq('id', user.id);
-
-          if (!updateError) {
+          // 既存プロファイルの last_login_at を更新（静かに失敗する）
+          try {
+            await supabase
+              .from('user_profiles')
+              .update({ last_login_at: new Date().toISOString() })
+              .eq('id', user.id);
+          } catch (updateError) {
+            // 更新エラーは無視（別のプロセスが同時に更新している可能性）
+            console.debug('Last login update skipped due to concurrent access');
           }
         } else {
           console.error('❌ User profile creation failed:', insertError.message);
           console.error('Error details:', insertError);
         }
-      } else {
       }
     }
   } catch (error) {
