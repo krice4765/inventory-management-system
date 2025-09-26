@@ -71,7 +71,16 @@ export const useOrderForDelivery = (orderId: string | null) => {
 
       // 🚨 強化デバッグログ（削除済み）
 
-      // 🚨 数量リセットバグ検出
+      // 🚨 数量リセットバグ検出とデバッグ情報
+      console.log('🔍 分納データの詳細調査:', {
+        deliveries: deliveries.length,
+        movements: movements.length,
+        deliveryTransactionIds,
+        relevantMovements: relevantMovements.length,
+        allDeliveries: deliveries,
+        allMovements: movements.slice(0, 5) // 最初の5件のみ表示
+      });
+
       if (relevantMovements.length === 0 && deliveries.length > 0) {
         console.error('🚨 数量リセットバグ検出: 分納レコードは存在するが在庫移動が0件', {
           問題: '分納レコードと在庫移動の関連付け失敗',
@@ -87,6 +96,8 @@ export const useOrderForDelivery = (orderId: string | null) => {
         acc[productId] = (acc[productId] || 0) + (movement.quantity || 0);
         return acc;
       }, {});
+
+      console.log('🔍 分納済み数量の計算結果:', deliveredQuantitiesByProduct);
 
 
       // inventory_movementsから実際の在庫数量を計算（InventoryStatusTabと同じロジック）
