@@ -78,7 +78,14 @@ export const useOrderForDelivery = (orderId: string | null) => {
         deliveryTransactionIds,
         relevantMovements: relevantMovements.length,
         allDeliveries: deliveries,
-        allMovements: movements.slice(0, 5) // 最初の5件のみ表示
+        allMovements: movements.slice(0, 5), // 最初の5件のみ表示
+        'movements中のtransaction_id一覧': [...new Set(movements.map(m => m.transaction_id))].slice(0, 10)
+      });
+
+      // transaction_idの詳細比較
+      console.log('🔍 transaction_id詳細比較:', {
+        'deliveryTransactionIds型': deliveryTransactionIds.map(id => ({ id, type: typeof id })),
+        'movements中のtransaction_id型': movements.slice(0, 3).map(m => ({ id: m.transaction_id, type: typeof m.transaction_id }))
       });
 
       if (relevantMovements.length === 0 && deliveries.length > 0) {
