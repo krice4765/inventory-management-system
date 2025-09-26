@@ -182,8 +182,46 @@ export class SimplifiedInstallmentService {
               });
             } else {
               console.log('✅ 分納明細作成成功');
+
+              // 🎯 在庫移動レコードも同時作成（transaction_id付き）
+              const movementsToInsert = items.map(item => ({
+                product_id: item.product_id,
+                movement_type: 'in',
+                quantity: item.quantity,
+                unit_price: item.unit_price || 0,
+                total_amount: item.total_amount || 0,
+                transaction_id: transactionData.id,
+                memo: `分納入庫 - ${data.memo || `第${installmentNumber}回`}`,
+                created_at: new Date().toISOString()
+              }));
+
+              console.log('🔍 在庫移動挿入データ:', movementsToInsert);
+
+              const { error: movementsError } = await supabase
+                .from('inventory_movements')
+                .insert(movementsToInsert);
+
+              if (movementsError) {
+                console.error('❌ 在庫移動作成エラー:', {
+                  error: movementsError,
+                  code: movementsError.code,
+                  message: movementsError.message,
+                  details: movementsError.details,
+                  hint: movementsError.hint,
+                  movementsData: movementsToInsert
+                });
+              } else {
+                console.log('✅ 在庫移動レコード作成成功');
+              }
             }
           }
+
+          // 🎯 V3処理成功時は即座にリターン（フォールバック処理を回避）
+          console.log('✅ V3分納処理完了');
+          return {
+            success: true,
+            transactionId: transactionData.id
+          };
         }
 
         const rpcError = transactionError;
@@ -315,6 +353,37 @@ export class SimplifiedInstallmentService {
                 }
               } else {
                 // ログ出力（削除済み）
+
+                // 🎯 フォールバック処理でも在庫移動レコードを作成
+                const fallbackMovementsToInsert = transactionItems.map(item => ({
+                  product_id: item.product_id,
+                  movement_type: 'in',
+                  quantity: item.quantity,
+                  unit_price: item.unit_price || 0,
+                  total_amount: item.line_total || 0,
+                  transaction_id: transaction.id,
+                  memo: `分納入庫 - ${data.memo || `第${installmentNumber}回`}`,
+                  created_at: new Date().toISOString()
+                }));
+
+                console.log('🔍 フォールバック在庫移動挿入データ:', fallbackMovementsToInsert);
+
+                const { error: fallbackMovementsError } = await supabase
+                  .from('inventory_movements')
+                  .insert(fallbackMovementsToInsert);
+
+                if (fallbackMovementsError) {
+                  console.error('❌ フォールバック在庫移動作成エラー:', {
+                    error: fallbackMovementsError,
+                    code: fallbackMovementsError.code,
+                    message: fallbackMovementsError.message,
+                    details: fallbackMovementsError.details,
+                    hint: fallbackMovementsError.hint,
+                    movementsData: fallbackMovementsToInsert
+                  });
+                } else {
+                  console.log('✅ フォールバック在庫移動レコード作成成功');
+                }
               }
             }
           }

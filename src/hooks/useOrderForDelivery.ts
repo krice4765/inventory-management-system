@@ -71,31 +71,16 @@ export const useOrderForDelivery = (orderId: string | null) => {
 
       // 🚨 強化デバッグログ（削除済み）
 
-      // 🚨 数量リセットバグ検出とデバッグ情報
-      console.log('🔍 分納データの詳細調査:', {
+      // 🎯 transaction_idマッピング状況の確認
+      console.log('🔍 分納マッピング状況:', {
         deliveries: deliveries.length,
         movements: movements.length,
-        deliveryTransactionIds,
         relevantMovements: relevantMovements.length,
-        allDeliveries: deliveries,
-        allMovements: movements.slice(0, 5), // 最初の5件のみ表示
-        'movements中のtransaction_id一覧': [...new Set(movements.map(m => m.transaction_id))].slice(0, 10)
-      });
-
-      // transaction_idの詳細比較
-      console.log('🔍 transaction_id詳細比較:', {
-        'deliveryTransactionIds型': deliveryTransactionIds.map(id => ({ id, type: typeof id })),
-        'movements中のtransaction_id型': movements.slice(0, 3).map(m => ({ id: m.transaction_id, type: typeof m.transaction_id }))
+        mappingSuccess: relevantMovements.length > 0
       });
 
       if (relevantMovements.length === 0 && deliveries.length > 0) {
-        console.error('🚨 数量リセットバグ検出: 分納レコードは存在するが在庫移動が0件', {
-          問題: '分納レコードと在庫移動の関連付け失敗',
-          deliveriesCount: deliveries.length,
-          movementsCount: movements.length,
-          deliveryTransactionIds,
-          分析: 'transaction_idのマッピングに問題がある可能性'
-        });
+        console.warn('⚠️ 分納レコードと在庫移動の関連付けが見つかりません - 新しい分納システムで修正されます');
       }
 
       const deliveredQuantitiesByProduct = relevantMovements.reduce((acc: { [key: string]: number }, movement) => {
