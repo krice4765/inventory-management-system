@@ -38,10 +38,12 @@ export const useOrderForDelivery = (orderId: string | null) => {
           .from('inventory_movements')
           .select('product_id, quantity, transaction_id')
           .eq('movement_type', 'in'),
-        // 現在の在庫残高を取得（整合性チェック用）
+        // 現在の在庫残高を取得（inventory_movementsから実際の在庫数量を計算）
         supabase
-          .from('products')
-          .select('id, product_name, current_stock')
+          .from('inventory_movements')
+          .select('product_id, movement_type, quantity')
+          .order('created_at', { ascending: false })
+          .limit(1000)
       ]);
         
       if (orderResult.error) throw orderResult.error;
@@ -54,19 +56,19 @@ export const useOrderForDelivery = (orderId: string | null) => {
       const items = itemsResult.data || [];
       const deliveries = deliveryResult.data || [];
       const movements = movementsResult.data || [];
-      const currentStocks = stockResult.data || [];
+      const allMovements = stockResult.data || [];
 
       // ログ出力（削除済み）
-      
+
       // 分納実績を合計
       const delivered_amount = deliveries.reduce((sum, delivery) => sum + (delivery.total_amount || 0), 0);
-      
+
       // 商品別の分納済み数量を集計（inventory_movementsから）
       const deliveryTransactionIds = deliveries.map(d => d.id);
-      const relevantMovements = movements.filter(m => 
+      const relevantMovements = movements.filter(m =>
         deliveryTransactionIds.includes(m.transaction_id)
       );
-      
+
       // 🚨 強化デバッグログ（削除済み）
 
       // 🚨 数量リセットバグ検出
@@ -79,19 +81,30 @@ export const useOrderForDelivery = (orderId: string | null) => {
           分析: 'transaction_idのマッピングに問題がある可能性'
         });
       }
-      
+
       const deliveredQuantitiesByProduct = relevantMovements.reduce((acc: { [key: string]: number }, movement) => {
         const productId = movement.product_id;
         acc[productId] = (acc[productId] || 0) + (movement.quantity || 0);
         return acc;
       }, {});
-      
-      
-      // 現在在庫との整合性チェック
-      const stockMap = currentStocks.reduce((acc: { [key: string]: number }, stock) => {
-        acc[stock.id] = stock.current_stock || 0;
-        return acc;
-      }, {});
+
+
+      // inventory_movementsから実際の在庫数量を計算（InventoryStatusTabと同じロジック）
+      const stockMap: { [key: string]: number } = {};
+
+      // 各商品ごとに在庫を計算
+      const productIds = [...new Set(allMovements.map(m => m.product_id))];
+      productIds.forEach(productId => {
+        const productMovements = allMovements.filter(m => m.product_id === productId);
+        const totalIn = productMovements
+          .filter(m => m.movement_type === 'in')
+          .reduce((sum, m) => sum + (m.quantity || 0), 0);
+        const totalOut = productMovements
+          .filter(m => m.movement_type === 'out')
+          .reduce((sum, m) => sum + (m.quantity || 0), 0);
+
+        stockMap[productId] = Math.max(0, totalIn - totalOut);
+      });
       
       
       // 仕入先名を取得
