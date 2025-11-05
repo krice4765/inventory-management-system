@@ -17,7 +17,7 @@ test.describe('ログイン機能', () => {
   });
 
   test('空のフォームで送信するとエラーが表示される', async ({ page }) => {
-    await page.getByRole('button', { name: 'ログイン' })).click();
+    await page.getByRole('button', { name: 'ログイン' }).click();
 
     // バリデーションエラーメッセージの確認
     await expect(page.getByText(/メールアドレスを入力してください|メールアドレスは必須です/)).toBeVisible();
