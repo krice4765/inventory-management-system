@@ -22,4 +22,31 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment and sensitive files
 .env
+.env.local
+.env.*.local
+pass.txt
+
+# Test screenshots and temporary files
+*.png
+*.jpg
+*.jpeg
+*.gif
+nul
+
+# Backup files
+*.backup
+*_backup_*
+
+# Build outputs
+build/
+public/
+
+# Temporary and system files
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+.mcp.json
