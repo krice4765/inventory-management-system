@@ -44,6 +44,8 @@
 | `E2E_TEST_ADMIN_EMAIL` | E2Eテスト用管理者ユーザーのメールアドレス | `e2e-test-admin@example.com` |
 | `E2E_TEST_ADMIN_PASSWORD` | E2Eテスト用管理者ユーザーのパスワード | `your-admin-password` |
 
+**注意**: GitHub Secretsの名前は`E2E_`プレフィックスが付きますが、ワークフロー内で自動的に`TEST_`プレフィックスに変換されます（例: `E2E_TEST_USER_EMAIL` → `TEST_USER_EMAIL`）。これはテストコードとの互換性を保つためです。
+
 ### Supabase設定の取得方法
 
 1. [Supabaseダッシュボード](https://supabase.com/dashboard)にログイン
