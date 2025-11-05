@@ -19,20 +19,20 @@ async function login(page: Page, email: string, password: string) {
   await page.goto('/');
 
   // ログインページであることを確認
-  await expect(page.getByRole('heading', { name: 'ログイン' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '在庫管理システム' })).toBeVisible();
 
   // 認証情報を入力
   await page.getByLabel('メールアドレス').fill(email);
   await page.getByLabel('パスワード').fill(password);
 
   // ログインボタンをクリック
-  await page.getByRole('button', { name: 'ログイン' }).click();
+  await page.getByRole('button', { name: 'サインイン' }).click();
 
   // ログイン成功を待つ（ダッシュボードへのリダイレクト）
-  await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
+  await expect(page).toHaveURL('/', { timeout: 10000 });
 
   // ダッシュボードが表示されることを確認
-  await expect(page.getByText(/ダッシュボード/)).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'ダッシュボード' })).toBeVisible();
 }
 
 /**

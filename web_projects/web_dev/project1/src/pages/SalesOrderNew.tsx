@@ -79,7 +79,7 @@ export default function SalesOrderNew() {
       order_no: '',
       order_date: new Date().toISOString().split('T')[0],
       delivery_date: '',
-      delivery_address: '',
+      // delivery_address: '', // ← データベースにカラムが存在しないため削除
       notes: '',
       items: [
         {
@@ -147,17 +147,27 @@ export default function SalesOrderNew() {
   // 受注登録mutation
   const createSalesOrderMutation = useMutation({
     mutationFn: async (data: SalesOrderFormData) => {
+      // 0. 顧客情報を取得（customer_name取得のため）
+      const { data: customerData, error: customerError } = await supabase
+        .from('partners')
+        .select('name')
+        .eq('id', data.customer_id)
+        .single();
+
+      if (customerError) throw customerError;
+      if (!customerData) throw new Error('顧客情報が見つかりません');
+
       // 1. 受注ヘッダーを挿入
       const { data: orderData, error: orderError } = await supabase
         .from('sales_orders')
         .insert({
           order_no: data.order_no,
           customer_id: data.customer_id,
+          customer_name: customerData.name, // 顧客名を追加
           order_date: data.order_date,
           delivery_date: data.delivery_date || null,
-          delivery_address: data.delivery_address || null,
           notes: data.notes || null,
-          status: 'pending', // 初期状態は「受注確認待ち」
+          status: 'confirmed', // 初期状態は「受注確定」
           total_amount: 0, // トリガーで自動計算される
           tax_amount: 0, // トリガーで自動計算される
         })
@@ -167,13 +177,21 @@ export default function SalesOrderNew() {
       if (orderError) throw orderError;
 
       // 2. 受注明細を挿入
-      const itemsToInsert = data.items.map((item) => ({
-        sales_order_id: orderData.id,
-        product_id: item.product_id,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        tax_rate: item.tax_rate,
-      }));
+      const itemsToInsert = data.items.map((item, index) => {
+        const product = products.find(p => p.id === item.product_id);
+        if (!product) throw new Error('商品情報が見つかりません');
+
+        return {
+          sales_order_id: orderData.id,
+          product_id: item.product_id,
+          product_code: product.product_code,
+          product_name: product.product_name,
+          line_no: index + 1,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          tax_rate: item.tax_rate,
+        };
+      });
 
       const { error: itemsError } = await supabase
         .from('sales_order_items')
@@ -307,7 +325,8 @@ export default function SalesOrderNew() {
           </div>
 
           {/* 納品先住所 */}
-          <div className="mt-4">
+          {/* 納品先住所フィールドを削除（データベースにカラムが存在しないため） */}
+          {/* <div className="mt-4">
             <FormTextarea
               label="納品先住所"
               rows={3}
@@ -315,7 +334,7 @@ export default function SalesOrderNew() {
               placeholder="納品先住所を入力してください（任意）"
               {...register('delivery_address')}
             />
-          </div>
+          </div> */}
         </div>
 
         {/* 受注明細 */}
